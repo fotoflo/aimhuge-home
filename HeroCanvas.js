@@ -21,6 +21,30 @@ class HeroCanvas {
     window.addEventListener('resize', e => this.resizeCanvas(e));
   }
 
+
+  generateCanvas(){
+    console.log("filling canvas")
+    console.log("width", this.width)
+    console.log("height", this.height)  
+    
+    this.generateRandomCircles(250,250, 40)
+    this.generateRandomCircles(120,120, 10)
+    this.generateRandomCircles(50, 50, 5)
+
+    const heroCopywriting = `line one \n Line 2 \n a long line 3 \n  4`
+    
+    new HeroText( {x: 400, y:400}, heroCopywriting, 100, this.ctx)
+
+    console.log("canvas filled")
+  } 
+
+  fillBackground(){
+    this.ctx.beginPath();
+    this.ctx.rect(0, 0, this.width, this.height);
+    this.ctx.fillStyle = "white" //"#" + randomColor();
+    this.ctx.fill();
+  }
+
   generateRandomCircles(xDistance=100, yDistance=100, radius=30, rigitity=1.5){
     const points = []
     const Xs = window.innerWidth / xDistance; // this many points
@@ -54,24 +78,6 @@ class HeroCanvas {
     return true
   }
 
-  generateCanvas(){
-    console.log("filling canvas")
-    console.log("width", this.width)
-    console.log("height", this.height)  
-    
-    this.generateRandomCircles(250,250, 40)
-    this.generateRandomCircles(120,120, 10)
-    this.generateRandomCircles(50, 50, 5)
-
-    console.log("canvas filled")
-  } 
-
-  fillBackground(){
-    this.ctx.beginPath();
-    this.ctx.rect(0, 0, this.width, this.height);
-    this.ctx.fillStyle = "white" //"#" + randomColor();
-    this.ctx.fill();
-  }
 
   resetCanvas(){
     this.circles = []
@@ -79,7 +85,6 @@ class HeroCanvas {
     this.setCanvasHeight();
     this.ctx.clearRect(0, 0, this.width, this.height);
   }
-
   resizeCanvas(){
     this.resetCanvas()
     this.generateCanvas()
@@ -97,6 +102,7 @@ class HeroCanvas {
     this.canvas.height  = this.height;
     return this.height;
   }
+
 }
 
 function getViewportWidth() {

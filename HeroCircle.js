@@ -12,8 +12,12 @@ class HeroCircle {
 
     this.drawCircle(this.center, this.radius)
     
-    window.addEventListener('resize', e => this.resizeCanvas(e));
+    window.addEventListener('resize', e => this.onResizeCanvas(e));
     return this
+  }
+  
+  onResizeCanvas(){
+    console.log("resizing cricle")
   }
   
   drawCircle(point, radius, color="red"){
@@ -23,12 +27,8 @@ class HeroCircle {
     this.ctx.arc(point["x"], point["y"], radius, 0, 2 * Math.PI);
     this.ctx.fillStyle = color;
     this.ctx.fill()
-    console.log("drawing circle ", this.ctx.fillStyle)
   }
 
-  onResizeCanvas(){
-    console.log("resizing cricle")
-  }
 
   distToEdge(point){
     const x1 = point["x"];
