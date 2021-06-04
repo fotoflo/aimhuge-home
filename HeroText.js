@@ -9,9 +9,42 @@ class HeroText {
     this.font = `${size}px Helvetica Neue Bold`
     this.color = "red";
     this.text = text;
+    
+    this.rects = []
 
-    return this.drawWrappedText(text)
+    this.drawWrappedText(text)
+
+    return this
   }
+
+  distToNearestEdge(point){
+    let minDist = 10000;
+    for( const i in this.rects){
+      const rect = this.rects[i]
+      const dist = this.distToEdge(point,rect)
+      minDist = Math.min(dist, minDist)
+    }
+    return minDist
+  }
+
+  distToEdge(point, rect){
+    rect = {
+      min:{x: rect.x , y: rect.y},
+      max:{x: rect.x + rect.width, y: rect.y + rect.height}
+    }
+    // check if it's in the rect
+    if( ( rect.min.x < point.x && point.x < rect.max.x ) &&
+        ( rect.min.y < point.y && point.y < rect.max.y )  ){
+      return -1
+    }
+
+    // get the distance to edge
+    // https://stackoverflow.com/questions/5254838/calculating-distance-between-a-point-and-a-rectangular-box-nearest-point
+    let dx = Math.max(rect.min.x - point.x, 0, point.x - rect.max.x);
+    let dy = Math.max(rect.min.y - point.y, 0, point.y - rect.max.y);
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+
   drawWrappedText(text = this.text, separator = '\n'){
     this.prepCtx(text)
 
@@ -33,11 +66,14 @@ class HeroText {
     const fontWidth = textMetrics.width;
     console.log(`bound text fontHeight-  ${fontHeight}`)
     const rect = { 
-      x: x,
-      y: y - fontHeight,
-      width: fontWidth,
-      height: fontHeight
+      x: x - 10,
+      y: y - fontHeight * 5/7 ,
+      width: fontWidth + 20,
+      height: fontHeight * 4/5
     };
+
+    this.rects.push(rect)
+
     this.drawRect(rect.x, rect.y, rect.width, rect.height);
 
     return rect;
@@ -60,21 +96,21 @@ class HeroText {
   }
   
   drawRect(x,y,width, height){
-    this.ctx.strokeRect(x, y, width, height)
+   // this.ctx.strokeRect(x, y, width, height)
   }
 
   drawCenterPoint(x = this.x, y = this.y, textMetrics){
-    const fontWidth = textMetrics.width;
+    // const fontWidth = textMetrics.width;
     
-    const centerX = x + fontWidth/2;
-    const centerY = y - textMetrics.fontBoundingBoxAscent/2;
+    // const centerX = x + fontWidth/2;
+    // const centerY = y - textMetrics.fontBoundingBoxAscent/2;
 
-    const textCenter = { 
-      x: centerX,
-      y: centerY
-    }
+    // const textCenter = { 
+    //   x: centerX,
+    //   y: centerY
+    // }
 
-    this.drawCircle(textCenter, 15)
+    // this.drawCircle(textCenter, 15)
   }
 
   drawCircle(point, radius=5, color="black"){

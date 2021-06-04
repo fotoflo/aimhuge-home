@@ -1,39 +1,55 @@
 // canvas header by alex miller (fotoflo@gmail.com)
 
+const TEXTMARGIN = 20;
+//const HERO_COPY = `Dion \n Dion Dion \n Dion Dion Dion \n Dion Dion Dion Dion`
+const HERO_COPY = `Dion \n Lisl \n Mommy \n Daddy`
+
 window.onload = function() {
   //dom not only ready, but everything is loaded
 
   console.log("window loaded")
   const myHeroCanvas = new HeroCanvas()
-  myHeroCanvas.generateCanvas();
+  myHeroCanvas.generateCanvas()
 };
 
 
 class HeroCanvas {
   constructor(height, width) {
     this.canvas = document.getElementById("headCanvas");
+    
     this.ctx = this.canvas.getContext("2d")
     this.height = this.setCanvasHeight();
     this.width = this.setCanvasWidth();
 
+    this.rects = []
     this.circles = []
 
     window.addEventListener('resize', e => this.resizeCanvas(e));
+    this.canvas.addEventListener('mousedown', e => {this.resetCanvas(e); this.generateCanvas() })
+    this.generateCanvas()
+    // this.backoffRepeat( 500 )
+  }
+  
+  async backoffRepeat(ms, fn){
+    for(let i = 0; i < 20 ;i++){
+      await wait(ms * i)
+      this.generateCanvas()
+    }
   }
 
-
   generateCanvas(){
+    //this.resetCanvas()
     console.log("filling canvas")
     console.log("width", this.width)
     console.log("height", this.height)  
+
+    
+    this.heroText = new HeroText( {x: 400, y:400}, HERO_COPY, 100, this.ctx)
     
     this.generateRandomCircles(250,250, 40)
     this.generateRandomCircles(120,120, 10)
     this.generateRandomCircles(50, 50, 5)
-
-    const heroCopywriting = `line one \n Line 2 \n a long line 3 \n  4`
-    
-    new HeroText( {x: 400, y:400}, heroCopywriting, 100, this.ctx)
+    this.heroFunnel = new HeroFunnel(this.ctx)
 
     console.log("canvas filled")
   } 
@@ -67,7 +83,14 @@ class HeroCanvas {
   }
 
   checkPoint(point, radius, maxDistCoefficient = 2){
-    for(let i = 0; i < this.circles.length; i++){
+    //check squares
+    const dist = this.heroText.distToNearestEdge(point)
+    if(dist == -1 || dist < TEXTMARGIN ){
+      return false
+    }
+
+    //check cirlces
+    for(let i in this.circles){
       const circle = this.circles[i]
       const dist = circle.distToEdge(point)
       // console.log(`dist: ${dist}, radius * 3, ${radius * 3}`)
@@ -95,6 +118,7 @@ class HeroCanvas {
     this.canvas.width  = this.width;
     return this.width;
   }
+
   setCanvasHeight() {    
     const viewportHeight = getViewportHeight();
     const bottomMargin = Math.max(viewportHeight * .1, 100);
@@ -116,4 +140,8 @@ function getViewportHeight() {
 function randomColor(){
   return Math.floor(Math.random()*16777215).toString(16)
 }
+
+function wait(ms){
+  return new Promise((res) => setTimeout(res, ms));
+} 
 
