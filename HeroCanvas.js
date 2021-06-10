@@ -84,10 +84,19 @@ class HeroCanvas {
 
   checkPoint(point, radius, maxDistCoefficient = 2){
     //check squares
-    const dist = this.heroText.distToNearestEdge(point)
-    if(dist == -1 || dist < TEXTMARGIN ){
+    const distToText = this.heroText.distToNearestEdge(point)
+    if(distToText == -1 || distToText < TEXTMARGIN ){
       return false
     }
+
+    // check bottom
+    const distToBottom = this.height - point.y ;
+    const distToRight = this.width - point.x ;
+    const RadiusPlusMargin = radius + 5
+    if( RadiusPlusMargin > distToBottom  ) return false; // Check Bottom
+    if( RadiusPlusMargin > point.y) return false; // Top
+    if( RadiusPlusMargin > point.x ) return false;  // Left
+    if( RadiusPlusMargin > distToRight) return false // Right
 
     //check cirlces
     for(let i in this.circles){
