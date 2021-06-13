@@ -33,8 +33,8 @@ class HeroTrapezoid{
     return this;
   }
 
-  drawTrapezoid(points,i){
-    this.ctx.fillStyle = this.color
+  drawTrapezoid(points,i, color=this.color){
+    this.ctx.fillStyle = color
     
     this.ctx.beginPath();
     this.ctx.moveTo(points.topLeft.x, points.topLeft.y); // start
@@ -63,6 +63,23 @@ class HeroTrapezoid{
 
     const rand = Math.floor(Math.random() * (colors.length + 1));
     return colors[rand]
+  }
+
+  distTo(point = {x: 0, y:0}){
+    const p = point2p(point); // return [point.x, point.y]
+
+    const vertices = [
+      point2p(this.points.topLeft),
+      point2p(this.points.topRight),
+      point2p(this.points.bottomRight),
+      point2p(this.points.bottomLeft)
+    ]
+    
+    const d = distanceToPolygon(p, vertices)
+    console.log(d, p)
+    debugger
+    if (d === Infinity) return -1
+    return d; 
   }
 
   // distToNearestEdge(point){

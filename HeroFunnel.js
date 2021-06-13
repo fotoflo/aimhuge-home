@@ -48,8 +48,26 @@ class HeroFunnel {
       },
     ]
     this.heroZoids = [] // where to put the objects
+    this.drawFunnel() // and generate HeroZoids
+    const bottomTrapezoid = this.heroZoids[this.heroZoids.length - 1]
 
-    this.drawFunnel()
+    this.outline = {
+      topLeft: this.startPoint,
+      topRight: { 
+        x: this.heroZoids[0].points.topRight.x,
+        y: this.heroZoids[0].points.topRight.y
+      },
+      bottomLeft: {
+        x: bottomTrapezoid.points.bottomLeft.x,
+        y: bottomTrapezoid.points.bottomLeft.y
+      },
+      bottomRight:{
+        x: bottomTrapezoid.points.bottomRight.x,
+        y: bottomTrapezoid.points.bottomRight.y
+      }
+    }
+
+    // this.heroZoids[0].drawTrapezoid(this.outline, 11, "red")
 
     return this
   }
@@ -75,5 +93,4 @@ class HeroFunnel {
         )
       }
   }
-
 }

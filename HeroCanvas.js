@@ -1,6 +1,9 @@
 // canvas header by alex miller (fotoflo@gmail.com)
 
 const TEXTMARGIN = 20;
+const TRAPEZOID_MARGIN = 20;
+const FUNNEL_STARTPOINT = { x: 700, y: 400 }
+const TEXT_STARTPOINT = { x: 400, y: 400}
 //const HERO_COPY = `Dion \n Dion Dion \n Dion Dion Dion \n Dion Dion Dion Dion`
 const HERO_COPY = `Dion \n Lisl \n Mommy \n Daddy`
 
@@ -29,13 +32,6 @@ class HeroCanvas {
     this.generateCanvas()
     // this.backoffRepeat( 500 )
   }
-  
-  async backoffRepeat(ms, fn){
-    for(let i = 0; i < 20 ;i++){
-      await wait(ms * i)
-      this.generateCanvas()
-    }
-  }
 
   generateCanvas(){
     //this.resetCanvas()
@@ -44,15 +40,22 @@ class HeroCanvas {
     console.log("height", this.height)  
 
     
-    this.heroText = new HeroText( {x: 400, y:400}, HERO_COPY, 100, this.ctx)
+    this.heroText = new HeroText( TEXT_STARTPOINT, HERO_COPY, 100, this.ctx)
+    this.heroFunnel = new HeroFunnel(this.ctx)
     
     this.generateRandomCircles(250,250, 40)
-    this.generateRandomCircles(120,120, 10)
-    this.generateRandomCircles(50, 50, 5)
-    this.heroFunnel = new HeroFunnel(this.ctx)
+    this.generateRandomCircles(180,180, 10)
+    this.generateRandomCircles(80, 80, 5)
 
     console.log("canvas filled")
   } 
+  
+  async backoffRepeat(ms, fn){
+    for(let i = 0; i < 20 ;i++){
+      await wait(ms * i)
+      this.generateCanvas()
+    }
+  }
 
   fillBackground(){
     this.ctx.beginPath();
@@ -83,9 +86,20 @@ class HeroCanvas {
   }
 
   checkPoint(point, radius, maxDistCoefficient = 2){
+
+    //check trapazoids
+    for( let i = 0; i < this.heroFunnel.heroZoids.length; i++){
+      const zoid = this.heroFunnel.heroZoids[i]
+      debugger
+      const distToZoid = zoid.distTo(point)
+      if(distToZoid == -1 || distToZoid < TRAPEZOID_MARGIN + radius + 2 ){
+        return false
+      }  
+    }
+
     //check squares
     const distToText = this.heroText.distToNearestEdge(point)
-    if(distToText == -1 || distToText < TEXTMARGIN ){
+    if(distToText == -1 || distToText < TEXTMARGIN + radius + 2 ){
       return false
     }
 
