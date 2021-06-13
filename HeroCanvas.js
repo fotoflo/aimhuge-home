@@ -90,7 +90,6 @@ class HeroCanvas {
     //check trapazoids
     for( let i = 0; i < this.heroFunnel.heroZoids.length; i++){
       const zoid = this.heroFunnel.heroZoids[i]
-      debugger
       const distToZoid = zoid.distTo(point)
       if(distToZoid == -1 || distToZoid < TRAPEZOID_MARGIN + radius + 2 ){
         return false

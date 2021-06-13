@@ -76,9 +76,15 @@ class HeroTrapezoid{
     ]
     
     const d = distanceToPolygon(p, vertices)
-    console.log(d, p)
-    debugger
-    if (d === Infinity) return -1
+
+    if( d < this.height/2 ){
+        return -1
+    } 
+
+    if (d === Infinity){
+      return -1
+    } 
+    
     return d; 
   }
 
