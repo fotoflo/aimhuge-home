@@ -3,9 +3,9 @@
 const TEXTMARGIN = 20;
 const TRAPEZOID_MARGIN = 20;
 const FUNNEL_STARTPOINT = { x: 700, y: 400 }
-const TEXT_STARTPOINT = { x: 400, y: 400}
-//const HERO_COPY = `Dion \n Dion Dion \n Dion Dion Dion \n Dion Dion Dion Dion`
-const HERO_COPY = `Dion \n Lisl \n Mommy \n Daddy`
+const TEXT_STARTPOINT = { x: 300, y: 400}
+const HERO_COPY = `AimHuge \n Growth \n Consulting`
+//const HERO_COPY = `Dion \n Lisl \n Mommy \n Daddy`
 
 window.onload = function() {
   //dom not only ready, but everything is loaded
@@ -64,7 +64,7 @@ class HeroCanvas {
     this.ctx.fill();
   }
 
-  generateRandomCircles(xDistance=100, yDistance=100, radius=30, rigitity=1.5){
+  generateRandomCircles(xDistance=100, yDistance=100, radius=30){
     const points = []
     const Xs = window.innerWidth / xDistance; // this many points
     const Ys = window.innerHeight / yDistance; 
@@ -72,8 +72,8 @@ class HeroCanvas {
     let xRand, yRand;
     for( let i = 0 ; i < Xs; i++){
       for( let j = 0; j < Ys; j++){
-        xRand = xDistance * 1/rigitity * Math.random();
-        yRand = yDistance * 1/rigitity * Math.random();
+        xRand = xDistance * Math.random();
+        yRand = yDistance * Math.random();
         points[i] = { 
           x: i * xDistance + xRand, 
           y: j * yDistance + yRand
