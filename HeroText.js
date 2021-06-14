@@ -1,14 +1,15 @@
 class HeroText {
-  constructor(point, text, size, ctx){
+  constructor(point, text, color="red", font, size,ctx){
     this.ctx = ctx;
     this.point = point;
+    this.color = color;
+    this.text = text;
+    this.size = size;
+    this.font = `${size}px ${font}`
+    console.log("font: ", this.font)
+    
     this.x = point["x"]
     this.y = point["y"]
-    console.log(`this.y: ${this.y}`)
-    this.size = size;
-    this.font = `${size}px Helvetica Neue Bold`
-    this.color = "red";
-    this.text = text;
     
     this.rects = []
 

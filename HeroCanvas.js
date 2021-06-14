@@ -2,10 +2,13 @@
 
 const TEXTMARGIN = 20;
 const TRAPEZOID_MARGIN = 20;
-const FUNNEL_STARTPOINT = { x: 700, y: 400 }
-const TEXT_STARTPOINT = { x: 300, y: 400}
-const HERO_COPY = `AimHuge \n Growth \n Consulting`
+const FUNNEL_STARTPOINT = { x: 900, y: 250 }
+const TEXT_STARTPOINT = { x: 200, y: 400}
+const HERO_COPY = `Aim Higher\n with AimHuge `
+const HERO_TEXT_COLOR = "Black";
+const HERO_TEXT_FONT = 'HelveticaNeue-Bold';
 //const HERO_COPY = `Dion \n Lisl \n Mommy \n Daddy`
+const BOTTOM_MARGIN = () =>  Math.max(window.innerHeight - 100);
 
 window.onload = function() {
   //dom not only ready, but everything is loaded
@@ -34,20 +37,12 @@ class HeroCanvas {
   }
 
   generateCanvas(){
-    //this.resetCanvas()
-    console.log("filling canvas")
-    console.log("width", this.width)
-    console.log("height", this.height)  
-
-    
-    this.heroText = new HeroText( TEXT_STARTPOINT, HERO_COPY, 100, this.ctx)
-    this.heroFunnel = new HeroFunnel(this.ctx)
+    this.heroText = new HeroText( TEXT_STARTPOINT, HERO_COPY, HERO_TEXT_COLOR, HERO_TEXT_FONT, 100, this.ctx)
+    this.heroFunnel = new HeroFunnel(this.ctx, FUNNEL_STARTPOINT, 5)
     
     this.generateRandomCircles(250,250, 40)
-    this.generateRandomCircles(180,180, 10)
+    this.generateRandomCircles(120,120, 10)
     this.generateRandomCircles(80, 80, 5)
-
-    console.log("canvas filled")
   } 
   
   async backoffRepeat(ms, fn){
@@ -130,6 +125,7 @@ class HeroCanvas {
     this.setCanvasHeight();
     this.ctx.clearRect(0, 0, this.width, this.height);
   }
+
   resizeCanvas(){
     this.resetCanvas()
     this.generateCanvas()
@@ -142,9 +138,7 @@ class HeroCanvas {
   }
 
   setCanvasHeight() {    
-    const viewportHeight = getViewportHeight();
-    const bottomMargin = Math.max(viewportHeight * .1, 100);
-    this.height = viewportHeight; // - bottomMargin;
+    this.height = BOTTOM_MARGIN();
     this.canvas.height  = this.height;
     return this.height;
   }
@@ -153,10 +147,6 @@ class HeroCanvas {
 
 function getViewportWidth() {
   return window.innerWidth;
-}
-
-function getViewportHeight() {
-  return window.innerHeight;
 }
 
 function randomColor(){
