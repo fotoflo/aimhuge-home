@@ -37,6 +37,7 @@ class HeroCanvas {
   }
 
   generateCanvas(){
+    console.log("*** GENERATE CANVAS ***")
     this.heroText = new HeroText( TEXT_STARTPOINT, HERO_COPY, HERO_TEXT_COLOR, HERO_TEXT_FONT, 100, this.ctx)
     this.heroFunnel = new HeroFunnel(this.ctx, FUNNEL_STARTPOINT, 5)
     
@@ -47,7 +48,7 @@ class HeroCanvas {
   
   async backoffRepeat(ms, fn){
     for(let i = 0; i < 20 ;i++){
-      await wait(ms * i)
+      await sleep(ms * i)
       this.generateCanvas()
     }
   }
@@ -59,25 +60,38 @@ class HeroCanvas {
     this.ctx.fill();
   }
 
-  generateRandomCircles(xDistance=100, yDistance=100, radius=30){
-    const points = []
+  async generateRandomCircles(xDistance=100, yDistance=100, radius=30, delay=10){
+    let points = []
     const Xs = window.innerWidth / xDistance; // this many points
     const Ys = window.innerHeight / yDistance; 
 
-    let xRand, yRand;
-    for( let i = 0 ; i < Xs; i++){
-      for( let j = 0; j < Ys; j++){
+    let xRand, yRand, timeDiff;
+    let now = new Date()
+    let i = 0;
+    // generate points
+    for( let j = 0 ; j < Xs; j++){
+      for( let k = 0; k < Ys; k++){
         xRand = xDistance * Math.random();
         yRand = yDistance * Math.random();
         points[i] = { 
-          x: i * xDistance + xRand, 
-          y: j * yDistance + yRand
+          x: j * xDistance + xRand, 
+          y: k * yDistance + yRand
         }
-        if(this.checkPoint(points[i], radius)){
-          this.circles.push( new HeroCircle( points[i], radius, this.ctx ) )
-        }
+        i++;
       }  
     }
+    
+    // check and render a circle on a random point
+    let p;
+    while( points.length > 0){
+      p = randBetween(0, points.length - 1)
+      if(this.checkPoint(points[p], radius)){
+        this.circles.push( new HeroCircle( points[p], radius, this.ctx ) )
+        await sleep(20)
+      }
+      points.splice(p,1)
+    }
+
   }
 
   checkPoint(point, radius, maxDistCoefficient = 2){
@@ -153,7 +167,11 @@ function randomColor(){
   return Math.floor(Math.random()*16777215).toString(16)
 }
 
-function wait(ms){
+function randBetween(min, max) { // min and max included 
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+function sleep(ms){
   return new Promise((res) => setTimeout(res, ms));
 } 
 
