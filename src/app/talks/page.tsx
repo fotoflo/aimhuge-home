@@ -4,6 +4,19 @@ export const metadata: Metadata = {
   title: "Talks — AimHuge",
   description:
     "Conference talks and presentations by Alex Miller on startup mindset, AI engineering, and building products.",
+  openGraph: {
+    title: "Talks — AimHuge",
+    description:
+      "Conference talks and presentations by Alex Miller on startup mindset, AI engineering, and building products.",
+    images: [{ url: "/images/alex-headshot.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Talks — AimHuge",
+    description:
+      "Conference talks and presentations by Alex Miller on startup mindset, AI engineering, and building products.",
+    images: ["/images/alex-headshot.jpg"],
+  },
 };
 
 const talks = [

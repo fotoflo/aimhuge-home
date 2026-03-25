@@ -4,6 +4,19 @@ export const metadata: Metadata = {
   title: "Portfolio — AimHuge",
   description:
     "Projects, investments, and ventures by Alex Miller — from startup syndicates to fitness apps.",
+  openGraph: {
+    title: "Portfolio — AimHuge",
+    description:
+      "Projects, investments, and ventures by Alex Miller — from startup syndicates to fitness apps.",
+    images: [{ url: "/images/alex-headshot.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Portfolio — AimHuge",
+    description:
+      "Projects, investments, and ventures by Alex Miller — from startup syndicates to fitness apps.",
+    images: ["/images/alex-headshot.jpg"],
+  },
 };
 
 const projects = [

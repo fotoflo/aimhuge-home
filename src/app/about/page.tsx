@@ -5,6 +5,19 @@ export const metadata: Metadata = {
   title: "About Alex Miller — AimHuge",
   description:
     "25+ years building software products in Asia. Startup operator, investor, triathlete, and AI trainer.",
+  openGraph: {
+    title: "About Alex Miller — AimHuge",
+    description:
+      "25+ years building software products in Asia. Startup operator, investor, triathlete, and AI trainer.",
+    images: [{ url: "/images/alex-headshot.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Alex Miller — AimHuge",
+    description:
+      "25+ years building software products in Asia. Startup operator, investor, triathlete, and AI trainer.",
+    images: ["/images/alex-headshot.jpg"],
+  },
 };
 
 export default function AboutPage() {

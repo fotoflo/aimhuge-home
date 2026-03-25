@@ -5,6 +5,19 @@ export const metadata: Metadata = {
   title: "Advisory & Executive Training — AimHuge",
   description:
     "25+ years of startup operating experience. AI strategy, technology leadership, go-to-market, and 1:1 executive AI training.",
+  openGraph: {
+    title: "Advisory & Executive Training — AimHuge",
+    description:
+      "25+ years of startup operating experience. AI strategy, technology leadership, go-to-market, and 1:1 executive AI training.",
+    images: [{ url: "/images/alex-headshot.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Advisory & Executive Training — AimHuge",
+    description:
+      "25+ years of startup operating experience. AI strategy, technology leadership, go-to-market, and 1:1 executive AI training.",
+    images: ["/images/alex-headshot.jpg"],
+  },
 };
 
 const experience = [

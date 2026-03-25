@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "AimHuge × PulseTech — AI Engineering Workshop & Hackathon",
+  title: "AimHuge × PulseTech — AI Engineering in Production",
   description:
-    "3-day AI Engineering Workshop & Hackathon for PulseTech. March 31 – April 2, 2026. Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
+    "3-day AI Engineering in Production workshop & hackathon. March 31 – April 2, 2026. Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
   openGraph: {
-    title: "AimHuge × PulseTech — AI Engineering Workshop & Hackathon",
+    title: "AimHuge × PulseTech — AI Engineering in Production | Mar 31 – Apr 2, 2026",
     description:
-      "3-day AI Engineering Workshop & Hackathon. March 31 – April 2, 2026 in Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
+      "3-day AI Engineering in Production workshop & hackathon. March 31 – April 2, 2026 in Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
     images: [{ url: "/images/alex-headshot.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AimHuge × PulseTech — AI Engineering Workshop & Hackathon",
+    title: "AimHuge × PulseTech — AI Engineering in Production | Mar 31 – Apr 2, 2026",
     description:
-      "3-day AI Engineering Workshop & Hackathon. March 31 – April 2, 2026 in Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
+      "3-day AI Engineering in Production workshop & hackathon. March 31 – April 2, 2026 in Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
     images: ["/images/alex-headshot.jpg"],
   },
 };
