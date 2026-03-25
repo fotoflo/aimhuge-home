@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Engineering in Production — AimHuge",
+  title: "AI Engineering Workshop — AimHuge",
   description:
-    "A 2-day immersive workshop with a 24-hour hackathon. Your team learns real AI engineering skills and ships a project before they leave.",
+    "A 2-day immersive AI engineering workshop with a 24-hour hackathon. Your team learns real AI engineering skills and ships a project before they leave.",
+  openGraph: {
+    title: "AI Engineering Workshop — AimHuge",
+    description:
+      "2-day immersive AI engineering workshop + 24-hour hackathon. Your team learns real AI skills and ships a project before they leave.",
+    images: [{ url: "/images/alex-headshot.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Engineering Workshop — AimHuge",
+    description:
+      "2-day immersive AI engineering workshop + 24-hour hackathon. Your team learns real AI skills and ships a project before they leave.",
+    images: ["/images/alex-headshot.jpg"],
+  },
 };
 
 const skills = [
