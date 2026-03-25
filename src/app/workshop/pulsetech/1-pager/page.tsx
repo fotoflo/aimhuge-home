@@ -9,14 +9,14 @@ export const metadata: Metadata = {
     title: "AimHuge × PulseTech — AI Engineering in Production | Mar 31 – Apr 2, 2026",
     description:
       "3-day AI Engineering in Production workshop & hackathon. March 31 – April 2, 2026 in Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
-    images: [{ url: "/images/alex-headshot.jpg" }],
+    images: [{ url: "/images/pulsetech-og.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "AimHuge × PulseTech — AI Engineering in Production | Mar 31 – Apr 2, 2026",
     description:
       "3-day AI Engineering in Production workshop & hackathon. March 31 – April 2, 2026 in Dhaka, Bangladesh. Build software 2-5x faster with Claude Code.",
-    images: ["/images/alex-headshot.jpg"],
+    images: ["/images/pulsetech-og.png"],
   },
 };
 
