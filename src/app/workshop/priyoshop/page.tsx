@@ -9,14 +9,14 @@ export const metadata: Metadata = {
     title: "AimHuge × Priyoshop — AI Productivity for Leadership | March 30, 2026",
     description:
       "1-day AI Productivity Workshop for 30 leadership team members. March 30, 2026 in Dhaka, Bangladesh. ChatGPT, Claude, AI assistants, and practical use cases.",
-    images: [{ url: "/images/priyoshop-og.png" }],
+    images: [{ url: "/images/priyoshop-og.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "AimHuge × Priyoshop — AI Productivity for Leadership | March 30, 2026",
     description:
       "1-day AI Productivity Workshop for 30 leadership team members. March 30, 2026 in Dhaka, Bangladesh. ChatGPT, Claude, AI assistants, and practical use cases.",
-    images: ["/images/priyoshop-og.png"],
+    images: ["/images/priyoshop-og.jpg"],
   },
 };
 
@@ -339,7 +339,7 @@ export default function PriyoshopWorkshop() {
           </p>
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <Image
-              src="/images/priyoshop-og.png"
+              src="/images/priyoshop-og.jpg"
               alt="Alex Miller"
               width={120}
               height={120}
