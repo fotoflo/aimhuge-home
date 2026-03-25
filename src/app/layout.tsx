@@ -28,21 +28,21 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "AimHuge — Alex Miller",
   description:
-    "Startup operator, investor, and AI trainer. Helping teams build with AI through hands-on workshops and advisory.",
+    "AI Workshops delivered for Jibble Group, Ling App, and others. 25+ years building software across Asia. Based in Chiang Mai, Thailand.",
   icons: {
     icon: "/aimhuge-favicon.png",
   },
   openGraph: {
     title: "AimHuge — Alex Miller",
     description:
-      "Startup operator, investor, and AI trainer. Helping teams build with AI through hands-on workshops and advisory.",
+      "AI Workshops delivered for Jibble Group, Ling App, and others. 25+ years building software across Asia. Based in Chiang Mai, Thailand.",
     images: [{ url: "/images/alex-headshot.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "AimHuge — Alex Miller",
     description:
-      "Startup operator, investor, and AI trainer. Helping teams build with AI through hands-on workshops and advisory.",
+      "AI Workshops delivered for Jibble Group, Ling App, and others. 25+ years building software across Asia. Based in Chiang Mai, Thailand.",
     images: ["/images/alex-headshot.jpg"],
   },
 };

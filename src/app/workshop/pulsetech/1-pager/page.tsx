@@ -375,7 +375,9 @@ export default function PulseTechOnePager() {
                   apps including Flexbike, HabitCal, and Notation CMS.
                 </p>
                 <p>
-                  Workshops delivered for Jibble Group, UOB, and others.
+                  Workshops delivered for{" "}
+                  <a href="https://www.jibble.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">Jibble Group</a>,{" "}
+                  <a href="https://ling-app.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">Ling App</a>, and others.
                   25+ years building software across Asia. Based in Chiang
                   Mai, Thailand.
                 </p>
