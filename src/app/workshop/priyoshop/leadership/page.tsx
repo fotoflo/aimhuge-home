@@ -339,7 +339,7 @@ export default function PriyoshopWorkshop() {
           </p>
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <Image
-              src="/images/priyoshop-og.jpg"
+              src="/images/alex-headshot.jpg"
               alt="Alex Miller"
               width={120}
               height={120}

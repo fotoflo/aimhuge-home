@@ -9,14 +9,14 @@ export const metadata: Metadata = {
     title: "AimHuge × Priyoshop — AI Engineering in Production | March 30, 2026",
     description:
       "1-day AI Engineering Workshop for Priyoshop tech team. Claude Code, AI-assisted development, and production workflows.",
-    images: [{ url: "/images/priyoshop-og.jpg" }],
+    images: [{ url: "/images/priyoshop-tech-og.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "AimHuge × Priyoshop — AI Engineering in Production | March 30, 2026",
     description:
       "1-day AI Engineering Workshop for Priyoshop tech team. Claude Code, AI-assisted development, and production workflows.",
-    images: ["/images/priyoshop-og.jpg"],
+    images: ["/images/priyoshop-tech-og.jpg"],
   },
 };
 

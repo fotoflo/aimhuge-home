@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f /Users/fotoflo/dev/aimhuge/.git/HEAD.lock /Users/fotoflo/dev/aimhuge/.git/index.lock)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git push:*)",
+      "Bash(vercel:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx sharp-cli:*)",
+      "Bash(npx --yes sharp-cli -i public/images/pulsetech-og.png -o public/images/pulsetech-og.jpg --quality 80)",
+      "Bash(git rm:*)",
+      "WebSearch"
+    ]
+  }
+}
