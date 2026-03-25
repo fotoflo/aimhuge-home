@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Link from "next/link";
 import Image from "next/image";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -28,6 +29,22 @@ export const metadata: Metadata = {
   title: "AimHuge — Alex Miller",
   description:
     "Startup operator, investor, and AI trainer. Helping teams build with AI through hands-on workshops and advisory.",
+  icons: {
+    icon: "/aimhuge-favicon.png",
+  },
+  openGraph: {
+    title: "AimHuge — Alex Miller",
+    description:
+      "Startup operator, investor, and AI trainer. Helping teams build with AI through hands-on workshops and advisory.",
+    images: [{ url: "/images/alex-headshot.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AimHuge — Alex Miller",
+    description:
+      "Startup operator, investor, and AI trainer. Helping teams build with AI through hands-on workshops and advisory.",
+    images: ["/images/alex-headshot.jpg"],
+  },
 };
 
 const navLinks = [
@@ -49,6 +66,18 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-JM4EDLSXKD"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-JM4EDLSXKD');
+          `}
+        </Script>
       <body className="min-h-full flex flex-col">
         {/* Navigation */}
         <nav className="sticky top-0 z-50 border-b border-card-border bg-background/80 backdrop-blur-md">

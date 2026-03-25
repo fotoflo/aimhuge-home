@@ -4,12 +4,6 @@ import Link from "next/link";
 const testimonials = [
   {
     quote:
-      "Even skeptical team members have been silenced or won around — probably one of the best company investments in training I've personally ever made, or at least delivered the highest ROI.",
-    name: "Fawad Akram",
-    title: "Founder & CGO, Jibble",
-  },
-  {
-    quote:
       "I passed over my AI coding prejudice, set a goal to create all code using just AI and learned a lot from it. I see a bunch of places where we can speed up development without losing in quality.",
     name: "Alex K",
     title: "Mobile & Desktop Team Lead, Jibble",
@@ -19,6 +13,12 @@ const testimonials = [
       "It was the first time I used AI to build a product end-to-end that connects to another product using API keys. Working with AI exceeded my expectations.",
     name: "Nikofor",
     title: "Quantitative Financial Analyst & PM",
+  },
+  {
+    quote:
+      "I learned how to use Cursor AI to speed up my daily work — how to write good prompts, Cursor applied rules and context, and more.",
+    name: "Trong",
+    title: "Engineer, Jibble",
   },
 ];
 
@@ -129,23 +129,126 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          What People Are Saying
+      {/* Featured Testimonial — Fawad */}
+      <section className="relative overflow-hidden grain">
+        {/* Background layers */}
+        <div className="absolute inset-0 bg-surface" />
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 50%, var(--accent) 0%, transparent 50%), radial-gradient(circle at 80% 80%, var(--accent) 0%, transparent 40%)",
+          }}
+        />
+        {/* Accent bar — left edge only, asymmetric */}
+        <div className="absolute left-0 top-[15%] bottom-[15%] w-[3px] bg-accent" />
+
+        <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 md:py-32">
+          <div className="grid md:grid-cols-[1fr_280px] gap-16 md:gap-20 items-center">
+            {/* Quote side — left aligned, editorial */}
+            <div className="space-y-8 animate-slide-left">
+              {/* Oversized quote mark as a design element */}
+              <span
+                className="block text-accent text-[120px] md:text-[160px] leading-[0.6] font-serif select-none opacity-60"
+                aria-hidden="true"
+              >
+                &ldquo;
+              </span>
+
+              <div className="-mt-8 space-y-5">
+                <p
+                  className="text-[1.65rem] md:text-[2.1rem] leading-[1.3] tracking-[-0.01em] text-white"
+                  style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                >
+                  Probably one of the best company investments in training
+                  I&apos;ve personally ever made or at least delivered the
+                  highest ROI.
+                </p>
+                <p
+                  className="text-xl md:text-2xl leading-[1.35] text-white/80"
+                  style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                >
+                  A few die hard AI fans now! Including me.
+                </p>
+              </div>
+
+              {/* Attribution */}
+              <div className="pt-6 flex items-center gap-5">
+                <div className="w-12 h-[2px] bg-accent" />
+                <a
+                  href="https://www.linkedin.com/in/fawadakram"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group"
+                >
+                  <p className="text-base font-semibold text-white group-hover:text-accent transition-colors tracking-wide uppercase">
+                    Fawad Akram
+                  </p>
+                  <p className="text-muted text-sm mt-0.5">
+                    Founder &amp; Chief Growth Officer, Jibble Group
+                  </p>
+                </a>
+              </div>
+            </div>
+
+            {/* Photo — right side, square crop with corner accent */}
+            <div className="animate-slide-right delay-2 justify-self-center md:justify-self-end">
+              <div className="relative">
+                {/* Corner accent lines */}
+                <div className="absolute -top-3 -right-3 w-16 h-16 border-t-2 border-r-2 border-accent/50" />
+                <div className="absolute -bottom-3 -left-3 w-16 h-16 border-b-2 border-l-2 border-accent/50" />
+
+                <a
+                  href="https://www.linkedin.com/in/fawadakram"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Image
+                    src="https://media.licdn.com/dms/image/v2/D5603AQGfcL-T-5AvXQ/profile-displayphoto-shrink_200_200/B56ZSCOThsHsAY-/0/1737351580267?e=1776297600&v=beta&t=og22w4KJ144GnQl9MUeHPi5XBGgoslImVS0HklttyCA"
+                    alt="Fawad Akram"
+                    width={200}
+                    height={200}
+                    className="w-52 h-52 md:w-60 md:h-60 object-cover rounded-sm grayscale hover:grayscale-0 transition-all duration-500"
+                  />
+                </a>
+
+                {/* Company label */}
+                <p className="absolute -bottom-8 right-0 text-xs text-muted tracking-[0.2em] uppercase">
+                  Jibble Group
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Other Testimonials */}
+      <section className="mx-auto max-w-6xl px-6 py-24">
+        <p className="text-xs text-accent tracking-[0.3em] uppercase mb-3">
+          From the team
+        </p>
+        <h2 className="text-3xl font-bold mb-16">
+          What participants are saying
         </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((t) => (
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
             <div
               key={t.name}
-              className="rounded-xl border border-card-border p-6 space-y-4"
+              className={`relative border-l-2 border-accent/30 pl-6 py-1 animate-fade-up delay-${i + 1}`}
             >
-              <p className="text-sm text-muted leading-relaxed">
+              <p
+                className="text-[15px] text-foreground/80 leading-relaxed mb-4"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <div>
-                <p className="font-medium text-sm">{t.name}</p>
-                <p className="text-xs text-muted">{t.title}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-[1px] bg-card-border" />
+                <div>
+                  <p className="font-medium text-sm tracking-wide">{t.name}</p>
+                  <p className="text-xs text-muted">{t.title}</p>
+                </div>
               </div>
             </div>
           ))}

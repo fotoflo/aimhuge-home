@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
-  --muted: #a1a1aa;
-  --card-bg: #141414;
-  --card-border: #262626;
+  --background: #08080a;
+  --foreground: #e8e8ec;
+  --accent: #7c5cfc;
+  --accent-hover: #9b82fd;
+  --accent-dim: #7c5cfc33;
+  --muted: #78788a;
+  --card-bg: #111114;
+  --card-border: #1e1e24;
+  --surface: #16161a;
 }
 
 @theme inline {
@@ -15,9 +17,11 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-dim: var(--accent-dim);
   --color-muted: var(--muted);
   --color-card-bg: var(--card-bg);
   --color-card-border: var(--card-border);
+  --color-surface: var(--surface);
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -29,5 +33,75 @@ body {
 }
 
 a {
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
+}
+
+/* ── Animations ── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out both;
+}
+
+.animate-slide-left {
+  animation: slide-in-left 0.7s ease-out both;
+}
+
+.animate-slide-right {
+  animation: slide-in-right 0.7s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.6s ease-out both;
+}
+
+/* Stagger delays */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+
+/* ── Noise grain overlay ── */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Glow effect ── */
+.glow {
+  box-shadow: 0 0 60px var(--accent-dim), 0 0 120px var(--accent-dim);
 }
