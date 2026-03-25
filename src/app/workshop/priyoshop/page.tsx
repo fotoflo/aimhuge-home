@@ -385,7 +385,7 @@ export default function PriyoshopWorkshop() {
             </p>
             <h3 className="text-lg font-bold mb-2">Alex Miller</h3>
             <p className="text-sm text-muted">
-              fotoflo@gmail.com
+              <a href="mailto:fotoflo@gmail.com" className="hover:text-foreground transition-colors">fotoflo@gmail.com</a>
               <br />
               <a
                 href="https://calendly.com/fotoflo/30min"
