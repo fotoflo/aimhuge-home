@@ -1,0 +1,102 @@
+/* ── Base Slide System ──────────────────────────────────────── */
+/* Import this in your deck's layout.tsx or CSS file.            */
+/* Override CSS variables per-deck to theme slides.              */
+
+:root {
+  /* Override these in your deck's CSS */
+  --deck-primary: #7c5cfc;
+  --deck-secondary: #a78bfa;
+  --deck-bg-dark: #0a0a0a;
+  --deck-bg-dark-end: #1a1a2e;
+  --deck-bg-light: #f8fafc;
+
+  /* Slate scale */
+  --s900: #0f172a; --s800: #1e293b; --s700: #334155; --s600: #475569;
+  --s500: #64748b; --s400: #94a3b8; --s300: #cbd5e1; --s200: #e2e8f0;
+  --s100: #f1f5f9; --s50: #f8fafc;
+}
+
+/* ── Slide Shell ───────────────────────────────────────────── */
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  padding: 48px 56px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-dark {
+  background: linear-gradient(160deg, var(--deck-bg-dark) 0%, var(--deck-bg-dark-end) 100%);
+  color: white;
+}
+
+.slide-light {
+  background: var(--deck-bg-light);
+}
+
+.slide-hero {
+  background: linear-gradient(140deg, var(--deck-bg-dark) 0%, var(--deck-bg-dark-end) 100%);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.slide-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--deck-primary) 12%, transparent) 0%, transparent 70%);
+}
+
+.slide-close {
+  background: linear-gradient(140deg, var(--deck-bg-dark) 0%, var(--deck-bg-dark-end) 100%);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── Hero / Close background image overlay ─────────────────── */
+/* Set --deck-hero-bg or --deck-close-bg as url(...) in per-deck CSS */
+
+.slide-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--deck-hero-bg, none) center/cover no-repeat;
+  opacity: 0.18;
+  z-index: 0;
+}
+
+.slide-close::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--deck-close-bg, none) center/cover no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+/* ── Score bar animation (for matrix/priority slides) ──────── */
+
+.score-bar {
+  transition: width 0.8s ease-out;
+}
+
+/* ── Drag handles ──────────────────────────────────────────── */
+
+.drag-handle {
+  cursor: grab;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+.dragging {
+  opacity: 0.5;
+}
