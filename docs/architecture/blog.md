@@ -10,6 +10,8 @@ The `/blog` section hosts articles about AI workshops, Claude Code workflows, an
 |------|---------|
 | `src/app/blog/page.tsx` | Blog index — lists all posts from a hardcoded `posts` array |
 | `src/app/blog/how-to-write-a-done-skill-for-claude-code/page.tsx` | First blog post about writing Claude Code /done skills |
+| `public/images/blog/` | Blog images — generated covers and screenshots |
+| `scripts/generate-blog-images.mjs` | Gemini 2.5 Flash Image generation script (~$0.02/image) |
 
 ## Important Patterns
 

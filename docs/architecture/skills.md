@@ -14,7 +14,7 @@ The `.claude/skills/` directory contains reusable Claude Code skills — markdow
 ## Important Patterns
 
 - Skills live at `.claude/skills/<name>/SKILL.md` with YAML frontmatter (`name`, `description`, `argument-hint`)
-- The `/done` skill runs 4 phases: Architecture Docs, Lint Fix, Commit, Report
+- The `/done` skill runs 6 phases: Architecture Docs, Lint Fix, File Sizes, Tests + Coverage, Commit, Report
 - Session file detection uses conversation memory, not `git diff HEAD~N`, to handle concurrent sessions
 - Commits follow conventional commit format with session productivity stats in the body
 - Safety rules: no `--no-verify`, no force push, no secrets, no push without explicit request
