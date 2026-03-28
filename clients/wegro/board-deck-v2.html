@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeGro — Board of Directors: Business Model Overview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    /* WeGro Brand Palette */
+    --brand:#015546; --brand-d:#01382e; --brand-dd:#011412;
+    --brand-l:#027a63; --brand-ll:#03a07f; --brand-pale:#e6f5f1;
+    --orange:#FF8F1C; --orange-l:#fff4e6; --orange-d:#b3600a;
+    /* Functional */
+    --blue:#3b82f6; --blue-l:#dbeafe; --blue-d:#1e40af;
+    --amber:#f59e0b; --amber-l:#fef3c7; --amber-d:#92400e;
+    --red:#ef4444; --red-l:#fee2e2; --red-d:#991b1b;
+    --purple:#8b5cf6; --purple-l:#ede9fe; --purple-d:#5b21b6;
+    /* Neutrals */
+    --s900:#0f172a; --s800:#1e293b; --s700:#334155; --s600:#475569;
+    --s500:#64748b; --s400:#94a3b8; --s300:#cbd5e1; --s200:#e2e8f0;
+    --s100:#f1f5f9; --s50:#f8fafc;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family:'Fira Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--brand-dd); color:var(--s800);
+    overflow:hidden; height:100vh;
+  }
+
+  /* ========== SLIDE SYSTEM ========== */
+  .slide {
+    display:none; width:100vw; height:100vh;
+    padding:56px 72px 56px 72px;
+    position:relative; overflow:hidden;
+    flex-direction:column;
+  }
+  .slide.active { display:flex; }
+
+  .logo {
+    position:absolute; top:20px; left:36px;
+    height:28px; display:flex; align-items:center; gap:8px;
+  }
+  .logo img { height:28px; }
+  .conf { position:absolute; top:26px; right:36px; font-size:10px; font-weight:600; color:var(--s400); text-transform:uppercase; letter-spacing:1.5px; }
+
+  /* ========== NAVIGATION ========== */
+  .nav {
+    position:fixed; bottom:20px; right:32px;
+    display:flex; gap:8px; z-index:100;
+  }
+  .nav button {
+    background:rgba(1,85,70,0.9); backdrop-filter:blur(8px);
+    color:white; border:1px solid rgba(255,255,255,0.15);
+    padding:8px 18px; border-radius:8px; cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:500;
+    transition:all 0.2s;
+  }
+  .nav button:hover { background:var(--orange); border-color:var(--orange); }
+  .slide-counter {
+    position:fixed; bottom:24px; left:36px;
+    color:var(--s500); font-size:12px; font-weight:500; z-index:100;
+  }
+
+  /* ========== TYPOGRAPHY ========== */
+  .sec-label {
+    font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:2px; margin-bottom:6px; color:var(--brand);
+  }
+  .slide-dark .sec-label { color:var(--brand-ll); }
+
+  h2 { font-size:34px; font-weight:800; color:var(--s900); letter-spacing:-1.2px; margin-bottom:4px; line-height:1.15; }
+  .slide-dark h2 { color:white; }
+
+  .sub { font-size:15px; color:var(--s500); margin-bottom:32px; font-weight:400; line-height:1.5; }
+  .slide-dark .sub { color:var(--s400); }
+
+  /* ========== LAYOUT HELPERS ========== */
+  .cols { display:grid; gap:20px; flex:1; min-height:0; }
+  .cols-2 { grid-template-columns:1fr 1fr; }
+  .cols-3 { grid-template-columns:1fr 1fr 1fr; }
+  .cols-4 { grid-template-columns:1fr 1fr 1fr 1fr; }
+  .gap-sm { gap:12px; }
+  .gap-lg { gap:32px; }
+  .flex-col { display:flex; flex-direction:column; }
+  .flex-1 { flex:1; min-height:0; }
+
+  /* ========== CARDS ========== */
+  .card {
+    background:white; border-radius:14px; padding:24px;
+    border:1px solid var(--s200); display:flex; flex-direction:column;
+  }
+  .card.sm { padding:18px; }
+  .card.a-green { border-top:3px solid var(--brand); }
+  .card.a-blue { border-top:3px solid var(--blue); }
+  .card.a-amber { border-top:3px solid var(--orange); }
+  .card.a-purple { border-top:3px solid var(--purple); }
+  .card.a-red { border-top:3px solid var(--red); }
+
+  .card h3 { font-size:16px; font-weight:700; color:var(--s900); margin-bottom:8px; }
+  .card p, .card li { font-size:13px; color:var(--s600); line-height:1.6; }
+  .card ul { list-style:none; padding:0; }
+  .card ul li { padding:3px 0 3px 14px; position:relative; }
+  .card ul li::before {
+    content:''; position:absolute; left:0; top:10px;
+    width:5px; height:5px; border-radius:50%; background:var(--brand);
+  }
+  .card-icon { font-size:24px; margin-bottom:8px; }
+
+  .slide-dark .card {
+    background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.08);
+  }
+  .slide-dark .card h3 { color:white; }
+  .slide-dark .card p, .slide-dark .card li { color:var(--s300); }
+  .slide-dark .card ul li::before { background:var(--brand-ll); }
+
+  /* ========== TAGS ========== */
+  .tag {
+    display:inline-block; padding:3px 10px; border-radius:20px;
+    font-size:11px; font-weight:600; margin-right:4px; margin-bottom:4px;
+  }
+  .tag.green { background:var(--brand-pale); color:var(--brand); }
+  .tag.blue { background:var(--blue-l); color:var(--blue-d); }
+  .tag.amber { background:var(--orange-l); color:var(--orange-d); }
+  .tag.slate { background:var(--s200); color:var(--s700); }
+  .tag.purple { background:var(--purple-l); color:var(--purple-d); }
+  .tag.red { background:var(--red-l); color:var(--red-d); }
+
+  /* ========== STATS ========== */
+  .stat { display:flex; flex-direction:column; align-items:center; text-align:center; padding:16px; }
+  .stat .num { font-size:38px; font-weight:900; color:var(--brand); letter-spacing:-2px; }
+  .stat .lbl { font-size:12px; color:var(--s500); font-weight:500; margin-top:2px; }
+  .slide-dark .stat .num { color:var(--brand-ll); }
+  .slide-dark .stat .lbl { color:var(--s400); }
+
+  /* ========== METRIC ROWS ========== */
+  .m-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--s100); }
+  .m-row:last-child { border-bottom:none; }
+  .m-row .ml { font-size:13px; color:var(--s600); font-weight:500; }
+  .m-row .mv { font-size:13px; font-weight:700; color:var(--s900); }
+  .slide-dark .m-row { border-color:rgba(255,255,255,0.06); }
+  .slide-dark .m-row .ml { color:var(--s400); }
+  .slide-dark .m-row .mv { color:white; }
+
+  /* ========== SLIDES: DARK ========== */
+  .slide-dark { background:linear-gradient(160deg, var(--brand-dd) 0%, var(--brand-d) 100%); color:white; }
+  .slide-light { background:var(--s50); }
+
+  /* ========== TITLE SLIDE ========== */
+  .slide-hero {
+    background:linear-gradient(140deg, var(--brand-dd) 0%, #012820 40%, var(--brand-d) 100%);
+    justify-content:center; align-items:center; text-align:center;
+  }
+  .slide-hero::before {
+    content:''; position:absolute; top:-30%; right:-15%;
+    width:800px; height:800px; border-radius:50%;
+    background:radial-gradient(circle, rgba(1,85,70,0.12) 0%, transparent 70%);
+  }
+  .slide-hero::after {
+    content:''; position:absolute; bottom:-20%; left:-10%;
+    width:600px; height:600px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,143,28,0.06) 0%, transparent 70%);
+  }
+  .slide-hero .hero-logo { width:120px; margin-bottom:24px; position:relative; z-index:1; }
+  .slide-hero .pre { font-size:12px; font-weight:600; color:var(--brand-ll); text-transform:uppercase; letter-spacing:3px; margin-bottom:20px; position:relative; z-index:1; }
+  .slide-hero h1 { font-size:18px; font-weight:300; color:var(--s300); letter-spacing:4px; text-transform:uppercase; position:relative; z-index:1; }
+  .slide-hero .tagline { font-size:20px; font-weight:300; color:var(--brand-ll); margin-top:20px; max-width:640px; line-height:1.55; position:relative; z-index:1; }
+  .slide-hero .meta { margin-top:56px; font-size:13px; color:var(--s500); position:relative; z-index:1; }
+  .slide-hero .orange-leaf { position:absolute; top:60px; right:80px; width:44px; opacity:0.3; z-index:1; }
+
+  /* ========== FLYWHEEL ========== */
+  .fw-wrap { display:flex; align-items:center; justify-content:center; flex:1; gap:56px; }
+  .fw { position:relative; width:380px; height:380px; flex-shrink:0; }
+  .fw-center {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:110px; height:110px; background:var(--brand); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:white; font-weight:800; font-size:14px; text-align:center;
+    box-shadow:0 0 0 6px rgba(1,85,70,0.15), 0 0 0 16px rgba(1,85,70,0.06);
+  }
+  .fw-ring {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:260px; height:260px; border:2px dashed var(--brand-l); border-radius:50%;
+    animation:spin 25s linear infinite;
+  }
+  @keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+  .fw-node {
+    position:absolute; width:120px; height:100px;
+    background:white; border-radius:12px; border:2px solid var(--s200);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  }
+  .fw-node .fw-i { font-size:20px; margin-bottom:4px; }
+  .fw-node .fw-l { font-size:11px; font-weight:700; color:var(--s800); }
+  .fw-node .fw-s { font-size:9px; color:var(--s500); margin-top:1px; }
+  .fw-node:nth-child(2) { top:-10px; left:50%; transform:translateX(-50%); }
+  .fw-node:nth-child(3) { top:50%; right:-15px; transform:translateY(-50%); }
+  .fw-node:nth-child(4) { bottom:-10px; left:50%; transform:translateX(-50%); }
+  .fw-node:nth-child(5) { top:50%; left:-15px; transform:translateY(-50%); }
+
+  .fw-steps { max-width:360px; }
+  .fw-step { display:flex; gap:12px; margin-bottom:16px; align-items:flex-start; }
+  .fw-num {
+    width:24px; height:24px; min-width:24px; border-radius:50%;
+    background:var(--brand); color:white; font-size:11px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .fw-txt { font-size:13px; color:var(--s700); line-height:1.5; }
+  .fw-txt strong { color:var(--s900); }
+
+  /* ========== SCORING TABLE ========== */
+  .score-table {
+    width:100%; border-collapse:separate; border-spacing:0;
+    font-size:12px; border-radius:12px; overflow:hidden;
+    border:1px solid var(--s200);
+  }
+  .score-table thead th {
+    background:var(--brand-d); color:white; padding:10px 12px;
+    font-weight:600; text-align:left; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.5px;
+    border-bottom:2px solid var(--orange);
+  }
+  .score-table thead th:first-child { padding-left:16px; }
+  .score-table thead th.score-col { text-align:center; }
+  .score-table tbody tr { transition:background 0.15s; cursor:grab; }
+  .score-table tbody tr:hover { background:var(--brand-pale); }
+  .score-table tbody tr.dragging { opacity:0.4; }
+  .score-table tbody tr.drag-over td { box-shadow:inset 0 2px 0 var(--orange); }
+  .score-table tbody td {
+    padding:8px 12px; border-bottom:1px solid var(--s100);
+    vertical-align:middle;
+  }
+  .score-table tbody td:first-child { padding-left:16px; font-weight:600; color:var(--s900); }
+  .score-table tbody tr:last-child td { border-bottom:none; }
+
+  .score-bar-wrap {
+    width:100%; height:6px; background:var(--s100); border-radius:3px; overflow:hidden;
+  }
+  .score-bar {
+    height:100%; border-radius:3px; transition:width 0.8s ease-out;
+  }
+  .score-bar.high { background:var(--brand); }
+  .score-bar.mid { background:var(--orange); }
+  .score-bar.low { background:var(--red); }
+
+  .score-badge {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:22px; border-radius:6px; font-weight:800; font-size:12px;
+  }
+  .score-badge.tier-1 { background:var(--brand-pale); color:var(--brand); }
+  .score-badge.tier-2 { background:var(--orange-l); color:var(--orange-d); }
+  .score-badge.tier-3 { background:var(--s200); color:var(--s600); }
+
+  .div-tag {
+    display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600;
+  }
+  .div-tag.inputs { background:var(--brand-pale); color:var(--brand); }
+  .div-tag.financing { background:var(--blue-l); color:var(--blue-d); }
+  .div-tag.trading { background:var(--orange-l); color:var(--orange-d); }
+  .div-tag.data { background:var(--purple-l); color:var(--purple-d); }
+
+  .score-col { text-align:center !important; }
+
+  .score-cell {
+    cursor:pointer; min-width:28px; text-align:center;
+    border-radius:4px; transition:background 0.15s;
+  }
+  .score-cell:hover { background:var(--brand-pale); }
+  .score-cell input {
+    width:36px; text-align:center; border:2px solid var(--orange);
+    border-radius:4px; font-family:inherit; font-size:12px; font-weight:700;
+    padding:2px; outline:none; background:white;
+  }
+
+  .drag-handle { cursor:grab; color:var(--s400); font-size:14px; user-select:none; padding-right:8px; }
+  .drag-handle:hover { color:var(--brand); }
+
+  .score-toolbar {
+    display:flex; gap:12px; align-items:center; margin-bottom:12px;
+    padding:8px 16px; background:var(--brand-pale); border-radius:10px;
+    border:1px solid rgba(1,85,70,0.15);
+  }
+  .score-toolbar span { font-size:12px; color:var(--brand); font-weight:600; }
+  .score-toolbar button {
+    font-family:inherit; font-size:11px; font-weight:600;
+    padding:5px 14px; border-radius:6px; cursor:pointer;
+    border:1px solid var(--brand); background:white; color:var(--brand);
+    transition:all 0.15s;
+  }
+  .score-toolbar button:hover { background:var(--brand); color:white; }
+
+  /* ========== PRIORITY TIERS ========== */
+  .tier-card {
+    border-radius:14px; padding:20px 24px;
+    border-left:4px solid; display:flex; flex-direction:column;
+  }
+  .tier-card.t1 { background:var(--brand-pale); border-color:var(--brand); }
+  .tier-card.t2 { background:var(--orange-l); border-color:var(--orange); }
+  .tier-card.t3 { background:var(--s50); border-color:var(--s400); }
+  .tier-card h4 { font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .tier-card ul { list-style:none; padding:0; }
+  .tier-card ul li { font-size:12px; color:var(--s600); padding:3px 0 3px 12px; position:relative; }
+  .tier-card ul li::before { content:''; position:absolute; left:0; top:9px; width:4px; height:4px; border-radius:50%; }
+  .tier-card.t1 ul li::before { background:var(--brand); }
+  .tier-card.t2 ul li::before { background:var(--orange); }
+  .tier-card.t3 ul li::before { background:var(--s400); }
+
+  /* ========== Q2 STRATEGY ========== */
+  .q2-lane {
+    background:white; border-radius:14px; padding:20px 24px;
+    border:1px solid var(--s200); display:flex; flex-direction:column;
+  }
+  .q2-lane h4 { font-size:15px; font-weight:700; color:var(--s900); margin-bottom:6px; }
+  .q2-lane .rationale {
+    font-size:12px; color:var(--s500); font-style:italic; margin-bottom:10px;
+    padding-left:12px; border-left:2px solid var(--brand-l);
+  }
+  .q2-lane .actions { display:flex; flex-direction:column; gap:6px; }
+  .q2-action {
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; color:var(--s700); padding:6px 10px;
+    background:var(--s50); border-radius:8px;
+  }
+  .q2-check { color:var(--brand); font-weight:700; font-size:14px; }
+
+  /* ========== KPI TABLE ========== */
+  .kpi-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .kpi-table th { text-align:left; padding:10px 14px; background:var(--s100); font-weight:600; color:var(--s700); border-bottom:2px solid var(--s200); }
+  .kpi-table td { padding:10px 14px; border-bottom:1px solid var(--s100); color:var(--s600); }
+  .kpi-table tr:last-child td { border-bottom:none; }
+  .kpi-table .div-cell { font-weight:600; color:var(--s900); }
+  .slide-dark .kpi-table th { background:rgba(255,255,255,0.05); color:var(--s300); border-color:rgba(255,255,255,0.08); }
+  .slide-dark .kpi-table td { border-color:rgba(255,255,255,0.06); color:var(--s400); }
+  .slide-dark .kpi-table .div-cell { color:var(--brand-ll); }
+
+  /* ========== CLOSING SLIDE ========== */
+  .slide-close {
+    background:linear-gradient(140deg, var(--brand-dd) 0%, #012820 50%, var(--brand-d) 100%);
+    justify-content:center; align-items:center; text-align:center;
+  }
+  .slide-close h2 { color:white; font-size:44px; letter-spacing:-1.5px; margin-bottom:12px; }
+  .slide-close .close-sub { font-size:18px; color:var(--brand-ll); font-weight:300; max-width:600px; line-height:1.6; }
+  .slide-close .close-cta { margin-top:48px; display:flex; gap:20px; justify-content:center; }
+  .close-pill { padding:10px 28px; border-radius:10px; font-size:14px; font-weight:600; }
+  .close-pill.primary { background:var(--orange); color:white; }
+  .close-pill.secondary { background:rgba(255,255,255,0.08); color:var(--s300); border:1px solid rgba(255,255,255,0.12); }
+
+  /* ========== ACCENT BAR ========== */
+  .slide::after {
+    content:''; position:absolute; bottom:0; left:0; right:0;
+    height:3px; background:linear-gradient(90deg, var(--brand), var(--orange));
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================= SLIDE 1: TITLE ============================= -->
+<div class="slide slide-hero active" id="s1">
+  <img class="orange-leaf" src="assets/orange-leaf.svg" alt="">
+  <div class="pre">Board of Directors &mdash; March 2026</div>
+  <img class="hero-logo" src="assets/whitelogo.png" alt="WeGro">
+  <h1>Agriculture Simplified</h1>
+  <div class="tagline">Building the operating system for Bangladesh's agricultural economy &mdash; from seed to sale.</div>
+  <div class="meta">Business Model Overview &nbsp;&bull;&nbsp; Confidential</div>
+</div>
+
+<!-- ============================= SLIDE 2: EXEC SUMMARY ============================= -->
+<div class="slide slide-light" id="s2">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Executive Summary</div>
+  <h2>Four Divisions, One Ecosystem</h2>
+  <p class="sub">WeGro captures value across the entire agricultural value chain through four interconnected businesses.</p>
+
+  <div class="cols cols-4 flex-1">
+    <div class="card a-green">
+      <div class="card-icon">&#127793;</div>
+      <h3>Inputs</h3>
+      <p>Seeds, fertilisers, micronutrients, machinery, and protected agriculture. High-margin products that establish the farmer relationship.</p>
+      <div style="margin-top:auto; padding-top:14px;">
+        <span class="tag green">Entry Point</span>
+        <span class="tag green">60-80% margins</span>
+      </div>
+    </div>
+    <div class="card a-blue">
+      <div class="card-icon">&#128176;</div>
+      <h3>Financing</h3>
+      <p>Crop-collateralised loans, trade financing, and electronic warehouse receipts. Solves the capital gap for smallholders.</p>
+      <div style="margin-top:auto; padding-top:14px;">
+        <span class="tag blue">Lock-in</span>
+        <span class="tag blue">$3.5B mandate</span>
+      </div>
+    </div>
+    <div class="card a-amber">
+      <div class="card-icon">&#128666;</div>
+      <h3>Trading</h3>
+      <p>Aggregation from smallholders to industrial buyers. Contract growing, stockpiling, and commodity price optimisation.</p>
+      <div style="margin-top:auto; padding-top:14px;">
+        <span class="tag amber">Volume</span>
+        <span class="tag amber">Yield capture</span>
+      </div>
+    </div>
+    <div class="card a-purple">
+      <div class="card-icon">&#128202;</div>
+      <h3>Data</h3>
+      <p>Satellite imagery, AI yield prediction, and farmer credit scoring sold to banks and financial institutions as a B2B service.</p>
+      <div style="margin-top:auto; padding-top:14px;">
+        <span class="tag purple">B2B SaaS</span>
+        <span class="tag slate">5x ROI for banks</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 3: MARKET CONTEXT ============================= -->
+<div class="slide slide-dark" id="s3">
+  <div class="logo"><img src="assets/whitelogo.png" alt="WeGro"></div><div class="conf" style="color:var(--s500)">Confidential</div>
+  <div class="sec-label">Market Context</div>
+  <h2>The Problem We Solve</h2>
+  <p class="sub">Bangladesh's agricultural sector suffers from systemic fragmentation at every layer.</p>
+
+  <div style="display:flex; gap:32px; margin-bottom:24px;">
+    <div class="stat"><div class="num">$20B</div><div class="lbl">Agricultural financing market</div></div>
+    <div class="stat"><div class="num">$3.5B</div><div class="lbl">Central bank lending mandate</div></div>
+    <div class="stat"><div class="num">$2B</div><div class="lbl">Seed market (fragmented)</div></div>
+    <div class="stat"><div class="num">~0</div><div class="lbl">Local seed R&amp;D investment</div></div>
+  </div>
+
+  <div class="cols cols-4 flex-1">
+    <div class="card"><h3>Inputs Gap</h3>
+      <ul><li>No local seed R&amp;D investment</li><li>Fragmented $2B market, no dominant distributor</li><li>Post-harvest drying infrastructure absent</li></ul>
+    </div>
+    <div class="card"><h3>Financing Gap</h3>
+      <ul><li>Banks lend to factories, not farmers</li><li>High NPLs from misallocated loans</li><li>No credit scoring for smallholders</li></ul>
+    </div>
+    <div class="card"><h3>Trade Gap</h3>
+      <ul><li>Farmers sell wet, low-value crops individually</li><li>No aggregation layer to buyers</li><li>Price discovery is opaque</li></ul>
+    </div>
+    <div class="card"><h3>Data Gap</h3>
+      <ul><li>No farm-level data collection</li><li>Banks can't assess ag risk</li><li>No satellite/AI infrastructure</li></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 4: ARCHITECTURE ============================= -->
+<div class="slide slide-light" id="s4">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Business Architecture</div>
+  <h2>How the Four Divisions Interconnect</h2>
+  <p class="sub">Each division creates leverage for the others &mdash; forming a defensible, compounding ecosystem.</p>
+
+  <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+    <div style="max-width:880px; width:100%;">
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px;">
+        <div class="card a-green" style="text-align:center; padding:18px;">
+          <div style="font-size:22px; margin-bottom:6px;">&#127793;</div>
+          <h3 style="font-size:14px;">INPUTS</h3>
+          <p style="font-size:11px;">Farmer acquisition<br>High-margin products</p>
+          <div style="margin-top:10px; font-size:20px; color:var(--brand);">&rarr;</div>
+        </div>
+        <div class="card a-blue" style="text-align:center; padding:18px;">
+          <div style="font-size:22px; margin-bottom:6px;">&#128176;</div>
+          <h3 style="font-size:14px;">FINANCING</h3>
+          <p style="font-size:11px;">Farmer retention<br>Working capital access</p>
+          <div style="margin-top:10px; font-size:20px; color:var(--blue);">&rarr;</div>
+        </div>
+        <div class="card a-amber" style="text-align:center; padding:18px;">
+          <div style="font-size:22px; margin-bottom:6px;">&#128666;</div>
+          <h3 style="font-size:14px;">TRADING</h3>
+          <p style="font-size:11px;">Yield aggregation<br>Price optimisation</p>
+          <div style="margin-top:10px; font-size:20px; color:var(--orange);">&rarr;</div>
+        </div>
+        <div class="card a-purple" style="text-align:center; padding:18px;">
+          <div style="font-size:22px; margin-bottom:6px;">&#128202;</div>
+          <h3 style="font-size:14px;">DATA</h3>
+          <p style="font-size:11px;">Intelligence layer<br>B2B monetisation</p>
+          <div style="margin-top:10px; font-size:20px; color:var(--purple);">&#8635;</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+        <div class="card sm" style="background:var(--brand-pale); border-color:rgba(1,85,70,0.2);">
+          <h3 style="font-size:13px; color:var(--brand);">Key Partners</h3>
+          <ul><li>Global seed companies</li><li>Warehouse operators</li><li>Banks &amp; financial institutions</li><li>Industrial crop buyers</li></ul>
+        </div>
+        <div class="card sm" style="background:var(--brand-pale); border-color:rgba(1,85,70,0.2);">
+          <h3 style="font-size:13px; color:var(--brand);">Revenue Streams</h3>
+          <ul><li>Product margins on inputs (40-80%)</li><li>Financing fees &amp; interest spread</li><li>Trading spread on aggregated crops</li><li>Per-farmer data licensing</li></ul>
+        </div>
+        <div class="card sm" style="background:var(--brand-pale); border-color:rgba(1,85,70,0.2);">
+          <h3 style="font-size:13px; color:var(--brand);">Competitive Moats</h3>
+          <ul><li>Exclusive seed partnerships</li><li>Proprietary farmer data &amp; credit scores</li><li>Integrated value chain</li><li>Buyer network &amp; aggregation</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 5: INPUTS ============================= -->
+<div class="slide slide-light" id="s5">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Division Deep Dive</div>
+  <h2>Inputs &mdash; The Entry Point</h2>
+  <p class="sub">High-margin products that bring farmers into the WeGro ecosystem.</p>
+
+  <div class="cols cols-2 gap-lg flex-1">
+    <div class="flex-col" style="gap:14px;">
+      <div class="card a-green">
+        <h3>Seeds</h3>
+        <div class="m-row"><span class="ml">White-label seeds</span><span class="mv">60&ndash;80% margin</span></div>
+        <div class="m-row"><span class="ml">Exclusive global distribution</span><span class="mv">40&ndash;50% margin</span></div>
+        <div class="m-row"><span class="ml">Bangladesh seed market</span><span class="mv">~$2B (fragmented)</span></div>
+        <div class="m-row"><span class="ml">Unit economics (maize)</span><span class="mv">~$200 / hectare</span></div>
+        <p style="margin-top:10px; font-size:12px; color:var(--s500);">Global companies invest billions in seed R&amp;D. Bangladesh invests nearly zero. WeGro bridges this gap via exclusive distribution.</p>
+      </div>
+      <div class="card a-green">
+        <h3>Fertilisers &amp; Micronutrients</h3>
+        <ul>
+          <li><strong>Own biofertiliser line</strong> &mdash; compost factory operational</li>
+          <li><strong>Liquid chemical fertilisers</strong> &mdash; in development; reduces runoff</li>
+          <li><strong>Coco peat</strong> as growing medium &mdash; 10x performance vs. soil</li>
+          <li><strong>Micronutrients</strong> (S, Mg, Zn) &mdash; 5-10 kg/hectare</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flex-col" style="gap:14px;">
+      <div class="card a-green">
+        <h3>Machinery</h3>
+        <ul>
+          <li><strong>Multi-crop dryers</strong> &mdash; highest-impact opportunity. Buyers discount wet crops; sun-drying wastes fertile land.</li>
+          <li><strong>Drones</strong> &mdash; planned for precision agriculture</li>
+        </ul>
+      </div>
+      <div class="card a-green">
+        <h3>Protected Agriculture</h3>
+        <ul>
+          <li><strong>Seedlings</strong> &mdash; better germination, higher yield</li>
+          <li><strong>Net houses</strong> &mdash; no pesticides; GAP-certified for US/EU export</li>
+          <li><strong>Soilless growing</strong> (coco peat + biofertilisers)</li>
+        </ul>
+      </div>
+      <div class="card sm" style="background:var(--brand-pale); border-color:rgba(1,85,70,0.2);">
+        <h3 style="font-size:13px; color:var(--brand);">Why This Division Matters</h3>
+        <p style="font-size:12px;">Inputs are the <strong>farmer acquisition channel</strong>. Every seed bag sold creates a relationship that feeds financing, trading, and data.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 6: FINANCING ============================= -->
+<div class="slide slide-dark" id="s6">
+  <div class="logo"><img src="assets/whitelogo.png" alt="WeGro"></div><div class="conf" style="color:var(--s500)">Confidential</div>
+  <div class="sec-label">Division Deep Dive</div>
+  <h2>Financing &mdash; The Lock-In</h2>
+  <p class="sub">Solving agriculture's capital gap while deepening farmer relationships.</p>
+
+  <div class="cols cols-3 flex-1">
+    <div class="card">
+      <div class="card-icon">&#128230;</div>
+      <h3>Crop Collateralised Financing</h3>
+      <ul><li>Farmer stores harvest in partner warehouse</li><li>Electronic Warehouse Receipt generated</li><li>Farmer receives loan against stored crop</li><li>Crop sold when market price improves</li><li>Buyer pays directly &mdash; no collections</li></ul>
+      <div style="margin-top:auto; padding-top:12px;"><span class="tag blue">Core Product</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128196;</div>
+      <h3>Trade Financing (Factoring)</h3>
+      <ul><li>Factories have capacity but lack working capital</li><li>WeGro finances against confirmed buyer orders</li><li>Asset-light: doesn't hold inventory</li><li>Low risk: backed by real purchase commitments</li></ul>
+      <div style="margin-top:auto; padding-top:12px;"><span class="tag blue">Asset-Light</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128170;</div>
+      <h3>Risk Mitigation</h3>
+      <ul><li>Geo-tagged land verification via app</li><li>Satellite imagery every 7 days</li><li>AI yield prediction flags at-risk loans</li><li>Weather data for loss forecasting</li><li>Buyer-pays-farmer eliminates collection risk</li></ul>
+      <div style="margin-top:auto; padding-top:12px;"><span class="tag blue">Tech-Enabled</span></div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:16px;">
+    <div class="stat"><div class="num">$20B</div><div class="lbl">Total ag financing market</div></div>
+    <div class="stat"><div class="num">$3.5B</div><div class="lbl">Annual central bank mandate</div></div>
+    <div class="stat"><div class="num">Lower</div><div class="lbl">Farmer default rate vs. factory NPLs</div></div>
+    <div class="stat"><div class="num">5x</div><div class="lbl">Bank ROI on WeGro data</div></div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 7: TRADING ============================= -->
+<div class="slide slide-light" id="s7">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Division Deep Dive</div>
+  <h2>Trading &mdash; The Volume Engine</h2>
+  <p class="sub">Aggregating smallholder yields to serve industrial demand at scale.</p>
+
+  <div class="cols cols-2 gap-lg flex-1">
+    <div class="flex-col" style="gap:14px;">
+      <div class="card a-amber"><h3>Contract Growing</h3><p>Large buyers place orders (e.g., 100T maize). WeGro aggregates from many smallholders (each 10-20T) to fill demand.</p></div>
+      <div class="card a-amber"><h3>Commodity Stockpiling</h3><p>Stockpile crops when prices are low, sell when they recover. Price prediction models guide timing. Futures-style contracts with expiry.</p></div>
+      <div class="card a-amber"><h3>Price Discovery</h3><p>Building commodity pricing models. Long-term: a transparent price discovery mechanism for Bangladesh agriculture.</p></div>
+    </div>
+    <div class="flex-col" style="gap:14px;">
+      <div class="card" style="background:var(--brand-d); border-color:rgba(1,85,70,0.3);">
+        <h3 style="color:white;">How a Trade Works</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;"><div class="fw-num">1</div><p style="color:var(--s300); font-size:12px;">Buyer places order (e.g., 100T maize)</p></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div class="fw-num">2</div><p style="color:var(--s300); font-size:12px;">WeGro sources from farmer network</p></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div class="fw-num">3</div><p style="color:var(--s300); font-size:12px;">Crop aggregated &amp; quality-checked</p></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div class="fw-num">4</div><p style="color:var(--s300); font-size:12px;">Delivered to buyer or stockpiled</p></div>
+          <div style="display:flex; align-items:center; gap:10px;"><div class="fw-num">5</div><p style="color:var(--s300); font-size:12px;">WeGro captures trading spread</p></div>
+        </div>
+      </div>
+      <div class="card sm" style="background:var(--brand-pale); border-color:rgba(1,85,70,0.2);">
+        <h3 style="font-size:13px; color:var(--brand);">Key Advantage</h3>
+        <p style="font-size:12px;">Farmer relationships (Inputs) and crop visibility (Data) create an <strong>information advantage</strong> over traditional commodity traders.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 8: DATA ============================= -->
+<div class="slide slide-dark" id="s8">
+  <div class="logo"><img src="assets/whitelogo.png" alt="WeGro"></div><div class="conf" style="color:var(--s500)">Confidential</div>
+  <div class="sec-label">Division Deep Dive</div>
+  <h2>Data &mdash; The Intelligence Layer</h2>
+  <p class="sub">Monetising farm-level data to unlock agricultural lending at scale.</p>
+
+  <div class="cols cols-2 gap-lg flex-1">
+    <div class="flex-col" style="gap:14px;">
+      <div class="card">
+        <h3>The Bank's Problem</h3>
+        <ul><li>Central bank mandates $3.5B annual ag lending</li><li>Banks lend to factories &mdash; easier due diligence</li><li>Factory loans generate high NPLs</li><li>Farmer loans have <strong>lower</strong> default risk but no data to underwrite</li><li>Collecting from 500 farmers is operationally prohibitive</li></ul>
+      </div>
+      <div class="card">
+        <h3>Revenue Model</h3>
+        <div class="m-row"><span class="ml">Price per farmer profile</span><span class="mv" style="color:var(--brand-ll);">~$10</span></div>
+        <div class="m-row"><span class="ml">Bank ROI on data</span><span class="mv" style="color:var(--brand-ll);">~5x</span></div>
+        <div class="m-row"><span class="ml">Model</span><span class="mv" style="color:white;">B2B licensing</span></div>
+        <div class="m-row"><span class="ml">Customers</span><span class="mv" style="color:white;">Banks &amp; FIs</span></div>
+        <p style="margin-top:10px; font-size:11px; color:var(--s500);">Currently free to build trust. Monetisation imminent as value is proven.</p>
+      </div>
+    </div>
+    <div class="flex-col" style="gap:14px;">
+      <div class="card">
+        <h3>WeGro's Data Stack</h3>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:4px;">
+          <div style="display:flex; gap:10px; align-items:flex-start;"><span style="font-size:18px;">&#128225;</span><div><p style="font-weight:600; color:white; font-size:13px;">Geo-Tagged Verification</p><p style="font-size:11px;">Tamper-proof photos with GPS via mobile app</p></div></div>
+          <div style="display:flex; gap:10px; align-items:flex-start;"><span style="font-size:18px;">&#128752;</span><div><p style="font-weight:600; color:white; font-size:13px;">Satellite Monitoring</p><p style="font-size:11px;">7-day imaging cycle tracks crop health</p></div></div>
+          <div style="display:flex; gap:10px; align-items:flex-start;"><span style="font-size:18px;">&#129302;</span><div><p style="font-weight:600; color:white; font-size:13px;">AI Yield Prediction</p><p style="font-size:11px;">Predicts outcomes, flags at-risk loans</p></div></div>
+          <div style="display:flex; gap:10px; align-items:flex-start;"><span style="font-size:18px;">&#127919;</span><div><p style="font-weight:600; color:white; font-size:13px;">Farmer Credit Scoring</p><p style="font-size:11px;">Non-monetary data creates credit profiles. Core IP.</p></div></div>
+        </div>
+      </div>
+      <div class="card sm" style="background:rgba(1,85,70,0.15); border-color:rgba(1,85,70,0.25);">
+        <h3 style="font-size:13px; color:var(--brand-ll);">Collections Innovation</h3>
+        <p style="font-size:12px;">Buyer-pays-farmer model means the <strong>buyer settles directly</strong> at harvest. Banks never chase individual farmers.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 9: FLYWHEEL ============================= -->
+<div class="slide slide-light" id="s9">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Strategic Architecture</div>
+  <h2>The WeGro Flywheel</h2>
+  <p class="sub">Each division compounds the value of the others.</p>
+
+  <div class="fw-wrap">
+    <div class="fw">
+      <div class="fw-center">WeGro<br>Farmer<br>Network</div>
+      <div class="fw-node"><div class="fw-i">&#127793;</div><div class="fw-l">INPUTS</div><div class="fw-s">Acquire Farmers</div></div>
+      <div class="fw-node"><div class="fw-i">&#128176;</div><div class="fw-l">FINANCING</div><div class="fw-s">Deepen Lock-In</div></div>
+      <div class="fw-node"><div class="fw-i">&#128666;</div><div class="fw-l">TRADING</div><div class="fw-s">Capture Yield</div></div>
+      <div class="fw-node"><div class="fw-i">&#128202;</div><div class="fw-l">DATA</div><div class="fw-s">Monetise Intel</div></div>
+      <div class="fw-ring"></div>
+    </div>
+    <div class="fw-steps">
+      <div class="fw-step"><div class="fw-num">1</div><div class="fw-txt"><strong>Inputs drive farmer acquisition.</strong> Seeds &amp; fertilisers create a commercial relationship. High margins fund operations.</div></div>
+      <div class="fw-step"><div class="fw-num">2</div><div class="fw-txt"><strong>Financing deepens lock-in.</strong> Crop loans and trade financing make WeGro essential. Switching costs rise.</div></div>
+      <div class="fw-step"><div class="fw-num">3</div><div class="fw-txt"><strong>Trading captures yield.</strong> Aggregating harvests from locked-in farmers gives volume leverage with buyers.</div></div>
+      <div class="fw-step"><div class="fw-num">4</div><div class="fw-txt"><strong>Data monetises intelligence.</strong> Every interaction generates farm-level data that banks will pay for.</div></div>
+      <div class="fw-step"><div class="fw-num" style="background:var(--orange);">&#8635;</div><div class="fw-txt"><strong>Data improves everything.</strong> Yield predictions inform inputs, financing risk, and trade timing. The cycle accelerates.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 10: INTERACTIVE SCORING MATRIX ============================= -->
+<div class="slide slide-light" id="s10">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Initiative Prioritisation</div>
+  <h2>Scoring All Initiatives</h2>
+  <p class="sub">Click any score to edit. Drag rows to reorder. Totals and tiers recalculate automatically.</p>
+
+  <div class="score-toolbar">
+    <span>Interactive Mode</span>
+    <button onclick="sortByScore()">Sort by Score</button>
+    <button onclick="resetScores()">Reset to Default</button>
+    <span style="margin-left:auto; font-weight:400; color:var(--s500);">Tier 1: 20+ &nbsp;|&nbsp; Tier 2: 16-19 &nbsp;|&nbsp; Tier 3: &le;15</span>
+  </div>
+
+  <div class="flex-1" style="overflow-y:auto; padding-right:4px;">
+    <table class="score-table" id="scoreTable">
+      <thead>
+        <tr>
+          <th style="width:3%;"></th>
+          <th style="width:20%;">Initiative</th>
+          <th style="width:9%;">Division</th>
+          <th class="score-col" style="width:9%;">Impact</th>
+          <th class="score-col" style="width:9%;">Low Effort</th>
+          <th class="score-col" style="width:9%;">Low Cost</th>
+          <th class="score-col" style="width:9%;">Speed</th>
+          <th class="score-col" style="width:9%;">Alignment</th>
+          <th class="score-col" style="width:7%;">Score</th>
+          <th style="width:16%;">Composite</th>
+        </tr>
+      </thead>
+      <tbody id="scoreBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 11: PRIORITY SUMMARY ============================= -->
+<div class="slide slide-dark" id="s11">
+  <div class="logo"><img src="assets/whitelogo.png" alt="WeGro"></div><div class="conf" style="color:var(--s500)">Confidential</div>
+  <div class="sec-label">Initiative Prioritisation</div>
+  <h2>Where We Focus, Where We Wait</h2>
+  <p class="sub">Initiatives distilled into three tiers. Tier counts update live from the scoring matrix.</p>
+
+  <div class="cols cols-3 gap-lg flex-1">
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div style="text-align:center; padding:16px;">
+        <div id="t1count" style="font-size:48px; font-weight:900; color:var(--brand-ll);">8</div>
+        <div style="font-size:12px; color:var(--s400); font-weight:500;">Execute Now</div>
+      </div>
+      <div class="tier-card t1" style="flex:1; background:rgba(1,85,70,0.1); border-color:var(--brand-ll);">
+        <h4 style="color:var(--brand-ll);">Tier 1 &mdash; Score 20+</h4>
+        <ul id="t1list"></ul>
+        <p style="margin-top:auto; padding-top:12px; font-size:11px; color:var(--s500);">Strong margins, fast time to market, low cost, and high mission alignment. They form the flywheel core.</p>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div style="text-align:center; padding:16px;">
+        <div id="t2count" style="font-size:48px; font-weight:900; color:var(--orange);">5</div>
+        <div style="font-size:12px; color:var(--s400); font-weight:500;">Develop Next</div>
+      </div>
+      <div class="tier-card t2" style="flex:1; background:rgba(255,143,28,0.06); border-color:var(--orange);">
+        <h4 style="color:var(--orange);">Tier 2 &mdash; Score 16-19</h4>
+        <ul id="t2list"></ul>
+        <p style="margin-top:auto; padding-top:12px; font-size:11px; color:var(--s500);">High potential but require validation, capital, or capability-building.</p>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div style="text-align:center; padding:16px;">
+        <div id="t3count" style="font-size:48px; font-weight:900; color:var(--s500);">7</div>
+        <div style="font-size:12px; color:var(--s400); font-weight:500;">Defer / Monitor</div>
+      </div>
+      <div class="tier-card t3" style="flex:1; background:rgba(148,163,184,0.05); border-color:var(--s600);">
+        <h4 style="color:var(--s400);">Tier 3 &mdash; Score &le;15</h4>
+        <ul id="t3list"></ul>
+        <p style="margin-top:auto; padding-top:12px; font-size:11px; color:var(--s500);">High effort, high cost, or low alignment today. Re-score in 6 months.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 12: KPIs ============================= -->
+<div class="slide slide-light" id="s12">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Performance Tracking</div>
+  <h2>Key Metrics &amp; KPIs</h2>
+  <p class="sub">Proposed board-level metrics across each division.</p>
+
+  <div class="flex-1" style="display:flex; align-items:center;">
+    <table class="kpi-table" style="border-radius:12px; overflow:hidden; border:1px solid var(--s200);">
+      <thead><tr><th style="width:16%;">Division</th><th style="width:28%;">Metric</th><th style="width:28%;">What It Measures</th><th style="width:28%;">Target / Baseline</th></tr></thead>
+      <tbody>
+        <tr><td class="div-cell" rowspan="3" style="color:var(--brand);">Inputs</td><td>Active farmer count</td><td>Ecosystem reach</td><td>To be set</td></tr>
+        <tr><td>Gross margin by product line</td><td>Product economics</td><td>Seeds: 40-80%</td></tr>
+        <tr><td>Repeat purchase rate</td><td>Retention / satisfaction</td><td>To be set</td></tr>
+        <tr style="border-top:2px solid var(--s200);"><td class="div-cell" rowspan="3" style="color:var(--blue);">Financing</td><td>Loans disbursed (vol &amp; count)</td><td>Scale of operations</td><td>To be set</td></tr>
+        <tr><td>NPL rate</td><td>Portfolio quality</td><td>&lt; factory benchmark</td></tr>
+        <tr><td>Warehouse utilisation</td><td>Infrastructure leverage</td><td>To be set</td></tr>
+        <tr style="border-top:2px solid var(--s200);"><td class="div-cell" rowspan="3" style="color:var(--orange);">Trading</td><td>Volume aggregated (tons)</td><td>Trading scale</td><td>To be set</td></tr>
+        <tr><td>Trading spread (%)</td><td>Margin per transaction</td><td>To be set</td></tr>
+        <tr><td>Buyer fill rate</td><td>Supply reliability</td><td>To be set</td></tr>
+        <tr style="border-top:2px solid var(--s200);"><td class="div-cell" rowspan="3" style="color:var(--purple);">Data</td><td>Farmer profiles generated</td><td>Data asset growth</td><td>To be set</td></tr>
+        <tr><td>Bank / FI customers</td><td>B2B pipeline</td><td>To be set</td></tr>
+        <tr><td>Yield prediction accuracy</td><td>Model credibility</td><td>To be set</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 13: Q2 STRATEGY ============================= -->
+<div class="slide slide-light" id="s13">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Strategic Priorities</div>
+  <h2>Q2 2026: Four Bets That Move the Needle</h2>
+  <p class="sub">From the scoring matrix, four strategic lanes emerge for the next quarter.</p>
+
+  <div class="cols cols-2 gap-sm flex-1">
+    <div class="q2-lane" style="border-left:4px solid var(--brand);">
+      <h4>&#127793; Scale Seed Distribution</h4>
+      <div class="rationale">"Highest margin, lowest effort, strongest acquisition channel. Seeds scored 21-22."</div>
+      <div class="actions">
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Sign 2 new exclusive global seed partnerships</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Expand white-label SKU range to 3 new crops</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Grow farmer base by 40% through seed-led acquisition</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Bundle micronutrients with seed packages for higher AOV</div>
+      </div>
+    </div>
+    <div class="q2-lane" style="border-left:4px solid var(--purple);">
+      <h4>&#128202; Monetise the Data Platform</h4>
+      <div class="rationale">"Banks need this data to meet a $3.5B mandate. Scored 20-21 with near-zero marginal cost."</div>
+      <div class="actions">
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Convert 2 pilot banks to paid licensing agreements</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Ship farmer credit scoring v1 to first paying customer</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Reach 10,000 farmer profiles in the platform</div>
+      </div>
+    </div>
+    <div class="q2-lane" style="border-left:4px solid var(--orange);">
+      <h4>&#128666; Grow Contract Aggregation</h4>
+      <div class="rationale">"Already operational, low cost, and scored 22. More volume = more data = stronger flywheel."</div>
+      <div class="actions">
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Secure 3 new industrial buyer contracts</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Increase monthly aggregation volume by 50%</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Establish quality-checking protocols at 2 warehouses</div>
+      </div>
+    </div>
+    <div class="q2-lane" style="border-left:4px solid var(--blue);">
+      <h4>&#128176; Launch Crop Collateral Lending</h4>
+      <div class="rationale">"Scored 20. The missing piece that closes the loop for farmers and data."</div>
+      <div class="actions">
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Sign 1 warehouse partner for collateral storage</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Pilot EWR-backed loans with 50 farmers</div>
+        <div class="q2-action"><span class="q2-check">&#10003;</span> Validate buyer-pays-farmer settlement flow end-to-end</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 14: WHAT WE SAY NO TO ============================= -->
+<div class="slide slide-dark" id="s14">
+  <div class="logo"><img src="assets/whitelogo.png" alt="WeGro"></div><div class="conf" style="color:var(--s500)">Confidential</div>
+  <div class="sec-label">Strategic Discipline</div>
+  <h2>What We're Saying No To &mdash; And Why</h2>
+  <p class="sub">Focus requires explicit decisions about what <em>not</em> to pursue. These are deferred, not abandoned.</p>
+
+  <div class="cols cols-2 gap-lg flex-1">
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div class="card">
+        <h3 style="display:flex; gap:8px; align-items:center;"><span style="color:var(--red);">&#10005;</span> International Expansion (India)</h3>
+        <p>Impact could be enormous, but effort and cost scores are 1/5 each. <strong>Re-evaluate in Q4</strong> once Bangladesh KPIs are met.</p>
+        <div style="margin-top:8px;"><span class="tag red">Score: 10/25</span><span class="tag slate">Trigger: BD revenue &gt; $X</span></div>
+      </div>
+      <div class="card">
+        <h3 style="display:flex; gap:8px; align-items:center;"><span style="color:var(--red);">&#10005;</span> Drone Deployment</h3>
+        <p>Satellite imagery already covers monitoring needs at a fraction of the cost. Drones add value at scale we haven't reached yet.</p>
+        <div style="margin-top:8px;"><span class="tag red">Score: 11/25</span><span class="tag slate">Trigger: &gt;25K farmers</span></div>
+      </div>
+      <div class="card">
+        <h3 style="display:flex; gap:8px; align-items:center;"><span style="color:var(--red);">&#10005;</span> Commodity Trading Platform</h3>
+        <p>Requires regulatory approval, technology investment, and market liquidity. We'll trade manually and build toward this over time.</p>
+        <div style="margin-top:8px;"><span class="tag red">Score: 13/25</span><span class="tag slate">Trigger: 500T monthly vol</span></div>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div class="card">
+        <h3 style="display:flex; gap:8px; align-items:center;"><span style="color:var(--red);">&#10005;</span> Net Houses at Scale</h3>
+        <p>Requires heavy capex, subsidy relationships, and a longer payback period. Premature for our current stage.</p>
+        <div style="margin-top:8px;"><span class="tag red">Score: 12/25</span><span class="tag slate">Trigger: govt subsidy</span></div>
+      </div>
+      <div class="card">
+        <h3 style="display:flex; gap:8px; align-items:center;"><span style="color:var(--red);">&#10005;</span> Liquid Fertiliser R&amp;D</h3>
+        <p>Scientifically promising but slow. We'll continue research conversations but not allocate resources until IP terms are finalised.</p>
+        <div style="margin-top:8px;"><span class="tag red">Score: 14/25</span><span class="tag slate">Trigger: IP deal signed</span></div>
+      </div>
+      <div class="card sm" style="background:rgba(1,85,70,0.1); border-color:rgba(1,85,70,0.2);">
+        <h3 style="font-size:14px; color:var(--brand-ll);">The Discipline</h3>
+        <p style="font-size:13px;">Every deferred initiative has a <strong>re-entry trigger</strong>. We review the full matrix every 6 months. This isn't saying "never." It's saying "not yet."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 15: BOARD ALIGNMENT ============================= -->
+<div class="slide slide-light" id="s15">
+  <div class="logo"><img src="assets/newWegroLogo.png" alt="WeGro"></div><div class="conf">Confidential</div>
+  <div class="sec-label">Board Alignment</div>
+  <h2>Decisions We Need From the Board</h2>
+  <p class="sub">Five questions that require board input to unlock the next phase of execution.</p>
+
+  <div class="cols cols-2 gap-lg flex-1">
+    <div class="flex-col" style="gap:14px;">
+      <div class="card a-green"><h3>1. Endorse the Prioritisation Framework</h3><p>Do we have board support for the "score and cut" discipline? This means accepting that high-potential initiatives (India, drones, net houses) are explicitly deferred.</p></div>
+      <div class="card a-purple"><h3>2. Data Monetisation Timing</h3><p>We've been providing data to banks for free to build trust. Management recommends transitioning to paid licensing in Q2. Do we have alignment on timing and pricing?</p></div>
+      <div class="card a-blue"><h3>3. Agronomist Co-Founder Hire</h3><p>Our commercial strength needs a technical counterpart. Hiring an agronomist/scientist co-founder would strengthen inputs quality and credibility with partners.</p></div>
+    </div>
+    <div class="flex-col" style="gap:14px;">
+      <div class="card a-amber"><h3>4. Capital Allocation</h3><p>How should we balance scaling proven divisions vs. investing in emerging ones? Management proposes a 70/30 split.</p></div>
+      <div class="card" style="background:var(--brand-d); border-color:rgba(1,85,70,0.3);"><h3 style="color:white;">5. Quarterly Reporting Cadence</h3><p style="color:var(--s300);">We commit to reporting against the prioritisation matrix quarterly. Re-score all initiatives every 6 months. Board receives KPI dashboard monthly.</p></div>
+      <div class="card sm" style="background:var(--brand-pale); border-color:rgba(1,85,70,0.2);"><h3 style="font-size:14px; color:var(--brand);">Management Commitment</h3><p style="font-size:12px;">We are transitioning from broad experimentation to focused execution. Accountability starts now.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SLIDE 16: CLOSING ============================= -->
+<div class="slide slide-close" id="s16">
+  <img src="assets/whitelogo.png" alt="WeGro" style="width:100px; margin-bottom:32px; opacity:0.8;">
+  <h2>Bangladesh First.<br>Then Scale.</h2>
+  <div class="close-sub">Win the home market. Build the data moat. Export the model.</div>
+  <div class="close-cta">
+    <div class="close-pill primary">Q2 Execution Begins April 2026</div>
+    <div class="close-pill secondary">Next Board Review: July 2026</div>
+  </div>
+  <div style="margin-top:56px; font-size:12px; color:var(--s600);">WeGro &nbsp;&bull;&nbsp; Confidential &nbsp;&bull;&nbsp; March 2026</div>
+</div>
+
+<!-- ============================= NAVIGATION ============================= -->
+<div class="slide-counter"><span id="cur">1</span> / <span id="tot">16</span></div>
+<div class="nav">
+  <button onclick="prev()">&#8592; Prev</button>
+  <button onclick="next()">Next &#8594;</button>
+</div>
+
+<script>
+  // ==================== SLIDE NAVIGATION ====================
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    document.getElementById('cur').textContent = cur + 1;
+  }
+  function next() { show(cur + 1); }
+  function prev() { show(cur - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+
+  document.getElementById('tot').textContent = slides.length;
+
+  // ==================== INTERACTIVE SCORING TABLE ====================
+  const defaultData = [
+    { name:"White-Label Seed Distribution", div:"inputs", scores:[5,4,4,4,5] },
+    { name:"Contract Growing & Aggregation", div:"trading", scores:[4,4,4,5,5] },
+    { name:"Exclusive Seed Brand Partnerships", div:"inputs", scores:[4,4,4,4,5] },
+    { name:"Biofertiliser Production", div:"inputs", scores:[3,4,4,5,5] },
+    { name:"Farmer Data Platform for Banks", div:"data", scores:[5,3,4,4,5] },
+    { name:"Micronutrient Distribution", div:"inputs", scores:[2,5,5,5,4] },
+    { name:"Crop Collateralised Financing", div:"financing", scores:[5,3,3,4,5] },
+    { name:"Farmer Credit Scoring", div:"data", scores:[5,3,4,3,5] },
+    { name:"Seedling Business", div:"inputs", scores:[3,4,4,4,4] },
+    { name:"Trade Financing (Factoring)", div:"financing", scores:[3,4,4,4,4] },
+    { name:"AI Yield Prediction", div:"data", scores:[4,2,3,3,5] },
+    { name:"Commodity Stockpiling", div:"trading", scores:[3,3,3,4,4] },
+    { name:"Multi-Crop Dryer Deployment", div:"inputs", scores:[4,3,2,3,4] },
+    { name:"Liquid Chemical Fertiliser R&D", div:"inputs", scores:[3,2,3,2,4] },
+    { name:"Commodity Trading Platform", div:"trading", scores:[3,2,3,2,3] },
+    { name:"Net Houses / Protected Agriculture", div:"inputs", scores:[3,2,1,2,4] },
+    { name:"GAP Certification Programme", div:"inputs", scores:[3,2,2,2,3] },
+    { name:"Drone Deployment", div:"inputs", scores:[2,2,2,2,3] },
+    { name:"International Expansion (India)", div:"trading", scores:[4,1,1,1,3] },
+    { name:"Blockchain-based EWR", div:"data", scores:[2,1,2,1,3] },
+  ];
+
+  let data = JSON.parse(JSON.stringify(defaultData));
+
+  const divLabels = {
+    inputs: '<span class="div-tag inputs">Inputs</span>',
+    financing: '<span class="div-tag financing">Financing</span>',
+    trading: '<span class="div-tag trading">Trading</span>',
+    data: '<span class="div-tag data">Data</span>',
+  };
+
+  function totalScore(item) { return item.scores.reduce((a,b) => a+b, 0); }
+  function tierClass(s) { return s >= 20 ? 'tier-1' : s >= 16 ? 'tier-2' : 'tier-3'; }
+  function barClass(s) { return s >= 20 ? 'high' : s >= 16 ? 'mid' : 'low'; }
+
+  function renderTable() {
+    const tbody = document.getElementById('scoreBody');
+    tbody.innerHTML = '';
+    data.forEach((item, idx) => {
+      const total = totalScore(item);
+      const tier = tierClass(total);
+      const bar = barClass(total);
+      const pct = (total / 25 * 100).toFixed(0);
+      const opacity = total <= 15 ? 'opacity:0.6;' : '';
+
+      const tr = document.createElement('tr');
+      tr.draggable = true;
+      tr.dataset.idx = idx;
+      tr.style.cssText = opacity;
+
+      tr.innerHTML =
+        '<td class="drag-handle" title="Drag to reorder">&#9776;</td>' +
+        '<td>' + item.name + '</td>' +
+        '<td>' + divLabels[item.div] + '</td>' +
+        item.scores.map((s, si) =>
+          '<td class="score-col score-cell" data-row="' + idx + '" data-col="' + si + '">' + s + '</td>'
+        ).join('') +
+        '<td class="score-col"><span class="score-badge ' + tier + '">' + total + '</span></td>' +
+        '<td><div class="score-bar-wrap"><div class="score-bar ' + bar + '" style="width:' + pct + '%;"></div></div></td>';
+
+      // Click to edit scores
+      tr.querySelectorAll('.score-cell').forEach(cell => {
+        cell.addEventListener('click', function() {
+          editScore(this, parseInt(this.dataset.row), parseInt(this.dataset.col));
+        });
+      });
+
+      // Drag events
+      tr.addEventListener('dragstart', handleDragStart);
+      tr.addEventListener('dragover', handleDragOver);
+      tr.addEventListener('dragenter', handleDragEnter);
+      tr.addEventListener('dragleave', handleDragLeave);
+      tr.addEventListener('drop', handleDrop);
+      tr.addEventListener('dragend', handleDragEnd);
+
+      tbody.appendChild(tr);
+    });
+    updateTierSummary();
+  }
+
+  function editScore(cell, row, col) {
+    if (cell.querySelector('input')) return;
+    const oldVal = data[row].scores[col];
+    const input = document.createElement('input');
+    input.type = 'number'; input.min = 1; input.max = 5; input.value = oldVal;
+    cell.textContent = '';
+    cell.appendChild(input);
+    input.focus(); input.select();
+
+    function commit() {
+      let val = parseInt(input.value);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > 5) val = 5;
+      data[row].scores[col] = val;
+      renderTable();
+    }
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') commit();
+      if (e.key === 'Escape') { data[row].scores[col] = oldVal; renderTable(); }
+    });
+  }
+
+  let dragIdx = null;
+  function handleDragStart(e) { dragIdx = parseInt(this.dataset.idx); this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+  function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+  function handleDragEnter(e) { e.preventDefault(); this.classList.add('drag-over'); }
+  function handleDragLeave() { this.classList.remove('drag-over'); }
+  function handleDrop(e) {
+    e.preventDefault(); this.classList.remove('drag-over');
+    const dropIdx = parseInt(this.dataset.idx);
+    if (dragIdx === null || dragIdx === dropIdx) return;
+    const item = data.splice(dragIdx, 1)[0];
+    data.splice(dropIdx, 0, item);
+    renderTable();
+  }
+  function handleDragEnd() { this.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); }
+
+  function sortByScore() { data.sort((a,b) => totalScore(b) - totalScore(a)); renderTable(); }
+  function resetScores() { data = JSON.parse(JSON.stringify(defaultData)); renderTable(); }
+
+  function updateTierSummary() {
+    const t1 = [], t2 = [], t3 = [];
+    [...data].sort((a,b) => totalScore(b) - totalScore(a)).forEach(item => {
+      const s = totalScore(item);
+      if (s >= 20) t1.push(item.name);
+      else if (s >= 16) t2.push(item.name);
+      else t3.push(item.name);
+    });
+    document.getElementById('t1count').textContent = t1.length;
+    document.getElementById('t2count').textContent = t2.length;
+    document.getElementById('t3count').textContent = t3.length;
+    document.getElementById('t1list').innerHTML = t1.map(n => '<li style="color:var(--s300);">' + n + '</li>').join('');
+    document.getElementById('t2list').innerHTML = t2.map(n => '<li style="color:var(--s300);">' + n + '</li>').join('');
+    document.getElementById('t3list').innerHTML = t3.map(n => '<li style="color:var(--s400);">' + n + '</li>').join('');
+  }
+
+  renderTable();
+</script>
+</body>
+</html>

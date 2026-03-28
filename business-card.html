@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Business Card — Alex Miller</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --background: #ffffff;
+    --foreground: #111114;
+    --accent: #7c5cfc;
+    --accent-hover: #6344e0;
+    --accent-dim: rgba(124, 92, 252, 0.08);
+    --muted: #6b6b7b;
+    --card-bg: #f6f6f8;
+    --card-border: #e2e2e8;
+    --surface: #f0f0f4;
+  }
+
+  body {
+    background: #eeeef2;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 48px;
+    padding: 48px;
+  }
+
+  .label {
+    color: #999;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 500;
+    margin-bottom: -8px;
+  }
+
+  /* 3.5in x 2in */
+  .card {
+    width: 3.5in;
+    height: 2in;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  }
+
+  /* ===== FRONT ===== */
+  .card-front {
+    background: var(--background);
+    display: flex;
+    position: relative;
+  }
+
+  /* Subtle grain texture */
+  .card-front::before,
+  .card-back::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Accent glow — subtle radial in top-left */
+  .card-front::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    left: -10%;
+    width: 60%;
+    height: 80%;
+    background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .front-left {
+    width: 34%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Accent bar divider */
+  .front-left::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 18%;
+    height: 64%;
+    width: 2px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  .front-left .brand {
+    margin-top: 8px;
+  }
+
+  .front-left .brand img {
+    height: 22px;
+    width: auto;
+  }
+
+  .front-left img.headshot {
+    width: 54px;
+    height: 54px;
+    border-radius: 6px;
+    object-fit: cover;
+    filter: none;
+  }
+
+  .front-right {
+    flex: 1;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .front-right h1 {
+    color: var(--foreground);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.2;
+    margin-bottom: 1px;
+    letter-spacing: -0.3px;
+  }
+
+  .front-right .title {
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 7.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3.5px;
+    color: var(--muted);
+    font-size: 7.5px;
+    line-height: 1.4;
+  }
+
+  .contact-row .icon {
+    color: var(--accent);
+    width: 14px;
+    font-size: 9px;
+    text-align: center;
+    margin-right: 5px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .contact-row a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .front-social {
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    gap: 12px;
+  }
+
+  .front-social a {
+    color: var(--muted);
+    font-size: 7px;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+
+  .front-social .dot {
+    color: var(--card-border);
+    font-size: 7px;
+  }
+
+  /* ===== BACK ===== */
+  .card-back {
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+  }
+
+  /* Glow on back */
+  .card-back::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Corner accent lines */
+  .corner-tl, .corner-br {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    z-index: 2;
+  }
+  .corner-tl {
+    top: 16px;
+    left: 16px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+    opacity: 0.4;
+  }
+  .corner-br {
+    bottom: 16px;
+    right: 16px;
+    border-bottom: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+    opacity: 0.4;
+  }
+
+  .back-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .back-content img.logo {
+    height: 80px;
+    width: auto;
+    margin-bottom: 14px;
+  }
+
+  .back-divider {
+    width: 40px;
+    height: 2px;
+    background: var(--accent);
+    margin-bottom: 14px;
+    opacity: 0.6;
+  }
+
+  .back-content .tagline {
+    color: var(--muted);
+    font-size: 7px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .back-content .url {
+    color: var(--foreground);
+    font-size: 8px;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    font-weight: 500;
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { background: white; gap: 24px; }
+    .label { display: none; }
+    .card { box-shadow: none; border: 0.5px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="label">Front</div>
+  <div class="card card-front">
+    <div class="front-left">
+      <img class="headshot" src="public/images/alex-headshot.jpg" alt="Alex Miller" />
+      <div class="brand">
+        <img src="public/aim-huge-logo-black-large.png" alt="AimHuge" />
+      </div>
+    </div>
+    <div class="front-right">
+      <h1>Alex Miller</h1>
+      <div class="title">AI Trainer &middot; Startup Operator &middot; Investor</div>
+      <div class="contact-row">
+        <span class="icon">&#9993;</span>
+        <a href="mailto:alex@aimhuge.com">alex@aimhuge.com</a>
+      </div>
+      <div class="contact-row">
+        <span class="icon">&#9742;</span>
+        <a href="https://wa.me/6281717770552">+62 817 1777 0552</a>
+      </div>
+      <div class="contact-row">
+        <span class="icon">&#9737;</span>
+        <span>aimhuge.com</span>
+      </div>
+      <div class="contact-row">
+        <span class="icon">&#9906;</span>
+        <span>Chiang Mai, Thailand</span>
+      </div>
+      <div class="front-social">
+        <a href="https://linkedin.com/in/fotoflo">linkedin.com/in/fotoflo</a>
+        <span class="dot">&middot;</span>
+        <a href="https://calendly.com/fotoflo/30min">calendly.com/fotoflo</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="label">Back</div>
+  <div class="card card-back">
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+    <div class="back-content">
+      <img class="logo" src="public/aim-huge-logo-black-large.png" alt="AimHuge" />
+      <div class="back-divider"></div>
+      <div class="tagline">AI Workshops &middot; Advisory &middot; Investing</div>
+      <div class="url">aimhuge.com</div>
+    </div>
+  </div>
+
+</body>
+</html>
