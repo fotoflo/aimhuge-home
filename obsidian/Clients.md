@@ -30,3 +30,9 @@ Workshop client.
 - **Date**: March 30, 2026
 - **Location**: Dhaka, Bangladesh
 - **Two tracks**: Leadership Team (~30 people) and Engineering Team
+
+## Advisory Clients
+
+### [[WeGro]]
+
+Agri-fintech company in Bangladesh. AimHuge built their board deck and provides advisory. See [[WeGro Business Model]], [[WeGro Brand Identity]], [[WeGro Board Deck]].
