@@ -62,9 +62,9 @@ function SortableRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`grid grid-cols-[22%_9%_9%_9%_9%_9%_7%_17%_9%] items-center border-b border-slate-100 hover:bg-emerald-50/50 transition-colors ${tier === 3 ? "opacity-60" : ""}`}
+      className={`grid grid-cols-[22%_9%_9%_9%_9%_9%_7%_17%_9%] items-center border-b border-slate-100 hover:bg-[#e6f2ef]/50 transition-colors ${tier === 3 ? "opacity-60" : ""}`}
     >
-      <div className="px-4 py-2 font-semibold text-slate-900 text-xs flex items-center gap-2">
+      <div className="px-4 py-2.5 font-semibold text-slate-900 text-[14px] flex items-center gap-2">
         <span
           {...attributes}
           {...listeners}
@@ -75,7 +75,7 @@ function SortableRow({
         {item.name}
       </div>
       <div className="px-3 py-2">
-        <span className={`inline-block px-2 py-[2px] rounded text-[10px] font-semibold ${divColor.bg} ${divColor.text}`}>
+        <span className={`inline-block px-2 py-[2px] rounded text-[11px] font-semibold ${divColor.bg} ${divColor.text}`}>
           {item.division.charAt(0).toUpperCase() + item.division.slice(1)}
         </span>
       </div>
@@ -87,17 +87,17 @@ function SortableRow({
             max={5}
             value={item.scores[field]}
             onChange={(e) => onScoreChange(field, Math.min(5, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="w-8 text-center text-xs bg-transparent border border-transparent hover:border-slate-300 focus:border-emerald-500 focus:outline-none rounded py-0.5"
+            className="w-9 text-center text-[14px] font-bold text-slate-800 bg-transparent border border-slate-200 hover:border-slate-400 focus:border-[#015546] focus:outline-none rounded py-0.5"
           />
         </div>
       ))}
       <div className="px-3 py-2 text-center">
-        <span className={`inline-flex items-center justify-center w-8 h-[22px] rounded-md font-extrabold text-xs ${tierBadgeClass(tier)}`}>
+        <span className={`inline-flex items-center justify-center w-9 h-[26px] rounded-md font-extrabold text-[15px] ${tierBadgeClass(tier)}`}>
           {score}
         </span>
       </div>
       <div className="px-3 py-2">
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
           <div className={`h-full rounded-full score-bar ${barClass(score)}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
@@ -134,7 +134,7 @@ export function ScoringMatrixSlide({
       <div className="flex-1 overflow-y-auto pr-1">
         <div className="rounded-xl border border-slate-200 overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-[22%_9%_9%_9%_9%_9%_7%_17%_9%] bg-slate-800 text-white text-[11px] font-semibold uppercase tracking-wide border-b-2 border-emerald-500">
+          <div className="grid grid-cols-[22%_9%_9%_9%_9%_9%_7%_17%_9%] bg-[#011412] text-white text-[12px] font-semibold uppercase tracking-wide border-b-2 border-[#FF8F1C]">
             <div className="px-4 py-2.5">Initiative</div>
             <div className="px-3 py-2.5">Division</div>
             <div className="px-3 py-2.5 text-center">Impact</div>

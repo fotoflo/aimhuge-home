@@ -21,14 +21,14 @@ export function TradingSlide() {
             <div className="flex flex-col gap-2.5">
               {["Buyer places order (e.g., 100T maize)", "WeGro sources from farmer network", "Crop aggregated & quality-checked", "Delivered to buyer or stockpiled", "WeGro captures trading spread"].map((step, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 min-w-[24px] rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center">{i + 1}</div>
-                  <p className="text-slate-300 text-xs">{step}</p>
+                  <div className="w-6 h-6 min-w-[24px] rounded-full bg-[#015546] text-white text-[11px] font-bold flex items-center justify-center">{i + 1}</div>
+                  <p className="text-slate-300 text-[14px]">{step}</p>
                 </div>
               ))}
             </div>
           </Card>
-          <Card small className="!bg-emerald-50 !border-emerald-200">
-            <CardTitle><span className="text-emerald-800 text-[13px]">Key Advantage</span></CardTitle>
+          <Card small className="!bg-[#e6f2ef] !border-[#015546]/20">
+            <CardTitle><span className="text-[#015546] text-[13px]">Key Advantage</span></CardTitle>
             <CardText>Farmer relationships (Inputs) and crop visibility (Data) create an information advantage over traditional commodity traders who lack farm-level intelligence.</CardText>
           </Card>
         </div>

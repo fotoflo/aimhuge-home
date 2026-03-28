@@ -36,8 +36,8 @@ export function SayNoSlide() {
               <div className="mt-2"><Tag color="red">Score: {d.score}/25</Tag><Tag color="slate">Trigger: {d.trigger}</Tag></div>
             </Card>
           ))}
-          <Card small dark className="!bg-emerald-500/[0.06] !border-emerald-500/[0.15]">
-            <CardTitle><span className="text-emerald-400 text-sm">The Discipline</span></CardTitle>
+          <Card small dark className="!bg-[#015546]/[0.12] !border-[#015546]/[0.25]">
+            <CardTitle><span className="text-[#FF8F1C] text-sm">The Discipline</span></CardTitle>
             <CardText dark>Every deferred initiative has a re-entry trigger — a specific KPI or event that prompts re-scoring. We review the full matrix every 6 months. This isn&apos;t saying &quot;never.&quot; It&apos;s saying &quot;not yet, and here&apos;s what changes our mind.&quot;</CardText>
           </Card>
         </div>

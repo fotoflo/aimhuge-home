@@ -18,7 +18,7 @@ export function InputsSlide() {
             <MetricRow label="Exclusive global distribution" value="40–50% margin" />
             <MetricRow label="Bangladesh seed market" value="~$2B (fragmented)" />
             <MetricRow label="Unit economics (maize)" value="~$200 / hectare" />
-            <p className="mt-2.5 text-xs text-slate-500">Global companies invest billions in seed R&D. Bangladesh invests nearly zero. WeGro bridges this gap via exclusive distribution — capturing margin without bearing R&D cost.</p>
+            <p className="mt-2.5 text-[13px] text-slate-500">WeGro bridges the R&D gap via exclusive distribution — capturing margin without bearing R&D cost.</p>
           </Card>
           <Card accent="green">
             <CardTitle>Fertilisers &amp; Micronutrients</CardTitle>
@@ -46,8 +46,8 @@ export function InputsSlide() {
               "Soilless growing (coco peat + biofertilisers)",
             ]} />
           </Card>
-          <Card small className="!bg-emerald-50 !border-emerald-200">
-            <CardTitle><span className="text-emerald-800 text-[13px]">Why This Division Matters</span></CardTitle>
+          <Card small className="!bg-[#e6f2ef] !border-[#015546]/20">
+            <CardTitle><span className="text-[#015546] text-[13px]">Why This Division Matters</span></CardTitle>
             <CardText>Inputs are the farmer acquisition channel. Every seed bag sold creates a relationship that feeds financing, trading, and data. Margins sustain operations while building the downstream flywheel.</CardText>
           </Card>
         </div>

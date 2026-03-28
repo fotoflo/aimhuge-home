@@ -28,7 +28,7 @@ export function DataSlide() {
             <MetricRow label="Bank ROI on data" value="~5x" dark />
             <MetricRow label="Model" value="B2B licensing" dark />
             <MetricRow label="Customers" value="Banks & FIs" dark />
-            <p className="mt-2.5 text-[11px] text-slate-500">Currently free to build trust. Monetisation imminent as value is proven.</p>
+            <p className="mt-2.5 text-[13px] text-slate-500">Currently free to build trust. Monetisation imminent.</p>
           </Card>
         </div>
         <div className="flex flex-col gap-3.5">
@@ -44,15 +44,15 @@ export function DataSlide() {
                 <div key={item.title} className="flex gap-2.5 items-start">
                   <span className="text-lg">{item.icon}</span>
                   <div>
-                    <p className="font-semibold text-white text-[13px]">{item.title}</p>
-                    <p className="text-[11px] text-slate-400">{item.desc}</p>
+                    <p className="font-semibold text-white text-[15px]">{item.title}</p>
+                    <p className="text-[13px] text-slate-400">{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </Card>
-          <Card small dark className="!bg-emerald-500/[0.08] !border-emerald-500/[0.15]">
-            <CardTitle><span className="text-emerald-400 text-[13px]">Collections Innovation</span></CardTitle>
+          <Card small dark className="!bg-[#015546]/[0.15] !border-[#015546]/[0.25]">
+            <CardTitle><span className="text-[#FF8F1C] text-[13px]">Collections Innovation</span></CardTitle>
             <CardText dark>Buyer-pays-farmer model means the buyer settles directly at harvest. Banks never chase individual farmers. This single structural change makes smallholder lending viable.</CardText>
           </Card>
         </div>

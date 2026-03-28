@@ -33,8 +33,8 @@ export function BoardAlignmentSlide() {
             <CardTitle dark>5. Quarterly Reporting Cadence</CardTitle>
             <CardText dark>We commit to reporting against the prioritisation matrix quarterly. Re-score all initiatives every 6 months. Board receives KPI dashboard monthly.</CardText>
           </Card>
-          <Card small className="!bg-emerald-50 !border-emerald-200">
-            <CardTitle><span className="text-emerald-800 text-sm">Management Commitment</span></CardTitle>
+          <Card small className="!bg-[#e6f2ef] !border-[#015546]/20">
+            <CardTitle><span className="text-[#015546] text-sm">Management Commitment</span></CardTitle>
             <CardText>We are transitioning from broad experimentation to focused execution. The prioritisation framework ensures every initiative is scored, ranked, and either pursued, deferred, or cut. Accountability starts now.</CardText>
           </Card>
         </div>

@@ -1,11 +1,19 @@
-/* WeGro Board Deck Design Tokens */
+/* WeGro Board Deck Design Tokens — Brand Palette */
 :root {
-  --g900: #064e3b; --g800: #065f46; --g700: #047857; --g600: #059669;
-  --g500: #10b981; --g400: #34d399; --g300: #6ee7b7; --g200: #a7f3d0;
-  --g100: #d1fae5; --g50: #ecfdf5;
+  /* WeGro brand */
+  --wg-teal: #015546;
+  --wg-teal-dark: #013d32;
+  --wg-forest: #011412;
+  --wg-orange: #FF8F1C;
+  --wg-orange-light: #FFF3E6;
+  --wg-teal-light: #e6f2ef;
+
+  /* Slate scale (unchanged) */
   --s900: #0f172a; --s800: #1e293b; --s700: #334155; --s600: #475569;
   --s500: #64748b; --s400: #94a3b8; --s300: #cbd5e1; --s200: #e2e8f0;
   --s100: #f1f5f9; --s50: #f8fafc;
+
+  /* Category accents */
   --amber: #f59e0b; --amber-l: #fef3c7; --amber-d: #92400e;
   --blue: #3b82f6; --blue-l: #dbeafe; --blue-d: #1e40af;
   --red: #ef4444; --red-l: #fee2e2; --red-d: #991b1b;
@@ -16,7 +24,7 @@
 .slide {
   width: 100vw;
   height: 100vh;
-  padding: 56px 72px;
+  padding: 48px 56px;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -24,7 +32,7 @@
 }
 
 .slide-dark {
-  background: linear-gradient(160deg, var(--s900) 0%, var(--g900) 100%);
+  background: linear-gradient(160deg, var(--wg-forest) 0%, var(--wg-teal-dark) 100%);
   color: white;
 }
 
@@ -33,7 +41,7 @@
 }
 
 .slide-hero {
-  background: linear-gradient(140deg, #041f1a 0%, var(--s900) 40%, #0c2420 100%);
+  background: linear-gradient(140deg, var(--wg-forest) 0%, #021e18 40%, var(--wg-teal-dark) 100%);
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -42,12 +50,10 @@
 .slide-hero::before {
   content: '';
   position: absolute;
-  top: -30%;
-  right: -15%;
-  width: 800px;
-  height: 800px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
+  inset: 0;
+  background: url('/images/wegro/AboutUs/aboutusHero.webp') center/cover no-repeat;
+  opacity: 0.18;
+  z-index: 0;
 }
 
 .slide-hero::after {
@@ -58,14 +64,23 @@
   width: 600px;
   height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(1,85,70,0.12) 0%, transparent 70%);
 }
 
 .slide-close {
-  background: linear-gradient(140deg, #041f1a 0%, var(--s900) 50%, #0c2420 100%);
+  background: linear-gradient(140deg, var(--wg-forest) 0%, #021e18 50%, var(--wg-teal-dark) 100%);
   justify-content: center;
   align-items: center;
   text-align: center;
+}
+
+.slide-close::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/wegro/AboutUs/journeyStarts.webp') center/cover no-repeat;
+  opacity: 0.15;
+  z-index: 0;
 }
 
 /* Flywheel animation */
@@ -80,7 +95,7 @@
   transform: translate(-50%, -50%);
   width: 260px;
   height: 260px;
-  border: 2px dashed var(--g300);
+  border: 2px dashed rgba(1,85,70,0.4);
   border-radius: 50%;
   animation: spin 25s linear infinite;
 }

@@ -7,9 +7,9 @@ interface CardProps {
 }
 
 const accentBorder = {
-  green: "border-t-[3px] border-t-emerald-500",
+  green: "border-t-[3px] border-t-[#015546]",
   blue: "border-t-[3px] border-t-blue-500",
-  amber: "border-t-[3px] border-t-amber-500",
+  amber: "border-t-[3px] border-t-[#FF8F1C]",
   purple: "border-t-[3px] border-t-violet-500",
   red: "border-t-[3px] border-t-red-500",
 };
@@ -31,7 +31,7 @@ export function Card({ accent, small, dark, className = "", children }: CardProp
 
 export function CardTitle({ children, dark }: { children: React.ReactNode; dark?: boolean }) {
   return (
-    <h3 className={`text-base font-bold mb-2 ${dark ? "text-white" : "text-slate-900"}`}>
+    <h3 className={`text-[20px] font-bold mb-2 ${dark ? "text-white" : "text-slate-900"}`}>
       {children}
     </h3>
   );
@@ -39,7 +39,7 @@ export function CardTitle({ children, dark }: { children: React.ReactNode; dark?
 
 export function CardText({ children, dark }: { children: React.ReactNode; dark?: boolean }) {
   return (
-    <p className={`text-[13px] leading-relaxed ${dark ? "text-slate-300" : "text-slate-600"}`}>
+    <p className={`text-[15px] leading-relaxed ${dark ? "text-slate-300" : "text-slate-600"}`}>
       {children}
     </p>
   );
@@ -51,7 +51,7 @@ export function CardList({ items, dark }: { items: string[]; dark?: boolean }) {
       {items.map((item, i) => (
         <li
           key={i}
-          className={`py-[3px] pl-3.5 relative text-[13px] leading-relaxed ${dark ? "text-slate-300" : "text-slate-600"} before:content-[''] before:absolute before:left-0 before:top-[10px] before:w-[5px] before:h-[5px] before:rounded-full ${dark ? "before:bg-emerald-400" : "before:bg-emerald-500"}`}
+          className={`py-[3px] pl-3.5 relative text-[15px] leading-relaxed ${dark ? "text-slate-300" : "text-slate-600"} before:content-[''] before:absolute before:left-0 before:top-[11px] before:w-[5px] before:h-[5px] before:rounded-full ${dark ? "before:bg-[#FF8F1C]" : "before:bg-[#015546]"}`}
         >
           {item}
         </li>

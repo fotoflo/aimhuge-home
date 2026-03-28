@@ -31,17 +31,17 @@ export function SlideShell({
     <div className={slideClass}>
       {showChrome && (
         <>
-          <div className="absolute top-6 left-9">
+          <div className="absolute top-5 left-7">
             <Image
-              src="/images/wegro/logo-white.png"
+              src={isDark ? "/images/wegro/logo-white.png" : "/images/wegro/logo-color.png"}
               alt="WeGro"
               width={60}
               height={20}
-              className={isDark ? "brightness-150" : "brightness-0"}
+              className={isDark ? "" : ""}
             />
           </div>
           <div
-            className={`absolute top-[26px] right-9 text-[10px] font-semibold uppercase tracking-[1.5px] ${isDark ? "text-slate-500" : "text-slate-400"}`}
+            className={`absolute top-[22px] right-7 text-[10px] font-semibold uppercase tracking-[1.5px] ${isDark ? "text-slate-500" : "text-slate-400"}`}
           >
             Confidential
           </div>
@@ -50,7 +50,7 @@ export function SlideShell({
 
       {sectionLabel && (
         <div
-          className={`text-[11px] font-bold uppercase tracking-[2px] mb-1.5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}
+          className={`text-[13px] font-bold uppercase tracking-[2px] mb-1.5 ${isDark ? "text-[#FF8F1C]" : "text-[#015546]"}`}
         >
           {sectionLabel}
         </div>
@@ -58,7 +58,7 @@ export function SlideShell({
 
       {title && (
         <h2
-          className={`text-[34px] font-extrabold tracking-tight mb-1 leading-tight ${isDark ? "text-white" : "text-slate-900"}`}
+          className={`text-[46px] font-extrabold tracking-tight mb-1 leading-tight ${isDark ? "text-white" : "text-slate-900"}`}
         >
           {title}
         </h2>
@@ -66,7 +66,7 @@ export function SlideShell({
 
       {subtitle && (
         <p
-          className={`text-[15px] font-normal leading-relaxed mb-8 ${isDark ? "text-slate-400" : "text-slate-500"}`}
+          className={`text-lg font-normal leading-relaxed mb-6 ${isDark ? "text-slate-400" : "text-slate-500"}`}
         >
           {subtitle}
         </p>

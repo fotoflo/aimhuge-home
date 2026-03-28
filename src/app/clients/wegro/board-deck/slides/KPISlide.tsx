@@ -1,7 +1,7 @@
 import { SlideShell } from "../components/SlideShell";
 
 const kpis = [
-  { division: "Inputs", color: "text-emerald-700", metrics: [
+  { division: "Inputs", color: "text-[#015546]", metrics: [
     { metric: "Active farmer count", measures: "Ecosystem reach", target: "To be set" },
     { metric: "Gross margin by product line", measures: "Product economics", target: "Seeds: 40-80%" },
     { metric: "Repeat purchase rate", measures: "Retention / satisfaction", target: "To be set" },
@@ -32,7 +32,7 @@ export function KPISlide() {
       subtitle="Proposed board-level metrics across each division."
     >
       <div className="flex-1 flex items-center">
-        <table className="w-full text-[13px] rounded-xl overflow-hidden border border-slate-200">
+        <table className="w-full text-[15px] rounded-xl overflow-hidden border border-slate-200">
           <thead>
             <tr>
               <th className="text-left px-3.5 py-2.5 bg-slate-100 font-semibold text-slate-700 border-b-2 border-slate-200 w-[16%]">Division</th>

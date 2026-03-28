@@ -1,7 +1,10 @@
-import { Inter } from "next/font/google";
+import { Fira_Sans } from "next/font/google";
 import "./wegro.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const firaSans = Fira_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export default function BoardDeckLayout({
   children,
@@ -9,10 +12,8 @@ export default function BoardDeckLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body className="bg-slate-900 text-slate-800 overflow-hidden h-screen">
-        {children}
-      </body>
-    </html>
+    <div className={`${firaSans.className} fixed inset-0 z-[100] bg-[#011412] text-slate-800 overflow-hidden`}>
+      {children}
+    </div>
   );
 }
