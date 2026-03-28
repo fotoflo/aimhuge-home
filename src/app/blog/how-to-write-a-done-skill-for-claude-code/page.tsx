@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "How to Write a /done Skill for Claude Code — AimHuge",
@@ -8,14 +9,14 @@ export const metadata: Metadata = {
     title: "How to Write a /done Skill for Claude Code — AimHuge",
     description:
       "A step-by-step guide to building a /done skill that wraps up your Claude Code sessions with architecture docs, lint fixes, commits, and productivity reports.",
-    images: [{ url: "/images/alex-headshot.jpg" }],
+    images: [{ url: "/images/blog/done-skill-cover.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "How to Write a /done Skill for Claude Code — AimHuge",
     description:
       "A step-by-step guide to building a /done skill that wraps up your Claude Code sessions with architecture docs, lint fixes, commits, and productivity reports.",
-    images: ["/images/alex-headshot.jpg"],
+    images: ["/images/blog/done-skill-cover.png"],
   },
 };
 
@@ -42,10 +43,12 @@ Phase                   Time     Count
 ───────────────────────────────────────
 Architecture docs       12s      2 updated, 1 created
 Lint fix                18s      3 errors fixed, 0 remaining
+File sizes              5s       42 files, 1 over 500 lines
+Tests + coverage        8s       12 passed, 0 failed, 42% lines
 Commit                  3s       1 commit, 14 files staged
 Report                  1s       session complete
 ───────────────────────────────────────
-Total                   34s
+Total                   47s
 \`\`\``;
 
 const sessionFilesExample = `## Determining Session Files
@@ -79,15 +82,46 @@ const phaseExample = `### Phase 1: Update Architecture Docs
 Run your linter and fix errors ONLY in session files.
 Do NOT fix pre-existing errors in untouched files.
 
-### Phase 3: Commit
+### Phase 3: File Sizes
+
+Scan all source files and build a distribution table by
+line-count bucket and file type. Compare to previous snapshot.
+
+### Phase 4: Tests + Coverage
+
+Run tests if a runner is configured. Generate a short coverage
+summary. Skip gracefully if no test runner exists.
+
+### Phase 5: Commit
 
 Stage all changed files and commit using conventional commits.
 Include a session productivity summary in the commit body.
 
-### Phase 4: Report
+### Phase 6: Report
 
 Output timing table, productivity stats, ASCII art of what was
 built, and a dramatic goodbye message.`;
+
+const fileSizeExample = `File sizes by type
+──────────────────────────────────────────────────────────
+Lines           .tsx   .ts   .css   .md   .json   Total
+──────────────────────────────────────────────────────────
+≤ 50              3     1      0     4      2      10
+51–150            5     0      1     2      1       9
+151–300           4     1      0     1      0       6
+301–500           2     0      0     0      0       2
+501–1000          1     0      1     0      0       2
+1001–2000         0     0      0     0      0       0
+2000+             0     0      0     0      0       0
+──────────────────────────────────────────────────────────
+Total            15     2      2     7      3      29
+Largest: page.tsx (491 lines)`;
+
+const coverageExample = `Test coverage
+──────────────────────────────────────
+Stmts: 45%  Branch: 30%  Funcs: 38%  Lines: 42%
+Tests: 12 passed, 0 failed
+──────────────────────────────────────`;
 
 const rulesExample = `## Rules
 
@@ -104,6 +138,9 @@ Session summary:
 - Files modified: 14, created: 3
 - Lines: +187 / -42
 - Lint: 3 errors fixed, 0 remaining in session files
+- File sizes: 29 files, largest 491 lines
+- Tests: 12 passed, 0 failed
+- Coverage: Stmts 45% | Lines 42%
 - Docs: 2 updated, 1 created
 - Areas: src/app/workshop, src/app/page.tsx
 
@@ -130,10 +167,18 @@ export default function BlogPostDoneSkill() {
             automates that entire process — updating docs, fixing lint, committing
             with a meaningful message, and generating a productivity report.
           </p>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-muted mb-8">
             March 2026 &middot; Alex Miller
           </p>
         </div>
+        <Image
+          src="/images/blog/done-skill-cover.png"
+          alt="Terminal showing /done skill summary output with phase timing"
+          width={1200}
+          height={630}
+          className="rounded-xl border border-card-border w-full max-w-3xl"
+          priority
+        />
       </section>
 
       {/* What is a skill */}
@@ -180,6 +225,13 @@ export default function BlogPostDoneSkill() {
               solves this by enforcing a consistent end-of-session checklist:
             </p>
           </div>
+          <Image
+            src="/images/blog/done-skill-before-after.png"
+            alt="Before and after comparison: messy git status vs clean /done output"
+            width={1200}
+            height={630}
+            className="rounded-xl border border-card-border w-full mt-8 mb-4"
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             {[
               {
@@ -193,6 +245,14 @@ export default function BlogPostDoneSkill() {
               {
                 title: "Commits are meaningful",
                 desc: "Conventional commits with productivity stats in the body. You can see duration, files changed, and areas touched at a glance.",
+              },
+              {
+                title: "File sizes stay under control",
+                desc: "A per-session file size report shows how many files are in each line-count bucket, broken down by type. Spot bloated files before they become a problem.",
+              },
+              {
+                title: "Test coverage is tracked",
+                desc: "If you have a test runner, coverage stats are included in every commit. If not, the skill notes it and moves on — no broken builds.",
               },
               {
                 title: "You get a productivity report",
@@ -230,6 +290,14 @@ export default function BlogPostDoneSkill() {
                 the full instructions in markdown. Here&apos;s the structure:
               </p>
             </div>
+
+            <Image
+              src="/images/blog/done-skill-pipeline.png"
+              alt="Six-phase pipeline: Docs, Lint, File Sizes, Tests, Commit, Report"
+              width={1200}
+              height={630}
+              className="rounded-xl border border-card-border w-full mt-8 mb-4"
+            />
 
             <div className="mt-8 space-y-8">
               {/* Frontmatter + timing */}
@@ -276,7 +344,7 @@ export default function BlogPostDoneSkill() {
                   Break the wrap-up into discrete phases. Each project will have
                   different needs — a project with tests might include a testing
                   phase, while a static site might skip it. Here&apos;s a
-                  minimal 4-phase setup:
+                  6-phase setup that covers most projects:
                 </p>
                 <pre className="bg-surface border border-card-border rounded-xl p-6 overflow-x-auto text-sm font-mono text-foreground">
                   {phaseExample}
@@ -294,6 +362,99 @@ export default function BlogPostDoneSkill() {
                 </p>
                 <pre className="bg-surface border border-card-border rounded-xl p-6 overflow-x-auto text-sm font-mono text-foreground">
                   {rulesExample}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* In Action — screenshots */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="max-w-3xl">
+          <h2 className="text-3xl font-bold mb-6">
+            What It Looks Like in Action
+          </h2>
+          <p className="text-muted leading-relaxed mb-8">
+            Here&apos;s real output from running{" "}
+            <code className="font-mono text-accent">/done</code> at the end of
+            a session where we built this very blog post:
+          </p>
+
+          <div className="space-y-8">
+            <div>
+              <p className="text-sm font-medium text-foreground mb-3">
+                The summary table and productivity report
+              </p>
+              <Image
+                src="/images/blog/done-summary-output.png"
+                alt="Claude Code /done skill output showing phase timing table and session productivity report"
+                width={800}
+                height={400}
+                className="rounded-xl border border-card-border w-full"
+              />
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-foreground mb-3">
+                ASCII art and the dramatic goodbye
+              </p>
+              <Image
+                src="/images/blog/done-ascii-art.png"
+                alt="Claude Code /done skill output showing ASCII art of the blog page and a goodbye message"
+                width={800}
+                height={600}
+                className="rounded-xl border border-card-border w-full"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* File sizes & coverage */}
+      <section className="bg-card-bg border-y border-card-border">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl font-bold mb-6">
+              Tracking File Sizes &amp; Test Coverage
+            </h2>
+            <div className="space-y-4 text-muted leading-relaxed">
+              <p>
+                Two optional phases that pay dividends over time. The file size
+                report gives you a birds-eye view of your codebase health —
+                how many files are small and focused vs. bloated and overdue for
+                a refactor. The test coverage report keeps you honest.
+              </p>
+            </div>
+
+            <div className="mt-8 space-y-8">
+              <div>
+                <h3 className="text-xl font-semibold mb-3">
+                  File Size Distribution
+                </h3>
+                <p className="text-muted text-sm mb-4">
+                  The skill scans all source files, groups them by line count
+                  and file type, and outputs a table. It also saves a snapshot
+                  to Claude Code&apos;s memory so the next session can show a
+                  trend comparison — are your files getting smaller or bigger?
+                </p>
+                <pre className="bg-surface border border-card-border rounded-xl p-6 overflow-x-auto text-sm font-mono text-foreground">
+                  {fileSizeExample}
+                </pre>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3">
+                  Test Coverage Summary
+                </h3>
+                <p className="text-muted text-sm mb-4">
+                  If your project has a test runner configured, the skill runs
+                  your test suite and generates a coverage summary. If not, it
+                  gracefully notes &quot;no test runner configured&quot; and
+                  moves on — no broken builds, no skipped commits.
+                </p>
+                <pre className="bg-surface border border-card-border rounded-xl p-6 overflow-x-auto text-sm font-mono text-foreground">
+                  {coverageExample}
                 </pre>
               </div>
             </div>

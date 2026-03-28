@@ -19,6 +19,8 @@ Phase                   Time     Count
 ───────────────────────────────────────
 Architecture docs       12s      2 updated, 1 created
 Lint fix                18s      3 errors fixed, 0 remaining
+File sizes              5s       42 files, 1 over 500 lines
+Tests + coverage        8s       12 passed, 0 failed, 42% lines
 Commit                  3s       1 commit, 14 files staged
 Report                  1s       session complete
 ───────────────────────────────────────
@@ -96,9 +98,67 @@ To count user prompts: count the number of distinct user messages in the current
    - Re-run `pnpm lint` to confirm fixes
    - Do NOT fix pre-existing errors in untouched files
 
-### Phase 3: Commit
+### Phase 3: File Sizes
 
-7. Stage all relevant changed files (including docs and lint fixes) and commit using conventional commits.
+7. Scan all source files in the repo (excluding `node_modules`, `.next`, `obsidian`) and count lines per file:
+   ```
+   find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | xargs wc -l | sort -rn
+   ```
+
+8. Build a file size distribution table with rows for line-count buckets and columns for file types. Count how many files fall in each bucket per type:
+   ```
+   File sizes by type
+   ──────────────────────────────────────────────────────────
+   Lines           .tsx   .ts   .css   .md   .json   Total
+   ──────────────────────────────────────────────────────────
+   ≤ 50              3     1      0     4      2      10
+   51–150            5     0      1     2      1       9
+   151–300           4     1      0     1      0       6
+   301–500           2     0      0     0      0       2
+   501–1000          1     0      1     0      0       2
+   1001–2000         0     0      0     0      0       0
+   2000+             0     0      0     0      0       0
+   ──────────────────────────────────────────────────────────
+   Total            15     2      2     7      3      29
+   Largest: page.tsx (491 lines)
+   ```
+   List the single largest file at the bottom. Adjust columns to only include file types that actually exist in the repo.
+
+9. **Compare to previous snapshot**: Read `~/.claude/projects/-Users-fotoflo-dev-aimhuge/memory/file-sizes.md` for the previous session's data. If it exists, show a delta comparison:
+   ```
+   File size trend (vs 2026-03-28)
+   ──────────────────────────────────────────────
+   Range              Prev   Now   Delta
+   ──────────────────────────────────────────────
+   ≤ 50                 8    10     +2
+   51–150               7     9     +2  ✅
+   301–500              3     2     -1  ✅
+   501–1000             1     2     +1  ⚠️
+   ──────────────────────────────────────────────
+   ```
+   Only show rows that changed. After generating, **save** the new snapshot to `~/.claude/projects/-Users-fotoflo-dev-aimhuge/memory/file-sizes.md` with today's date for future comparison.
+
+### Phase 4: Tests + Coverage
+
+10. Check if a test runner is configured in `package.json` (look for `jest`, `vitest`, or a `test` script).
+
+11. **If a test runner exists**:
+    - Run `pnpm test` to ensure all tests pass
+    - If tests fail, investigate and fix before proceeding
+    - Run coverage (e.g., `pnpm test:coverage` or `npx vitest --coverage`) and include a short summary:
+      ```
+      Test coverage
+      ──────────────────────────────────────
+      Stmts: 45%  Branch: 30%  Funcs: 38%  Lines: 42%
+      Tests: 12 passed, 0 failed
+      ──────────────────────────────────────
+      ```
+
+12. **If no test runner exists**: note "No test runner configured — skipping tests" in the summary table and move on.
+
+### Phase 5: Commit
+
+13. Stage all relevant changed files (including docs and lint fixes) and commit using conventional commits.
    - If $ARGUMENTS is provided, use it as the first line of the commit message
    - Otherwise, draft a summary of the session's changes as the first line
    - Append the session productivity summary to the commit body
@@ -112,21 +172,24 @@ To count user prompts: count the number of distinct user messages in the current
      - Files modified: 14, created: 3
      - Lines: +187 / -42
      - Lint: 3 errors fixed, 0 remaining in session files
+     - File sizes: 29 files, largest 491 lines
+     - Tests: 12 passed, 0 failed (or "no test runner")
+     - Coverage: Stmts 45% | Lines 42% (if available)
      - Docs: 2 updated, 1 created
      - Areas: src/app/workshop, src/app/page.tsx
 
      Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
      ```
 
-8. Run `git status` to confirm everything is clean.
+14. Run `git status` to confirm everything is clean.
 
-### Phase 4: Report
+### Phase 6: Report
 
-9. Output the `/done summary` table and `Session productivity` block (see Timing & Stats above).
+15. Output the `/done summary` table and `Session productivity` block (see Timing & Stats above).
 
-10. **ASCII art** — draw a simple ASCII art representation of the main page or UI that was built/changed this session. Include key elements like layout, sections, or content that reflect what was worked on. Keep it fun and recognizable.
+16. **ASCII art** — draw a simple ASCII art representation of the main page or UI that was built/changed this session. Include key elements like layout, sections, or content that reflect what was worked on. Keep it fun and recognizable.
 
-11. **Goodbye message** — end with a dramatic, fun goodbye message wrapped in `***#$(*#$)` and `($#*)$#***` markers. Include 3-4 lines celebrating what was accomplished in the session, referencing specific technical wins or funny moments from the work. End with "done."
+17. **Goodbye message** — end with a dramatic, fun goodbye message wrapped in `***#$(*#$)` and `($#*)$#***` markers. Include 3-4 lines celebrating what was accomplished in the session, referencing specific technical wins or funny moments from the work. End with "done."
 
 ## Rules
 
