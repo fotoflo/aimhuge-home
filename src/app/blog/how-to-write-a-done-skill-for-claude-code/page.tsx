@@ -629,6 +629,26 @@ export default function BlogPostDoneSkill() {
         </div>
       </section>
 
+      {/* Visual summary */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="max-w-3xl">
+          <h2 className="text-3xl font-bold mb-6">The Full Picture</h2>
+          <p className="text-muted leading-relaxed mb-8">
+            Here&apos;s the entire{" "}
+            <code className="font-mono text-accent">/done</code> workflow
+            visualized — from the summary table to the before/after comparison
+            to the 6-phase pipeline:
+          </p>
+          <Image
+            src="/images/blog/done-skill-wireframe.png"
+            alt="Visual overview of the /done skill workflow showing summary table, before/after comparison, and 6-phase pipeline"
+            width={1200}
+            height={1800}
+            className="rounded-xl border border-card-border w-full max-w-lg mx-auto"
+          />
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">
