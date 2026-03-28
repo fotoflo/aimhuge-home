@@ -53,6 +53,7 @@ const navLinks = [
   { href: "/advisory", label: "Advisory" },
   { href: "/talks", label: "Talks" },
   { href: "/portfolio", label: "Portfolio" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
 ];
 
