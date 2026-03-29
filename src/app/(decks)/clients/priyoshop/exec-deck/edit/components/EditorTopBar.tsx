@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Image as ImageIcon, PanelLeftOpen, PanelRightOpen, Maximize, Minimize, LayoutGrid } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon, PanelLeftOpen, PanelRightOpen, Maximize, Minimize, LayoutGrid, RefreshCw } from "lucide-react";
 
 const ZOOM_OPTIONS: { label: string; value: number | "fit" }[] = [
   { label: "25%", value: 25 },
@@ -62,6 +62,13 @@ export function EditorTopBar({
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="p-1 rounded hover:bg-white/10 text-slate-400 hover:text-slate-200 transition-colors"
+          title="Refresh"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+        </button>
 
         {/* Zoom menu */}
         <div className="relative">
