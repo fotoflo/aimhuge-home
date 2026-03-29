@@ -64,7 +64,7 @@ export function useEditorKeyboard({
           if (next !== c) {
             setShowCode(false);
             const iframe = iframeRef.current;
-            if (iframe?.contentWindow) iframe.contentWindow.location.replace(`#slide-${next + 1}`);
+            if (iframe?.contentWindow) iframe.contentWindow.postMessage({ type: "goToSlide", index: next }, "*");
           }
           return next;
         });
@@ -75,7 +75,7 @@ export function useEditorKeyboard({
           if (next !== c) {
             setShowCode(false);
             const iframe = iframeRef.current;
-            if (iframe?.contentWindow) iframe.contentWindow.location.replace(`#slide-${next + 1}`);
+            if (iframe?.contentWindow) iframe.contentWindow.postMessage({ type: "goToSlide", index: next }, "*");
           }
           return next;
         });
