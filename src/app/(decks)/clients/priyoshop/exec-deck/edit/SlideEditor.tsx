@@ -569,7 +569,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
               />
             ) : (
               <div
-                className="rounded-lg overflow-hidden border border-white/10 bg-black shrink-0"
+                className="rounded-lg overflow-hidden border border-white/10 bg-black shrink-0 relative"
                 style={zoom === "fit" ? { width: "100%", height: "100%" } : { width: 1920 * (zoom / 100), height: 1080 * (zoom / 100) }}
               >
                 <iframe
@@ -584,6 +584,26 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
                   title="Slide preview"
                   onLoad={handleIframeLoad}
                 />
+                {slide && promptingSlides.has(slide.id) && (
+                  <div className="absolute inset-0 bg-black/85 backdrop-blur-md z-50 p-6 sm:p-12 overflow-hidden flex flex-col">
+                    <div className="flex items-center gap-3 mb-6 shrink-0">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#7c5cfc] animate-pulse shadow-[0_0_12px_#7c5cfc]" />
+                      <span className="text-xs font-mono uppercase tracking-[0.2em] font-bold text-[#7c5cfc] drop-shadow-[0_0_8px_rgba(124,92,252,0.8)]">
+                        Recompiling MDX...
+                      </span>
+                    </div>
+                    <div className="flex-1 overflow-hidden relative">
+                       <textarea
+                         ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}
+                         value={slide.mdx_content}
+                         readOnly
+                         className="w-full h-full bg-transparent text-[#9b84fc] font-mono text-xs sm:text-sm md:text-base leading-[1.8] resize-none focus:outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden opacity-90"
+                         style={{ textShadow: "0 0 15px rgba(124,92,252,0.4)" }}
+                       />
+                       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/85 to-transparent pointer-events-none" />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
