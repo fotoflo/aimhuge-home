@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
-import { PanelLeftClose, ChevronRight, ChevronDown, Plus, SplitSquareHorizontal, Eye, EyeOff, Trash2 } from "lucide-react";
+import { PanelLeftClose, ChevronRight, ChevronDown, Plus, SplitSquareHorizontal, Eye, EyeOff, Trash2, RefreshCw } from "lucide-react";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import {
@@ -32,8 +32,8 @@ interface SlideSidebarProps {
   onClose: () => void;
   onRegenerateThumbnails?: (slideIds?: string[]) => Promise<void> | void;
   onAddSlide?: (index: number, position: "before" | "after") => void;
-  onDeleteSlide?: (id: string) => void;
-  onToggleSkip?: (id: string, skip: boolean) => void;
+  onDeleteSlides?: (ids: string[]) => void;
+  onToggleSkips?: (ids: string[], skip: boolean) => void;
 }
 
 function SortableSlide({
@@ -45,9 +45,10 @@ function SortableSlide({
   hasChildren,
   isCollapsed,
   isMenuOpen,
+  isSelected,
   onToggleCollapse,
   onContextMenu,
-  onGoTo,
+  onClick,
   onTitleEdit,
   onRegenerateThumbnails,
 }: {
@@ -59,9 +60,10 @@ function SortableSlide({
   hasChildren: boolean;
   isCollapsed: boolean;
   isMenuOpen: boolean;
+  isSelected: boolean;
   onToggleCollapse: (e: React.MouseEvent, id: string) => void;
   onContextMenu: (e: React.MouseEvent, slide: SlideRow, index: number) => void;
-  onGoTo: (i: number) => void;
+  onClick: (e: React.MouseEvent, id: string, index: number) => void;
   onTitleEdit: (slideId: string, newTitle: string) => void;
   onRegenerateThumbnails?: (slideIds?: string[]) => Promise<void> | void;
 }) {
@@ -137,10 +139,11 @@ function SortableSlide({
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => onGoTo(index)}
+      onClick={(e) => onClick(e, slide.id, index)}
       onContextMenu={(e) => onContextMenu(e, slide, index)}
       className={`relative w-full text-left py-2 border-b border-white/5 transition-colors cursor-grab active:cursor-grabbing outline-none ${
-        isCurrent || isMenuOpen ? "bg-[#7c5cfc]/15 border-l-2 border-l-[#7c5cfc]" : "hover:bg-white/5 border-l-2 border-l-transparent"
+        isCurrent || isMenuOpen ? "bg-[#7c5cfc]/15 border-l-2 border-l-[#7c5cfc]" : 
+        isSelected ? "bg-white/10 border-l-2 border-l-white/30" : "hover:bg-white/5 border-l-2 border-l-transparent"
       }`}
     >
       {hasChildren && (
@@ -217,14 +220,25 @@ function SortableSlide({
   );
 }
 
-export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, onGoTo, onReorder, onTitleEdit, onClose, onRegenerateThumbnails, onAddSlide, onDeleteSlide, onToggleSkip }: SlideSidebarProps) {
+export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, onGoTo, onReorder, onTitleEdit, onClose, onRegenerateThumbnails, onAddSlide, onDeleteSlides, onToggleSkips }: SlideSidebarProps) {
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
-  const [menu, setMenu] = useState<{ x: number; y: number; slide: SlideRow; index: number } | null>(null);
+  const [menu, setMenu] = useState<{ x: number; y: number; slide: SlideRow; index: number; isCmdClick?: boolean } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  useEffect(() => {
+    // Clear selection if navigating to a new slide organically
+    if (selectedIds.size <= 1) {
+      setSelectedIds(new Set([slides[current]?.id]));
+      setLastSelectedIndex(current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, slides.length]); // Intentionally not including selectedIds or slides to avoid overriding multiselect
 
   useEffect(() => {
     const handleClickOutside = () => setMenu(null);
@@ -258,7 +272,15 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
     const x = Math.min(e.clientX, window.innerWidth - menuWidth);
     const y = Math.min(e.clientY, window.innerHeight - menuHeight);
     
-    setMenu({ x, y, slide, index });
+    const isCmdClick = e.metaKey || e.ctrlKey;
+
+    // If we right-click a slide not in the selection, make it the only selection
+    if (!selectedIds.has(slide.id)) {
+      setSelectedIds(new Set([slide.id]));
+      setLastSelectedIndex(index);
+    }
+    
+    setMenu({ x, y, slide, index, isCmdClick });
   };
 
   const toggleCollapse = (e: React.MouseEvent, id: string) => {
@@ -291,6 +313,47 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
     }
   });
 
+  const handleSlideClick = (e: React.MouseEvent, id: string, index: number) => {
+    if (e.shiftKey && lastSelectedIndex !== null) {
+      // Prevent text selection
+      e.preventDefault();
+      
+      const startPos = visibleIndices.indexOf(lastSelectedIndex);
+      const endPos = visibleIndices.indexOf(index);
+      
+      if (startPos !== -1 && endPos !== -1) {
+        const start = Math.min(startPos, endPos);
+        const end = Math.max(startPos, endPos);
+        
+        const newSelection = new Set(selectedIds);
+        for (let i = start; i <= end; i++) {
+          newSelection.add(slides[visibleIndices[i]].id);
+        }
+        setSelectedIds(newSelection);
+        return;
+      }
+    } else if (e.metaKey || e.ctrlKey) {
+      e.preventDefault(); // Prevent text selection
+      const newSelection = new Set(selectedIds);
+      if (newSelection.has(id)) {
+        newSelection.delete(id);
+      } else {
+        newSelection.add(id);
+      }
+      setSelectedIds(newSelection);
+      setLastSelectedIndex(index);
+      return;
+    } 
+    
+    // Normal click
+    setSelectedIds(new Set([id]));
+    setLastSelectedIndex(index);
+    onGoTo(index);
+  };
+
+  const targetIds = menu ? (selectedIds.has(menu.slide.id) && selectedIds.size > 1 ? Array.from(selectedIds) : [menu.slide.id]) : [];
+  const multipleSelected = targetIds.length > 1;
+
   return (
     <>
       <div className="w-52 border-r border-white/10 overflow-y-auto bg-[#0a0a0e] shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
@@ -321,9 +384,10 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
                   hasChildren={hasChildren}
                   isCollapsed={isCollapsed}
                   isMenuOpen={menu?.slide.id === s.id}
+                  isSelected={selectedIds.has(s.id)}
                   onToggleCollapse={toggleCollapse}
                   onContextMenu={handleContextMenu}
-                  onGoTo={onGoTo}
+                  onClick={handleSlideClick}
                   onTitleEdit={onTitleEdit}
                   onRegenerateThumbnails={onRegenerateThumbnails}
                 />
@@ -340,23 +404,25 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-2 py-1.5 mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-500 flex items-center justify-between border-b border-white/5 pb-2">
-            <span>Slide {menu.index + 1}</span>
-            <span className="font-mono text-slate-700">{menu.slide.id.split('-')[0]}</span>
+            <span>{multipleSelected ? `${targetIds.length} Slides` : `Slide ${menu.index + 1}`}</span>
+            {!multipleSelected && <span className="font-mono text-slate-700">{menu.slide.id.split('-')[0]}</span>}
           </div>
           
           <button
-            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#7c5cfc]/20 hover:text-white transition-colors focus:outline-none group"
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#7c5cfc]/20 hover:text-white transition-colors focus:outline-none group disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-slate-500"
+            disabled={multipleSelected}
             onClick={() => { onAddSlide?.(menu.index, "before"); setMenu(null); }}
           >
-            <Plus className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#7c5cfc] transition-colors" />
+            <Plus className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#7c5cfc] transition-colors group-disabled:group-hover:text-slate-500" />
             <span className="font-medium">New Slide Before</span>
           </button>
           
           <button
-            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#7c5cfc]/20 hover:text-white transition-colors focus:outline-none group"
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#7c5cfc]/20 hover:text-white transition-colors focus:outline-none group disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-slate-500"
+            disabled={multipleSelected}
             onClick={() => { onAddSlide?.(menu.index, "after"); setMenu(null); }}
           >
-            <SplitSquareHorizontal className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#7c5cfc] transition-colors" />
+            <SplitSquareHorizontal className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#7c5cfc] transition-colors group-disabled:group-hover:text-slate-500" />
             <span className="font-medium">New Slide After</span>
           </button>
 
@@ -364,29 +430,42 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
           
           <button
             className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-md transition-colors focus:outline-none group ${(menu.slide.frontmatter as SlideFrontmatter).skip ? 'hover:bg-green-500/10 hover:text-white' : 'hover:bg-amber-500/10 hover:text-white'}`}
-            onClick={() => { onToggleSkip?.(menu.slide.id, !!menu.slide.frontmatter.skip); setMenu(null); }}
+            onClick={() => { onToggleSkips?.(targetIds, !!menu.slide.frontmatter.skip); setMenu(null); }}
           >
             {(menu.slide.frontmatter as SlideFrontmatter).skip ? (
               <>
                 <Eye className="w-3.5 h-3.5 text-slate-500 group-hover:text-green-400 transition-colors" />
-                <span className="font-medium">Include Slide</span>
+                <span className="font-medium">{multipleSelected ? "Include Slides" : "Include Slide"}</span>
               </>
             ) : (
               <>
                 <EyeOff className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
-                <span className="font-medium">Skip Slide</span>
+                <span className="font-medium">{multipleSelected ? "Skip Slides" : "Skip Slide"}</span>
               </>
             )}
           </button>
           
           <div className="my-1 h-px bg-white/5 mx-2" />
           
+          {menu.isCmdClick && onRegenerateThumbnails && (
+            <>
+              <button
+                className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-slate-300 hover:bg-[#7c5cfc]/20 hover:text-[#7c5cfc] transition-colors focus:outline-none group"
+                onClick={() => { Promise.resolve(onRegenerateThumbnails(targetIds)); setMenu(null); }}
+              >
+                <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+                <span className="font-medium">{multipleSelected ? `Regenerate ${targetIds.length} Thumbnails` : "Regenerate Thumbnail"}</span>
+              </button>
+              <div className="my-1 h-px bg-white/5 mx-2" />
+            </>
+          )}
+
           <button
             className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-red-500/80 hover:bg-red-500/10 hover:text-red-400 transition-colors focus:outline-none group"
-            onClick={() => { onDeleteSlide?.(menu.slide.id); setMenu(null); }}
+            onClick={() => { onDeleteSlides?.(targetIds); setMenu(null); }}
           >
             <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-            <span className="font-medium">Delete Slide</span>
+            <span className="font-medium">{multipleSelected ? `Delete ${targetIds.length} Slides` : "Delete Slide"}</span>
           </button>
         </div>
       )}

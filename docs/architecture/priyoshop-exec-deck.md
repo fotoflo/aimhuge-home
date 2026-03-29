@@ -86,7 +86,7 @@ Slides are managed via the Supabase-backed API:
 - **Delete:** `DELETE /api/decks/slides` (soft-delete via context menu)
 - **Skip:** `PATCH /api/decks/slides` to toggle `{ skip: true }` in frontmatter (visibly skipped in sidebar)
 - **Bulk operations:** Use scripts in `scripts/` (e.g., `upsert-new-slides.ts`)
-- **Thumbnails:** `POST /api/decks/thumbnails?deck=priyoshop-exec` regenerates all
+- **Thumbnails:** `POST /api/decks/thumbnails?deck=priyoshop-exec` regenerates all. Individual thumbnails can also be regenerated via Cmd+Right-Click on a slide in the sidebar's contextual menu.
 - **AI Edit:** `POST /api/decks/slides/prompt` with streaming response
 - **AI Suggestions:** `POST /api/decks/slides/suggestions` with slide context + screenshot
 
