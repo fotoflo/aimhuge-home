@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Sparkles, PanelRightClose, History, Undo, Lightbulb, Zap, RefreshCw } from "lucide-react";
+import { Sparkles, PanelRightClose, History, Undo, Lightbulb, Zap, RefreshCw, CheckCircle2 } from "lucide-react";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 
@@ -390,34 +390,60 @@ export function PromptSidebar({
             </div>
           ) : (
             <div className="flex flex-col gap-4 relative z-10">
-              {suggestions.map((suggestion, idx) => (
+              {suggestions.map((suggestion, idx) => {
+                const isSelected = prompt.includes(suggestion);
+                return (
                 <button
                   key={idx}
                   onClick={() => {
-                    const newPrompt = prompt.trim() ? prompt.trim() + "\n\n" + suggestion : suggestion;
-                    onPromptChange(newPrompt);
+                    if (isSelected) {
+                      let newPrompt = prompt.replace(suggestion, "").trim();
+                      newPrompt = newPrompt.replace(/\n{3,}/g, "\n\n");
+                      onPromptChange(newPrompt);
+                    } else {
+                      const newPrompt = prompt.trim() ? prompt.trim() + "\n\n" + suggestion : suggestion;
+                      onPromptChange(newPrompt);
+                    }
                   }}
-                  className="group relative block w-full text-left rounded-xl bg-gradient-to-b from-[#161622] to-[#0e0e15] overflow-hidden border border-white/5 hover:border-[#7c5cfc]/40 transition-all duration-400 transform hover:-translate-y-1 shadow-lg hover:shadow-[0_8px_30px_rgba(124,92,252,0.15)] animate-fade-up"
+                  className={`group relative block w-full text-left rounded-xl transition-all duration-400 transform animate-fade-up shadow-lg ${
+                    isSelected
+                      ? "bg-gradient-to-b from-[#7c5cfc]/20 to-[#7c5cfc]/5 border border-[#7c5cfc]/50 ring-1 ring-[#7c5cfc]/30 shadow-[0_0_20px_rgba(124,92,252,0.15)] scale-[0.98]"
+                      : "bg-gradient-to-b from-[#161622] to-[#0e0e15] overflow-hidden border border-white/5 hover:border-[#7c5cfc]/40 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(124,92,252,0.15)]"
+                  }`}
                   style={{ animationFillMode: "both", animationDelay: `${idx * 120}ms` }}
                 >
-                  {/* Neon Left Strike */}
-                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#7c5cfc] to-[#4facfe] scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 transition-all origin-top duration-300 ease-out" />
-                  
-                  {/* Interactive abstract geometric highlight */}
-                  <div className="absolute -inset-24 bg-gradient-to-r from-transparent via-[#7c5cfc]/5 to-transparent skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none" />
+                  {!isSelected && (
+                    <>
+                      {/* Neon Left Strike */}
+                      <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#7c5cfc] to-[#4facfe] scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 transition-all origin-top duration-300 ease-out" />
+                      
+                      {/* Interactive abstract geometric highlight */}
+                      <div className="absolute -inset-24 bg-gradient-to-r from-transparent via-[#7c5cfc]/5 to-transparent skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none" />
+                    </>
+                  )}
 
                   <div className="p-4 relative z-10">
-                    <div className="flex items-center gap-2 mb-3">
-                       <span className="text-[9px] font-mono tracking-widest text-[#7c5cfc] px-2 py-0.5 rounded-sm bg-[#7c5cfc]/10 border border-[#7c5cfc]/20 uppercase">
+                    <div className="flex items-center justify-between mb-3">
+                       <span className={`text-[9px] font-mono tracking-widest px-2 py-0.5 rounded-sm border uppercase transition-colors ${
+                         isSelected ? "text-[#7c5cfc] bg-[#7c5cfc]/20 border-[#7c5cfc]/40 font-bold" : "text-[#7c5cfc] bg-[#7c5cfc]/10 border-[#7c5cfc]/20"
+                       }`}>
                          Tip 0{idx + 1}
                        </span>
+                       {isSelected && (
+                         <div className="text-[#7c5cfc] drop-shadow-[0_0_8px_rgba(124,92,252,0.5)] animate-in zoom-in spin-in-12 duration-300">
+                           <CheckCircle2 className="w-4 h-4" />
+                         </div>
+                       )}
                     </div>
-                    <p className="text-[12.5px] font-medium text-slate-300 group-hover:text-white leading-[1.6] tracking-wide transition-colors">
+                    <p className={`text-[12.5px] font-medium leading-[1.6] tracking-wide transition-colors ${
+                      isSelected ? "text-white" : "text-slate-300 group-hover:text-white"
+                    }`}>
                       {suggestion}
                     </p>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

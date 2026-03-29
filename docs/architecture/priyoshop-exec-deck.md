@@ -67,7 +67,7 @@ The editor includes a streaming AI assistant powered by Gemini:
    - Results cached per-slide in a `useRef` to avoid redundant API calls
 
 3. **PromptSidebar** (3 tabs):
-   - **Editor**: Chat-style UI with user prompt + AI copilot bubbles, textarea input
+   - **Editor**: Chat-style UI with user prompt + AI copilot bubbles, auto-resizing textarea with manual resize handle
    - **Tips**: Lazy-loaded AI suggestions with skeleton loader; fetched only when tab is opened
    - **History**: Version timeline with thumbnail previews and one-click revert
 
