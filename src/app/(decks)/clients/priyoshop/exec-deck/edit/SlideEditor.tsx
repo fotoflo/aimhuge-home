@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useImageDropzone } from "@/lib/hooks/useImageDropzone";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
@@ -432,6 +432,9 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
 
   // ── Auth gates ──
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const iframeSrc = useMemo(() => `/clients/${deckSlug.replace("-exec", "")}/exec-deck?edit=true#slide-${current + 1}`, [refreshKey, deckSlug]);
+
   if (authLoading) {
     return <div className="h-screen bg-[#08080a] flex items-center justify-center text-slate-400">Loading...</div>;
   }
@@ -572,7 +575,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
                 <iframe
                   ref={iframeRef}
                   key={refreshKey}
-                  src="/clients/priyoshop/exec-deck?edit=true#slide-1"
+                  src={iframeSrc}
                   className="border-0"
                   style={zoom === "fit"
                     ? { width: "100%", height: "100%" }
