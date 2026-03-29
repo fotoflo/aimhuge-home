@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Sparkles, PanelRightClose, History, Undo, Lightbulb } from "lucide-react";
+import { Sparkles, PanelRightClose, History, Undo, Lightbulb, Zap } from "lucide-react";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 
@@ -20,6 +20,7 @@ interface SlideVersion {
 interface PromptSidebarProps {
   slides: SlideRow[];
   slideId?: string;
+  deckSlug?: string;
   current: number;
   frontmatter: SlideFrontmatter;
   prompt: string;
@@ -34,7 +35,7 @@ interface PromptSidebarProps {
 }
 
 export function PromptSidebar({
-  slides, slideId, current, frontmatter: fm, prompt, prompting, copilotText, userPrompt, screenshot,
+  slides, slideId, deckSlug, current, frontmatter: fm, prompt, prompting, copilotText, userPrompt, screenshot,
   onPromptChange, onSubmit, onRevert, onClose,
 }: PromptSidebarProps) {
   const [mode, setMode] = useState<"editor" | "suggestions" | "history">("editor");
@@ -43,9 +44,26 @@ export function PromptSidebar({
   const [revertingId, setRevertingId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [slideCost, setSlideCost] = useState<number | null>(null);
   const suggestionCacheRef = useRef<Record<string, string[]>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fmKey = JSON.stringify(fm);
+
+  // Fetch slide cost
+  useEffect(() => {
+    let active = true;
+    if (slideId && deckSlug) {
+      fetch(`/api/decks/cost?deckSlug=${deckSlug}&slideId=${slideId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (active && data.cost !== undefined) setSlideCost(data.cost);
+        })
+        .catch(console.error);
+    } else {
+      setSlideCost(null);
+    }
+    return () => { active = false; };
+  }, [slideId, deckSlug, prompting]); // Re-fetch after prompting completes
 
   // Reset state when the active slide changes
   useEffect(() => {
@@ -83,6 +101,8 @@ export function PromptSidebar({
           const toc = slides.map((s, i) => ({ index: i + 1, title: (s.frontmatter as SlideFrontmatter)?.title || "Untitled" }));
           
           const payload = {
+            deckSlug,
+            slideId,
             image: screenshot,
             currentSlide: { frontmatter: currentSlide?.frontmatter, content: currentSlide?.mdx_content },
             previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
@@ -108,7 +128,7 @@ export function PromptSidebar({
     }
     
     return () => { active = false; };
-  }, [mode, slideId, screenshot, fmKey, suggestions.length, current, slides]);
+  }, [mode, slideId, deckSlug, screenshot, fmKey, suggestions.length, current, slides]);
 
   const handleRevert = async (id: string) => {
     setRevertingId(id);
@@ -189,7 +209,15 @@ export function PromptSidebar({
 
             {/* Slide info */}
             <div>
-              <div className="text-xs text-slate-500 mb-1">Slide {current + 1}</div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-xs text-slate-500">Slide {current + 1}</div>
+                {slideCost !== null && slideCost > 0 && (
+                  <div className="flex items-center gap-1 text-[9px] font-mono text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
+                    <Zap className="w-2.5 h-2.5" />
+                    ${slideCost.toFixed(4)}
+                  </div>
+                )}
+              </div>
               <div className="text-sm font-bold text-white mb-1">{fm?.title ?? "Untitled"}</div>
               {fm?.subtitle && (
                 <div className="text-xs text-slate-400 leading-relaxed">{fm.subtitle}</div>
@@ -260,38 +288,51 @@ export function PromptSidebar({
           </div>
         </>
       ) : mode === "suggestions" ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-w-0">
-          <div className="flex items-center gap-2 text-slate-500 mb-4">
-            <Lightbulb className="w-4 h-4 shrink-0" />
-            <span className="text-[11px] uppercase tracking-wider font-semibold">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 min-w-0 relative">
+          {/* Subtle background glow */}
+          <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#7c5cfc]/10 rounded-full blur-3xl pointer-events-none mix-blend-screen" />
+          
+          <div className="flex items-center gap-3 mb-6 relative z-10">
+            <div className="p-1.5 bg-[#7c5cfc]/10 rounded-md border border-[#7c5cfc]/20">
+              <Lightbulb className="w-3.5 h-3.5 text-[#7c5cfc]" />
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300">
               AI Layout Tips
             </span>
           </div>
           
           {loadingSuggestions ? (
-            <>
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-3.5 h-3.5 text-[#7c5cfc] animate-pulse shrink-0" />
-                <span className="text-[10px] uppercase tracking-wider font-bold text-[#7c5cfc] animate-pulse">
-                  Analyzing Canvas...
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#7c5cfc] animate-ping" />
+                <span className="text-[9px] font-mono tracking-widest text-[#7c5cfc] uppercase">
+                  Synthesizing aesthetics...
                 </span>
               </div>
-              <div className="space-y-3">
+              <div className="flex flex-col gap-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-white/5 border border-white/10 p-3 rounded-lg overflow-hidden">
+                  <div key={i} className="relative w-full rounded-xl bg-gradient-to-br from-[#12121a] to-[#0a0a0f] border border-white/5 p-4 overflow-hidden">
+                    {/* Geometric skeleton styling */}
+                    <div className="w-14 h-3 bg-[#7c5cfc]/10 rounded-sm animate-pulse mb-4" />
                     <div className="space-y-2.5">
-                      <div className="h-2.5 bg-white/20 rounded-full animate-pulse" style={{ width: "88%" }} />
-                      <div className="h-2.5 bg-white/20 rounded-full animate-pulse" style={{ width: "68%" }} />
-                      {i !== 2 && <div className="h-2.5 bg-white/20 rounded-full animate-pulse" style={{ width: "42%" }} />}
+                      <div className="h-1 bg-white/10 rounded-full w-full animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                      <div className="h-1 bg-white/10 rounded-full w-[78%]" style={{ animationDelay: `${i * 300}ms` }} />
+                      <div className="h-1 bg-white/10 rounded-full w-[45%]" style={{ animationDelay: `${i * 450}ms` }} />
                     </div>
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           ) : suggestions.length === 0 ? (
-            <div className="text-center text-xs text-slate-500 py-10">No layout suggestions yet.</div>
+            <div className="flex flex-col items-center justify-center py-16 text-center z-10 relative">
+              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] mb-4">
+                <Lightbulb className="w-5 h-5 text-slate-600" />
+              </div>
+              <div className="text-sm font-medium text-slate-400">Layout Canvas Empty</div>
+              <div className="text-xs text-slate-600 mt-1">Waiting for slide context...</div>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-4 relative z-10">
               {suggestions.map((suggestion, idx) => (
                 <button
                   key={idx}
@@ -299,9 +340,25 @@ export function PromptSidebar({
                     onPromptChange(suggestion);
                     setMode("editor");
                   }}
-                  className="block w-full text-left bg-white/5 hover:bg-[#7c5cfc]/10 border border-white/10 hover:border-[#7c5cfc]/30 p-3 rounded-lg transition-colors group"
+                  className="group relative block w-full text-left rounded-xl bg-gradient-to-b from-[#161622] to-[#0e0e15] overflow-hidden border border-white/5 hover:border-[#7c5cfc]/40 transition-all duration-400 transform hover:-translate-y-1 shadow-lg hover:shadow-[0_8px_30px_rgba(124,92,252,0.15)] animate-fade-up"
+                  style={{ animationFillMode: "both", animationDelay: `${idx * 120}ms` }}
                 >
-                  <p className="text-xs text-slate-300 group-hover:text-[#9b82fd] leading-relaxed">&ldquo;{suggestion}&rdquo;</p>
+                  {/* Neon Left Strike */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#7c5cfc] to-[#4facfe] scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100 transition-all origin-top duration-300 ease-out" />
+                  
+                  {/* Interactive abstract geometric highlight */}
+                  <div className="absolute -inset-24 bg-gradient-to-r from-transparent via-[#7c5cfc]/5 to-transparent skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none" />
+
+                  <div className="p-4 relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                       <span className="text-[9px] font-mono tracking-widest text-[#7c5cfc] px-2 py-0.5 rounded-sm bg-[#7c5cfc]/10 border border-[#7c5cfc]/20 uppercase">
+                         Tip 0{idx + 1}
+                       </span>
+                    </div>
+                    <p className="text-[12.5px] font-medium text-slate-300 group-hover:text-white leading-[1.6] tracking-wide transition-colors">
+                      {suggestion}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>

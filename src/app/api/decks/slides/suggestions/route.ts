@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { DEFAULT_MODEL } from "@/lib/gemini";
+import { logAiUsage } from "@/lib/ai-telemetry";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -18,7 +19,7 @@ Return your suggestions as a strict JSON array of strings, with NO markdown form
 
 export async function POST(req: NextRequest) {
   try {
-    const { image, currentSlide, previousSlide, nextSlide, toc } = await req.json();
+    const { deckSlug, slideId, image, currentSlide, previousSlide, nextSlide, toc } = await req.json();
 
     const contextText = `
 ${SYSTEM_PROMPT_PREFIX}
@@ -68,6 +69,19 @@ ${currentSlide.content}
     });
 
     const text = response.text?.trim() ?? "[]";
+
+    if (response.usageMetadata) {
+      logAiUsage({
+        endpoint: "suggestions",
+        model: DEFAULT_MODEL,
+        promptTokens: response.usageMetadata.promptTokenCount,
+        completionTokens: response.usageMetadata.candidatesTokenCount,
+        totalTokens: response.usageMetadata.totalTokenCount,
+        slideId,
+        deckSlug
+      });
+    }
+
     let suggestions: string[] = [];
     try {
       suggestions = JSON.parse(text);
@@ -77,7 +91,7 @@ ${currentSlide.content}
     }
 
     return NextResponse.json({ suggestions });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Suggestions error:", error);
     return NextResponse.json({ error: "Failed to generate suggestions" }, { status: 500 });
   }

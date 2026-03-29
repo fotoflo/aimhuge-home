@@ -2,18 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { getSupabase } from "@/lib/supabase";
 import { saveVersionSnapshot } from "@/app/decks/lib/slides-db";
+import { logAiUsage } from "@/lib/ai-telemetry";
 import { DEFAULT_MODEL, IMAGE_MODEL } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-const SYSTEM_PROMPT = `You are an AI slide copilot. Explain your changes conversationally, then output the updated slide code.
+const SYSTEM_PROMPT = `You are an AI slide copilot focusing on BOLD, production-grade frontend aesthetics. Explain your changes conversationally, then output the updated slide code.
 
 Rules for output:
 1. Start with a plain text conversational explanation of what you are doing.
 2. Provide the NEW slide MDX content wrapped strictly inside a \`\`\`mdx code fence.
 3. If frontmatter (variant, title, subtitle, sectionLabel) needs changing, provide it as a JSON object inside a \`\`\`json code fence.
+
+Creative & Aesthetic Guidelines:
+- Commit to a BOLD aesthetic direction (e.g. brutally minimal, editorial/magazine, brutalist/raw, geometric). Absolutely NO generic, cookie-cutter "AI slop" aesthetics.
+- Spatial Composition: Break the grid creatively! Use unexpected layouts, asymmetry, overlapping elements, or generous negative space.
+- Typography & Polish: Ensure refined typographic spacing, high-end visual details, and meticulous polish.
 
 Important MDX Rules:
 - The slide canvas is strictly fixed at 1920x1080 resolution. Ensure typography scaling, spacing, and image alignment respect these grid bounds. Avoid excessive text wrapping.
@@ -65,7 +71,7 @@ async function generateAndUploadImage(imgPrompt: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const { slideId, currentContent, currentFrontmatter, prompt, image } = await req.json();
+  const { deckSlug, slideId, currentContent, currentFrontmatter, prompt, image } = await req.json();
 
   if (!prompt) return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
 
@@ -85,7 +91,8 @@ export async function POST(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const messages: any[] = [{ role: "user", parts }];
-  const tools = [{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tools: any[] = [{
     functionDeclarations: [{
       name: "generate_image",
       description: "Generate a custom photographic or detailed image to use inside the slide. Returns the public URL.",
@@ -97,7 +104,7 @@ export async function POST(req: NextRequest) {
     const stream = await ai.models.generateContentStream({
       model: DEFAULT_MODEL,
       contents: messages,
-      tools
+      config: { tools }
     });
 
     const encoder = new TextEncoder();
@@ -109,12 +116,15 @@ export async function POST(req: NextRequest) {
           let fullText = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let toolCall: any = null;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let totalUsage: any = null;
 
           for await (const chunk of stream) {
             if (chunk.functionCalls && chunk.functionCalls.length > 0) {
                toolCall = chunk.functionCalls[0];
                break; // Stop streaming text if tool is invoked
             }
+            if (chunk.usageMetadata) totalUsage = chunk.usageMetadata;
             if (chunk.text) {
               fullText += chunk.text;
               controller.enqueue(encoder.encode(chunk.text));
@@ -126,16 +136,32 @@ export async function POST(req: NextRequest) {
               controller.enqueue(encoder.encode(`\n*Generating image: "${toolCall.args.prompt}"...*\n`));
               const url = await generateAndUploadImage(toolCall.args.prompt);
               
+              logAiUsage({
+                endpoint: "generate_image_tool_api",
+                model: IMAGE_MODEL,
+                imagesGenerated: 1,
+                slideId,
+                deckSlug
+              });
+              
               messages.push({ role: "model", parts: [{ functionCall: toolCall }] });
               messages.push({ role: "tool", parts: [{ functionResponse: { name: toolCall.name, response: { url } } }] });
               
               const stream2 = await ai.models.generateContentStream({
                  model: DEFAULT_MODEL,
                  contents: messages,
-                 tools
+                 config: { tools }
               });
 
               for await (const chunk of stream2) {
+                if (chunk.usageMetadata) {
+                  if (!totalUsage) totalUsage = chunk.usageMetadata;
+                  else {
+                    totalUsage.promptTokenCount += chunk.usageMetadata.promptTokenCount || 0;
+                    totalUsage.candidatesTokenCount += chunk.usageMetadata.candidatesTokenCount || 0;
+                    totalUsage.totalTokenCount += chunk.usageMetadata.totalTokenCount || 0;
+                  }
+                }
                 if (chunk.text) {
                   fullText += chunk.text;
                   controller.enqueue(encoder.encode(chunk.text));
@@ -169,6 +195,17 @@ export async function POST(req: NextRequest) {
                 updated_at: new Date().toISOString(),
               }).eq("id", slideId);
             }
+          }
+          if (totalUsage) {
+            logAiUsage({
+              endpoint: "copilot_prompt",
+              model: DEFAULT_MODEL,
+              promptTokens: totalUsage.promptTokenCount,
+              completionTokens: totalUsage.candidatesTokenCount,
+              totalTokens: totalUsage.totalTokenCount,
+              slideId: slideId,
+              deckSlug: deckSlug,
+            });
           }
           controller.close();
         } catch (e) {
