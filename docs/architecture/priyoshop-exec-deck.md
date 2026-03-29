@@ -41,7 +41,7 @@ Slides alternate between `dark` and `light` variants for visual variety. The pat
 | `ExecDeck.tsx` | Legacy React component assembly (not used in production) |
 | `edit/SlideEditor.tsx` | Full-featured slide editor with AI Copilot, zoom, keyboard nav |
 | `edit/components/PromptSidebar.tsx` | AI Copilot sidebar: Editor, Tips, and History tabs |
-| `edit/components/SlideSidebar.tsx` | Left panel: slide navigator with drag-to-reorder + thumbnails |
+| `edit/components/SlideSidebar.tsx` | Left panel: slide navigator with drag-to-reorder, context menu, accordion grouping, and thumbnails |
 | `lib/data.ts` | Workshop config (date, audience, location) |
 | `lib/types.ts` | DeckConfig TypeScript type |
 | `aimhuge.css` | Theme overrides + custom animations (matrixFall, pulse) |
@@ -79,10 +79,12 @@ The system prompt enforces strict 1920×1080 canvas bounds. All typography, spac
 
 Slides are managed via the Supabase-backed API:
 
-- **Add slides:** `PUT /api/decks/slides` with `deck_slug`, `slide_order`, `frontmatter`, `mdx_content`
+- **Add slides (end):** `PUT /api/decks/slides` with `deck_slug`, `slide_order`, `frontmatter`, `mdx_content`
+- **Insert slide:** `POST /api/decks/slides/insert` with `deck_slug`, `insert_index`, and sequentially shifts subsequent orders
 - **Edit content:** `PATCH /api/decks/slides` with `id` and `mdx_content`
 - **Reorder:** `POST /api/decks/slides/reorder`
-- **Delete:** `DELETE /api/decks/slides` (soft-delete)
+- **Delete:** `DELETE /api/decks/slides` (soft-delete via context menu)
+- **Skip:** `PATCH /api/decks/slides` to toggle `{ skip: true }` in frontmatter (visibly skipped in sidebar)
 - **Bulk operations:** Use scripts in `scripts/` (e.g., `upsert-new-slides.ts`)
 - **Thumbnails:** `POST /api/decks/thumbnails?deck=priyoshop-exec` regenerates all
 - **AI Edit:** `POST /api/decks/slides/prompt` with streaming response

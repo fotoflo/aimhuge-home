@@ -272,6 +272,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          deckSlug,
           slideId: slide.id,
           currentContent: slide.mdx_content,
           currentFrontmatter: slide.frontmatter,
@@ -514,6 +515,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
           <PromptSidebar
             slides={slides}
             slideId={slide?.id}
+            deckSlug={deckSlug}
             current={current}
             frontmatter={fm}
             prompt={prompt}

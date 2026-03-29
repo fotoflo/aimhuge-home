@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
-import { PanelLeftClose, ChevronRight, ChevronDown } from "lucide-react";
+import { PanelLeftClose, ChevronRight, ChevronDown, Plus, SplitSquareHorizontal, Eye, EyeOff, Trash2 } from "lucide-react";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import {
@@ -44,6 +44,7 @@ function SortableSlide({
   generatingThumbs,
   hasChildren,
   isCollapsed,
+  isMenuOpen,
   onToggleCollapse,
   onContextMenu,
   onGoTo,
@@ -57,6 +58,7 @@ function SortableSlide({
   generatingThumbs: boolean;
   hasChildren: boolean;
   isCollapsed: boolean;
+  isMenuOpen: boolean;
   onToggleCollapse: (e: React.MouseEvent, id: string) => void;
   onContextMenu: (e: React.MouseEvent, slide: SlideRow, index: number) => void;
   onGoTo: (i: number) => void;
@@ -94,6 +96,7 @@ function SortableSlide({
   }, [isCurrent]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setImgState("idle");
   }, [thumbnail]);
 
@@ -137,13 +140,13 @@ function SortableSlide({
       onClick={() => onGoTo(index)}
       onContextMenu={(e) => onContextMenu(e, slide, index)}
       className={`relative w-full text-left py-2 border-b border-white/5 transition-colors cursor-grab active:cursor-grabbing outline-none ${
-        isCurrent ? "bg-[#7c5cfc]/10 border-l-2 border-l-[#7c5cfc]" : "hover:bg-white/5 border-l-2 border-l-transparent"
+        isCurrent || isMenuOpen ? "bg-[#7c5cfc]/15 border-l-2 border-l-[#7c5cfc]" : "hover:bg-white/5 border-l-2 border-l-transparent"
       }`}
     >
       {hasChildren && (
         <button
           onClick={(e) => onToggleCollapse(e, slide.id)}
-          className="absolute left-[-4px] top-6 p-0.5 rounded text-slate-400 hover:text-white hover:bg-white/10 z-10"
+          className="absolute -left-1.5 top-5 p-0.5 rounded-sm text-slate-400 bg-[#0a0a0e] border border-white/10 hover:text-white hover:bg-[#7c5cfc] hover:border-[#7c5cfc] shadow-sm transition-all z-10"
         >
           {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
@@ -247,7 +250,15 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
 
   const handleContextMenu = (e: React.MouseEvent, slide: SlideRow, index: number) => {
     e.preventDefault();
-    setMenu({ x: e.clientX, y: e.clientY, slide, index });
+    
+    // Approximate menu dimensions to prevent overflow
+    const menuWidth = 220; // w-52 + padding
+    const menuHeight = 240; // Total height + safety margin
+    
+    const x = Math.min(e.clientX, window.innerWidth - menuWidth);
+    const y = Math.min(e.clientY, window.innerHeight - menuHeight);
+    
+    setMenu({ x, y, slide, index });
   };
 
   const toggleCollapse = (e: React.MouseEvent, id: string) => {
@@ -309,6 +320,7 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
                   generatingThumbs={generatingThumbs}
                   hasChildren={hasChildren}
                   isCollapsed={isCollapsed}
+                  isMenuOpen={menu?.slide.id === s.id}
                   onToggleCollapse={toggleCollapse}
                   onContextMenu={handleContextMenu}
                   onGoTo={onGoTo}
@@ -323,35 +335,58 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
 
       {menu && (
         <div
-          className="fixed z-50 w-48 bg-[#111114] border border-white/10 shadow-xl rounded-md py-1 text-sm text-slate-300"
+          className="fixed z-50 w-52 bg-[#0d0d12]/60 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.8)] rounded-xl p-1.5 text-xs text-slate-300 animate-in fade-in zoom-in-95 duration-100 ease-out"
           style={{ top: menu.y, left: menu.x }}
           onClick={(e) => e.stopPropagation()}
         >
+          <div className="px-2 py-1.5 mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-500 flex items-center justify-between border-b border-white/5 pb-2">
+            <span>Slide {menu.index + 1}</span>
+            <span className="font-mono text-slate-700">{menu.slide.id.split('-')[0]}</span>
+          </div>
+          
           <button
-            className="w-full text-left px-3 py-1.5 hover:bg-white/10 hover:text-white"
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#7c5cfc]/20 hover:text-white transition-colors focus:outline-none group"
             onClick={() => { onAddSlide?.(menu.index, "before"); setMenu(null); }}
           >
-            New Slide Before
+            <Plus className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#7c5cfc] transition-colors" />
+            <span className="font-medium">New Slide Before</span>
           </button>
+          
           <button
-            className="w-full text-left px-3 py-1.5 hover:bg-white/10 hover:text-white"
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#7c5cfc]/20 hover:text-white transition-colors focus:outline-none group"
             onClick={() => { onAddSlide?.(menu.index, "after"); setMenu(null); }}
           >
-            New Slide After
+            <SplitSquareHorizontal className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#7c5cfc] transition-colors" />
+            <span className="font-medium">New Slide After</span>
           </button>
-          <div className="my-1 h-px bg-white/10" />
+
+          <div className="my-1 h-px bg-white/5 mx-2" />
+          
           <button
-            className="w-full text-left px-3 py-1.5 hover:bg-white/10 hover:text-white"
+            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-md transition-colors focus:outline-none group ${(menu.slide.frontmatter as SlideFrontmatter).skip ? 'hover:bg-green-500/10 hover:text-white' : 'hover:bg-amber-500/10 hover:text-white'}`}
             onClick={() => { onToggleSkip?.(menu.slide.id, !!menu.slide.frontmatter.skip); setMenu(null); }}
           >
-            {(menu.slide.frontmatter as SlideFrontmatter).skip ? "Unskip Slide" : "Skip Slide"}
+            {(menu.slide.frontmatter as SlideFrontmatter).skip ? (
+              <>
+                <Eye className="w-3.5 h-3.5 text-slate-500 group-hover:text-green-400 transition-colors" />
+                <span className="font-medium">Include Slide</span>
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
+                <span className="font-medium">Skip Slide</span>
+              </>
+            )}
           </button>
-          <div className="my-1 h-px bg-white/10" />
+          
+          <div className="my-1 h-px bg-white/5 mx-2" />
+          
           <button
-            className="w-full text-left px-3 py-1.5 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-red-500/80 hover:bg-red-500/10 hover:text-red-400 transition-colors focus:outline-none group"
             onClick={() => { onDeleteSlide?.(menu.slide.id); setMenu(null); }}
           >
-            Delete Slide
+            <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            <span className="font-medium">Delete Slide</span>
           </button>
         </div>
       )}
