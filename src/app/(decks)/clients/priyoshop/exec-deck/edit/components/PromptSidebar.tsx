@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Sparkles, PanelRightClose, History, Undo, Lightbulb } from "lucide-react";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
+import type { SlideRow } from "@/app/decks/lib/slides-db";
 
 // Keep this type minimal for our UI needs
 interface SlideVersion {
@@ -17,6 +18,7 @@ interface SlideVersion {
 
 
 interface PromptSidebarProps {
+  slides: SlideRow[];
   slideId?: string;
   current: number;
   frontmatter: SlideFrontmatter;
@@ -32,7 +34,7 @@ interface PromptSidebarProps {
 }
 
 export function PromptSidebar({
-  slideId, current, frontmatter: fm, prompt, prompting, copilotText, userPrompt, screenshot,
+  slides, slideId, current, frontmatter: fm, prompt, prompting, copilotText, userPrompt, screenshot,
   onPromptChange, onSubmit, onRevert, onClose,
 }: PromptSidebarProps) {
   const [mode, setMode] = useState<"editor" | "suggestions" | "history">("editor");
@@ -41,6 +43,19 @@ export function PromptSidebar({
   const [revertingId, setRevertingId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const suggestionCacheRef = useRef<Record<string, string[]>>({});
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fmKey = JSON.stringify(fm);
+
+  // Reset state when the active slide changes
+  useEffect(() => {
+    setMode("editor");
+    if (slideId && suggestionCacheRef.current[slideId]) {
+      setSuggestions(suggestionCacheRef.current[slideId]);
+    } else {
+      setSuggestions([]);
+    }
+  }, [slideId]);
 
   useEffect(() => {
     let active = true;
@@ -62,13 +77,29 @@ export function PromptSidebar({
       const fetchSuggestions = async () => {
         setLoadingSuggestions(true);
         try {
+          const currentSlide = slides[current];
+          const previousSlide = current > 0 ? slides[current - 1] : null;
+          const nextSlide = current < slides.length - 1 ? slides[current + 1] : null;
+          const toc = slides.map((s, i) => ({ index: i + 1, title: (s.frontmatter as SlideFrontmatter)?.title || "Untitled" }));
+          
+          const payload = {
+            image: screenshot,
+            currentSlide: { frontmatter: currentSlide?.frontmatter, content: currentSlide?.mdx_content },
+            previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
+            nextSlide: nextSlide ? { frontmatter: nextSlide.frontmatter, content: nextSlide.mdx_content } : null,
+            toc
+          };
+
           const res = await fetch("/api/decks/slides/suggestions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: screenshot, currentContent: fm }),
+            body: JSON.stringify(payload),
           });
           const data = await res.json();
-          if (active && data.suggestions) setSuggestions(data.suggestions);
+          if (active && data.suggestions) {
+            suggestionCacheRef.current[slideId] = data.suggestions;
+            setSuggestions(data.suggestions);
+          }
         } finally {
           if (active) setLoadingSuggestions(false);
         }
@@ -77,13 +108,23 @@ export function PromptSidebar({
     }
     
     return () => { active = false; };
-  }, [mode, slideId, screenshot, fm, suggestions.length]);
+  }, [mode, slideId, screenshot, fmKey, suggestions.length, current, slides]);
 
   const handleRevert = async (id: string) => {
     setRevertingId(id);
     await onRevert(id);
     setRevertingId(null);
   };
+
+  // Auto-resize the textarea when prompt changes
+  useEffect(() => {
+    if (textareaRef.current) {
+      // Reset height to compute actual scrollHeight
+      textareaRef.current.style.height = "auto";
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(scrollHeight, 250)}px`;
+    }
+  }, [prompt]);
 
   return (
     <div className="w-80 border-l border-white/10 bg-[#0a0a0e] flex flex-col shrink-0 relative">
@@ -193,6 +234,7 @@ export function PromptSidebar({
           <div className="p-3 border-t border-white/10">
             <div className="flex flex-col gap-2">
               <textarea
+                ref={textareaRef}
                 value={prompt}
                 onChange={(e) => onPromptChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -202,7 +244,7 @@ export function PromptSidebar({
                   }
                 }}
                 placeholder="Describe the change..."
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#7c5cfc]/50 resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#7c5cfc]/50 resize-none overflow-y-auto"
                 rows={3}
                 disabled={prompting}
               />
@@ -218,19 +260,38 @@ export function PromptSidebar({
           </div>
         </>
       ) : mode === "suggestions" ? (
-        <div className="flex-1 overflow-y-auto p-3">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-4">
-            AI Layout Analysis
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-w-0">
+          <div className="flex items-center gap-2 text-slate-500 mb-4">
+            <Lightbulb className="w-4 h-4 shrink-0" />
+            <span className="text-[11px] uppercase tracking-wider font-semibold">
+              AI Layout Tips
+            </span>
           </div>
+          
           {loadingSuggestions ? (
-            <div className="flex flex-col items-center justify-center py-10 opacity-50">
-              <Sparkles className="w-6 h-6 text-[#7c5cfc] animate-pulse mb-3" />
-              <div className="text-xs text-[#7c5cfc]">Analyzing Canvas...</div>
-            </div>
+            <>
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-3.5 h-3.5 text-[#7c5cfc] animate-pulse shrink-0" />
+                <span className="text-[10px] uppercase tracking-wider font-bold text-[#7c5cfc] animate-pulse">
+                  Analyzing Canvas...
+                </span>
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 p-3 rounded-lg overflow-hidden">
+                    <div className="space-y-2.5">
+                      <div className="h-2.5 bg-white/20 rounded-full animate-pulse" style={{ width: "88%" }} />
+                      <div className="h-2.5 bg-white/20 rounded-full animate-pulse" style={{ width: "68%" }} />
+                      {i !== 2 && <div className="h-2.5 bg-white/20 rounded-full animate-pulse" style={{ width: "42%" }} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : suggestions.length === 0 ? (
             <div className="text-center text-xs text-slate-500 py-10">No layout suggestions yet.</div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="space-y-3">
               {suggestions.map((suggestion, idx) => (
                 <button
                   key={idx}
@@ -238,9 +299,9 @@ export function PromptSidebar({
                     onPromptChange(suggestion);
                     setMode("editor");
                   }}
-                  className="text-left bg-white/5 hover:bg-[#7c5cfc]/10 border border-white/10 hover:border-[#7c5cfc]/30 p-3 rounded-lg transition-colors group"
+                  className="block w-full text-left bg-white/5 hover:bg-[#7c5cfc]/10 border border-white/10 hover:border-[#7c5cfc]/30 p-3 rounded-lg transition-colors group"
                 >
-                  <p className="text-xs text-slate-300 group-hover:text-[#9b82fd]">&ldquo;{suggestion}&rdquo;</p>
+                  <p className="text-xs text-slate-300 group-hover:text-[#9b82fd] leading-relaxed">&ldquo;{suggestion}&rdquo;</p>
                 </button>
               ))}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useImageDropzone } from "@/lib/hooks/useImageDropzone";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
@@ -56,6 +56,28 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const total = slides.length;
 
   // ── Hooks ──
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const match = window.location.hash.match(/^#slide-(\d+)$/);
+      if (match) {
+        const idx = parseInt(match[1], 10) - 1;
+        if (idx >= 0 && idx < total) {
+          setCurrent(idx);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once to read the initial hash
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = `#slide-${current + 1}`;
+      if (window.location.hash !== hash) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search + hash);
+      }
+    }
+  }, [current]);
 
   const { thumbnails, generatingThumbs, regenerateThumbnails } = useThumbnails(deckSlug);
 
@@ -137,6 +159,86 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
       body: JSON.stringify({ slides: payload }),
     });
   }, [slides, current]);
+
+  // ── Context Menu Actions ──
+
+  const handleAddSlide = useCallback(async (index: number, position: "before" | "after") => {
+    const insertIndex = position === "before" ? index : index + 1;
+    const newSlides = [...slides];
+    
+    const mockId = crypto.randomUUID();
+    const newSlide: SlideRow = {
+      id: mockId,
+      deck_slug: deckSlug,
+      slide_order: 0,
+      frontmatter: { order: 0, title: "New Slide", variant: "dark", level: 0 },
+      mdx_content: "## New Slide\n\nEnter your content here.",
+      updated_at: new Date().toISOString(),
+      deleted_at: null,
+    };
+    
+    newSlides.splice(insertIndex, 0, newSlide);
+    const slidesPayload = newSlides.map((s, i) => ({ id: s.id, slide_order: (i + 1) * 10 }));
+    
+    setSlides(newSlides);
+    
+    try {
+      const res = await fetch("/api/decks/slides/insert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deck_slug: deckSlug,
+          insert_index: (insertIndex + 1) * 10,
+          slides: slidesPayload.filter(s => s.id !== mockId)
+        }),
+      });
+      const data = await res.json();
+      if (data.newSlide) {
+        setSlides(prev => prev.map(s => s.id === mockId ? data.newSlide : s));
+      }
+    } catch (err) {
+      console.error("Failed to insert slide", err);
+    }
+  }, [slides, deckSlug]);
+
+  const handleDeleteSlide = useCallback(async (id: string) => {
+    if (!confirm("Are you sure you want to delete this slide?")) return;
+    
+    const index = slides.findIndex(s => s.id === id);
+    if (index === -1) return;
+    
+    const newSlides = [...slides];
+    newSlides.splice(index, 1);
+    setSlides(newSlides);
+    
+    if (current >= newSlides.length) {
+      setCurrent(Math.max(0, newSlides.length - 1));
+    }
+    
+    try {
+      await fetch("/api/decks/slides", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch (err) {
+      console.error("Failed to delete slide", err);
+    }
+  }, [slides, current]);
+
+  const handleToggleSkip = useCallback(async (id: string, currentSkip: boolean) => {
+    const target = slides.find(s => s.id === id);
+    if (!target) return;
+    const updatedFrontmatter = { ...(target.frontmatter as SlideFrontmatter), skip: !currentSkip };
+    
+    setSlides(prev => prev.map(s => s.id === id ? { ...s, frontmatter: updatedFrontmatter } : s));
+    
+    await fetch("/api/decks/slides", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, frontmatter: updatedFrontmatter }),
+    });
+  }, [slides]);
 
   // ── Title Edit ──
 
@@ -360,6 +462,10 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
             onReorder={handleReorder}
             onTitleEdit={handleTitleEdit}
             onClose={() => setShowLeftPanel(false)}
+            onRegenerateThumbnails={regenerateThumbnails}
+            onAddSlide={handleAddSlide}
+            onDeleteSlide={handleDeleteSlide}
+            onToggleSkip={handleToggleSkip}
           />
         )}
 
@@ -406,6 +512,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
 
         {showRightPanel && (
           <PromptSidebar
+            slides={slides}
             slideId={slide?.id}
             current={current}
             frontmatter={fm}
