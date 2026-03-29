@@ -100,9 +100,9 @@ To count user prompts: count the number of distinct user messages in the current
 
 ### Phase 3: File Sizes
 
-7. Scan all source files in the repo (excluding `node_modules`, `.next`, `obsidian`) and count lines per file:
+7. Scan all source files in the repo (excluding `node_modules`, `.next`, `obsidian`, `blog/`) and count lines per file:
    ```
-   find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | xargs wc -l | sort -rn
+   find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | grep -v '/blog/' | xargs wc -l | sort -rn
    ```
 
 8. Build a file size distribution table with rows for line-count buckets and columns for file types. Count how many files fall in each bucket per type:
@@ -187,7 +187,7 @@ To count user prompts: count the number of distinct user messages in the current
 
 15. Output the `/done summary` table and `Session productivity` block (see Timing & Stats above).
 
-16. **ASCII art** — draw a simple ASCII art representation of the main page or UI that was built/changed this session. Include key elements like layout, sections, or content that reflect what was worked on. Keep it fun and recognizable.
+16. **ASCII art** — draw a simple ASCII art representation of the main page or UI that was built/changed this session. Include key elements like layout, sections, or content that reflect what was worked on. Keep it fun and recognizable. **IMPORTANT: Use ONLY plain ASCII characters** (`+`, `-`, `|`, `=`, `*`, `#`, `/`, `\`, letters, numbers). Do NOT use Unicode box-drawing (`┌─┐│└─┘`), block elements (`▓░▒`), or special arrows (`◄►`) — they misalign in the terminal.
 
 17. **Goodbye message** — end with a dramatic, fun goodbye message wrapped in `***#$(*#$)` and `($#*)$#***` markers. Include 3-4 lines celebrating what was accomplished in the session, referencing specific technical wins or funny moments from the work. End with "done."
 
