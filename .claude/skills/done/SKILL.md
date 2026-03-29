@@ -14,9 +14,9 @@ After all phases complete, output a summary table like this:
 
 ```
 /done summary
-───────────────────────────────────────
+-----------------------------------------------
 Phase                   Time     Count
-───────────────────────────────────────
+-----------------------------------------------
 Architecture docs       12s      2 updated, 1 created
 Bug fix docs             5s      1 created (or "no bug fix")
 Lint fix                18s      3 errors fixed, 0 remaining
@@ -24,7 +24,7 @@ File sizes              5s       42 files, 1 over 500 lines
 Tests + coverage        8s       12 passed, 0 failed, 42% lines
 Commit                  3s       1 commit, 14 files staged
 Report                  1s       session complete
-───────────────────────────────────────
+-----------------------------------------------
 Total                   34s
 ```
 
@@ -56,14 +56,14 @@ Output:
 
 ```
 Session productivity
-───────────────────────────────────────
-Session duration:     1h 23m (first change 2:15pm → last change 3:38pm)
+-----------------------------------------------
+Session duration:     1h 23m (first change 2:15pm -> last change 3:38pm)
 User prompts:         8
 Files modified:       14
 Files created:        3
 Lines changed:        +187 / -42
 Areas touched:        src/app/workshop, src/app/page.tsx
-───────────────────────────────────────
+-----------------------------------------------
 ```
 
 For line counts, run `wc -l` on diffs of only your session files. For session duration, use the earliest and latest modification timestamps from your session files.
@@ -72,111 +72,115 @@ To count user prompts: count the number of distinct user messages in the current
 
 ## Steps
 
-### Phase 1: Update Architecture Docs
+### Phase 0: Gather Session Context
 
-1. **Gather session changes** — compile the list of files YOU touched this session from your conversation history (see "Determining Session Files" above). Then run:
-   - `git diff --stat` to see uncommitted changes
-   - `ls docs/architecture/` to see existing architecture docs (create the directory if it doesn't exist)
+Before launching parallel agents, prepare the context they'll need:
 
-2. **Identify affected areas** — based on the changed files, determine which feature areas were modified (e.g., pages, layout, workshop content, styles).
+1. **Compile session files** — review the conversation history for all files YOU touched (see "Determining Session Files" above).
+2. Run `git diff --stat` and `ls docs/architecture/ docs/bug-fixes/` to see current state.
+3. Determine: was a bug fixed this session? (needed to decide if bug-fix doc agent should run)
+4. Determine: were 3+ files modified? (needed to decide if file-sizes agent should run)
 
-3. **Read the changed code** — read the key files that were modified to understand the current state.
+### Parallel Phase: Launch agents for Phases 1-4
 
-4. **Check existing docs** — for each affected area, check if a doc already exists in `docs/architecture/`:
+**Launch ALL applicable phases as parallel subagents in a single message.** These phases are independent and should run concurrently. Each agent should be given the session file list and enough context to do its work.
+
+Always launch these agents:
+- **Architecture docs agent**
+- **Lint fix agent**
+- **Tests agent**
+
+Conditionally launch:
+- **Bug fix docs agent** — only if a bug was fixed this session
+- **File sizes agent** — only if 3+ files were modified
+
+Each agent's prompt should include the full session file list and instructions from its phase below.
+
+---
+
+#### Agent: Architecture Docs (Phase 1)
+
+Prompt the agent with the session file list and these instructions:
+
+1. Run `ls docs/architecture/` to see existing docs.
+2. Identify which feature areas were modified based on the session files.
+3. Read the key changed files to understand the current state.
+4. For each affected area, check if a doc exists in `docs/architecture/`:
    - If yes, read it and update it to reflect the new state
-   - If no, **always create a new doc** following the pattern of existing ones — don't skip this even for small changes. If you touched files in an area that has no doc, create one.
-
-5. **Write/update the docs** — each architecture doc should include:
+   - If no, create a new doc following the pattern of existing ones
+5. Each architecture doc should include:
    - **Overview**: What this feature/area does
    - **Key files**: File paths and their roles
    - **Data flow**: How data moves through the system (if applicable)
    - **Important patterns**: Conventions, gotchas, or design decisions
 
-### Phase 1.5: Bug Fix Documentation
+Tell the agent to report back what it created/updated.
 
-**Skip this phase if the session did not involve fixing a bug.** Only run when a bug was diagnosed and fixed.
+#### Agent: Bug Fix Docs (Phase 1.5)
 
-5b. Check `docs/bug-fixes/` for existing bug reports (create the directory if it doesn't exist). Number the new report sequentially (e.g., `002-short-name.md`).
+**Only launch if the session involved fixing a bug.**
 
-5c. Create a bug report in `docs/bug-fixes/NNN-short-description.md` with these sections:
+Prompt the agent with the bug details and these instructions:
+
+1. Run `ls docs/bug-fixes/` to find existing reports and determine the next number (e.g., `002`).
+2. Create `docs/bug-fixes/NNN-short-description.md` with:
    - **Date** and **Severity** (Critical / High / Medium / Low)
-   - **Symptom**: What the user saw. Be specific — "editor renders recursively after clicking" not "it broke".
-   - **Root Cause**: The technical explanation of WHY it happened. Include code snippets showing the problematic pattern.
-   - **Why It Was Hard to Find** (optional): If the bug took significant debugging effort, explain what made it tricky. This helps future debugging sessions.
-   - **The Fix**: What was changed and why. Include before/after code snippets.
-   - **Key Rule**: A one-line rule to prevent this class of bug in the future. Frame it as "Never do X when Y" or "Always use X instead of Y for Z".
-   - **Files Involved**: List the files that were changed to fix the bug.
+   - **Symptom**: What the user saw. Be specific.
+   - **Root Cause**: Technical explanation with code snippets showing the problematic pattern.
+   - **Why It Was Hard to Find** (optional): If significant debugging effort was needed.
+   - **The Fix**: What was changed and why, with before/after code snippets.
+   - **Key Rule**: A one-line rule to prevent this class of bug in the future.
+   - **Files Involved**: List of files changed to fix the bug.
 
-### Phase 2: Lint Fix
+Tell the agent to report back the filename it created.
 
-6. Run `pnpm lint` to find ESLint violations.
-   - Fix lint errors **only in session files** (from your conversation history, NOT `git diff HEAD~N`)
-   - Re-run `pnpm lint` to confirm fixes
-   - Do NOT fix pre-existing errors in untouched files
+#### Agent: Lint Fix (Phase 2)
 
-### Phase 3: File Sizes
+Prompt the agent with the session file list and these instructions:
 
-**Skip this phase if 2 or fewer files were modified this session.** Only run when 3+ files were changed.
+1. Run `pnpm lint` to find ESLint violations.
+2. Fix lint errors **only in the session files** listed.
+3. Re-run `pnpm lint` to confirm fixes.
+4. Do NOT fix pre-existing errors in untouched files.
 
-7. Scan all source files in the repo (excluding `node_modules`, `.next`, `obsidian`, `blog/`) and count lines per file:
+Tell the agent to report back how many errors were found and fixed.
+
+#### Agent: File Sizes (Phase 3)
+
+**Only launch if 3+ files were modified this session.**
+
+Prompt the agent with these instructions:
+
+1. Scan all source files (excluding `node_modules`, `.next`, `obsidian`, `blog/`):
    ```
-   find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | grep -v '/blog/' | xargs wc -l | sort -rn
+   find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | grep -v '/blog/'
    ```
 
-8. Build a file size distribution table with rows for line-count buckets and columns for file types. Count how many files fall in each bucket per type:
-   ```
-   File sizes by type
-   ──────────────────────────────────────────────────────────
-   Lines           .tsx   .ts   .css   .md   .json   Total
-   ──────────────────────────────────────────────────────────
-   ≤ 50              3     1      0     4      2      10
-   51–150            5     0      1     2      1       9
-   151–300           4     1      0     1      0       6
-   301–500           2     0      0     0      0       2
-   501–1000          1     0      1     0      0       2
-   1001–2000         0     0      0     0      0       0
-   2000+             0     0      0     0      0       0
-   ──────────────────────────────────────────────────────────
-   Total            15     2      2     7      3      29
-   Largest: page.tsx (491 lines)
-   ```
-   List the single largest file at the bottom. Adjust columns to only include file types that actually exist in the repo.
+2. Build a file size distribution table (buckets: <=50, 51-150, 151-300, 301-500, 501-1000, 1001-2000, 2000+) with columns per file type. List the largest file.
 
-9. **Compare to previous snapshot**: Read `~/.claude/projects/-Users-fotoflo-dev-aimhuge/memory/file-sizes.md` for the previous session's data. If it exists, show a delta comparison:
-   ```
-   File size trend (vs 2026-03-28)
-   ──────────────────────────────────────────────
-   Range              Prev   Now   Delta
-   ──────────────────────────────────────────────
-   ≤ 50                 8    10     +2
-   51–150               7     9     +2  ✅
-   301–500              3     2     -1  ✅
-   501–1000             1     2     +1  ⚠️
-   ──────────────────────────────────────────────
-   ```
-   Only show rows that changed. After generating, **save** the new snapshot to `~/.claude/projects/-Users-fotoflo-dev-aimhuge/memory/file-sizes.md` with today's date for future comparison.
+3. Read `~/.claude/projects/-Users-fotoflo-dev-aimhuge-home/memory/file-sizes.md` for the previous snapshot. Show a delta comparison (only rows that changed).
 
-### Phase 4: Tests + Coverage
+4. Save the new snapshot to `~/.claude/projects/-Users-fotoflo-dev-aimhuge-home/memory/file-sizes.md` with today's date.
 
-10. Check if a test runner is configured in `package.json` (look for `jest`, `vitest`, or a `test` script).
+Tell the agent to report back the tables and any notable changes.
 
-11. **If a test runner exists**:
-    - Run `pnpm test` to ensure all tests pass
-    - If tests fail, investigate and fix before proceeding
-    - Run coverage (e.g., `pnpm test:coverage` or `npx vitest --coverage`) and include a short summary:
-      ```
-      Test coverage
-      ──────────────────────────────────────
-      Stmts: 45%  Branch: 30%  Funcs: 38%  Lines: 42%
-      Tests: 12 passed, 0 failed
-      ──────────────────────────────────────
-      ```
+#### Agent: Tests + Coverage (Phase 4)
 
-12. **If no test runner exists**: note "No test runner configured — skipping tests" in the summary table and move on.
+Prompt the agent with these instructions:
 
-### Phase 5: Commit
+1. Run `pnpm test` to ensure all tests pass.
+2. If tests fail, investigate and fix before reporting.
+3. Report back: number of test files, tests passed, tests failed, and duration.
 
-13. Stage all relevant changed files (including docs and lint fixes) and commit using conventional commits.
+---
+
+### Phase 5: Commit (sequential — after all agents complete)
+
+Wait for all parallel agents to complete, then:
+
+1. Collect results from all agents.
+2. Stage all relevant changed files (including docs, lint fixes, and any test fixes from agents).
+3. Commit using conventional commits:
    - If $ARGUMENTS is provided, use it as the first line of the commit message
    - Otherwise, draft a summary of the session's changes as the first line
    - Append the session productivity summary to the commit body
@@ -199,15 +203,15 @@ To count user prompts: count the number of distinct user messages in the current
      Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
      ```
 
-14. Run `git status` to confirm everything is clean.
+4. Run `git status` to confirm everything is clean.
 
-### Phase 6: Report
+### Phase 6: Report (sequential)
 
-15. Output the `/done summary` table and `Session productivity` block (see Timing & Stats above).
+1. Output the `/done summary` table and `Session productivity` block (see Timing & Stats above).
 
-16. **ASCII art** — draw a simple ASCII art representation of the main page or UI that was built/changed this session. Include key elements like layout, sections, or content that reflect what was worked on. Keep it fun and recognizable. **IMPORTANT: Use ONLY plain ASCII characters** (`+`, `-`, `|`, `=`, `*`, `#`, `/`, `\`, letters, numbers). Do NOT use Unicode box-drawing (`┌─┐│└─┘`), block elements (`▓░▒`), or special arrows (`◄►`) — they misalign in the terminal.
+2. **ASCII art** — draw a simple ASCII art representation of the main page or UI that was built/changed this session. Include key elements like layout, sections, or content that reflect what was worked on. Keep it fun and recognizable. **IMPORTANT: Use ONLY plain ASCII characters** (`+`, `-`, `|`, `=`, `*`, `#`, `/`, `\`, letters, numbers). Do NOT use Unicode box-drawing, block elements, or special arrows — they misalign in the terminal.
 
-17. **Goodbye message** — end with a dramatic, fun goodbye message wrapped in `***#$(*#$)` and `($#*)$#***` markers. Include 3-4 lines celebrating what was accomplished in the session, referencing specific technical wins or funny moments from the work. End with "done."
+3. **Goodbye message** — end with a dramatic, fun goodbye message wrapped in `***#$(*#$)` and `($#*)$#***` markers. Include 3-4 lines celebrating what was accomplished in the session, referencing specific technical wins or funny moments from the work. End with "done."
 
 ## Rules
 
