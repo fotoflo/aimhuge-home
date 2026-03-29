@@ -18,6 +18,7 @@ After all phases complete, output a summary table like this:
 Phase                   Time     Count
 ───────────────────────────────────────
 Architecture docs       12s      2 updated, 1 created
+Bug fix docs             5s      1 created (or "no bug fix")
 Lint fix                18s      3 errors fixed, 0 remaining
 File sizes              5s       42 files, 1 over 500 lines
 Tests + coverage        8s       12 passed, 0 failed, 42% lines
@@ -90,6 +91,21 @@ To count user prompts: count the number of distinct user messages in the current
    - **Key files**: File paths and their roles
    - **Data flow**: How data moves through the system (if applicable)
    - **Important patterns**: Conventions, gotchas, or design decisions
+
+### Phase 1.5: Bug Fix Documentation
+
+**Skip this phase if the session did not involve fixing a bug.** Only run when a bug was diagnosed and fixed.
+
+5b. Check `docs/bug-fixes/` for existing bug reports (create the directory if it doesn't exist). Number the new report sequentially (e.g., `002-short-name.md`).
+
+5c. Create a bug report in `docs/bug-fixes/NNN-short-description.md` with these sections:
+   - **Date** and **Severity** (Critical / High / Medium / Low)
+   - **Symptom**: What the user saw. Be specific — "editor renders recursively after clicking" not "it broke".
+   - **Root Cause**: The technical explanation of WHY it happened. Include code snippets showing the problematic pattern.
+   - **Why It Was Hard to Find** (optional): If the bug took significant debugging effort, explain what made it tricky. This helps future debugging sessions.
+   - **The Fix**: What was changed and why. Include before/after code snippets.
+   - **Key Rule**: A one-line rule to prevent this class of bug in the future. Frame it as "Never do X when Y" or "Always use X instead of Y for Z".
+   - **Files Involved**: List the files that were changed to fix the bug.
 
 ### Phase 2: Lint Fix
 
