@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Sparkles, PanelRightClose, History, Undo, Lightbulb, Zap, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Sparkles, PanelRightClose, History, Undo, Lightbulb, RefreshCw, CheckCircle2 } from "lucide-react";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 
@@ -14,6 +14,8 @@ interface SlideVersion {
   created_at: string;
   thumbnail_url?: string;
 }
+
+const backgroundInProgress = new Set<string>();
 
 
 
@@ -45,7 +47,7 @@ export function PromptSidebar({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
-  const [slideCost, setSlideCost] = useState<number | null>(null);
+  const isFetchingTipsRef = useRef(false);
   const [manualHeight, setManualHeight] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fmKey = JSON.stringify(fm);
@@ -58,33 +60,86 @@ export function PromptSidebar({
   ];
 
   useEffect(() => {
-    let active = true;
-    if (slideId && deckSlug) {
-      fetch(`/api/decks/cost?deckSlug=${deckSlug}&slideId=${slideId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (active && data.cost !== undefined) setSlideCost(data.cost);
-        })
-        .catch(console.error);
-    } else {
-      setSlideCost(null);
-    }
-    return () => { active = false; };
-  }, [slideId, deckSlug, prompting]);
-
-  useEffect(() => {
     setMode("editor");
-    if (slideId && deckSlug) {
-      const cached = localStorage.getItem(`tips_${deckSlug}_${slideId}`);
-      if (cached) {
-        try { setSuggestions(JSON.parse(cached)); } catch { setSuggestions([]); }
+    const loadCached = () => {
+      if (slideId && deckSlug) {
+        const cached = localStorage.getItem(`tips_${deckSlug}_${slideId}`);
+        if (cached) {
+          try { setSuggestions(JSON.parse(cached)); } catch { setSuggestions([]); }
+        } else {
+          setSuggestions([]);
+        }
       } else {
         setSuggestions([]);
       }
-    } else {
-      setSuggestions([]);
-    }
+    };
+    
+    loadCached();
+
+    const handleTipsGenerated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.slideId === slideId) {
+        loadCached();
+      }
+    };
+    
+    window.addEventListener("tipsGenerated", handleTipsGenerated);
+    return () => window.removeEventListener("tipsGenerated", handleTipsGenerated);
   }, [slideId, deckSlug]);
+
+  // Background tips generator for the entire deck
+  useEffect(() => {
+    if (!deckSlug || slides.length === 0) return;
+    let active = true;
+
+    const generateMissingTips = async () => {
+      const toc = slides.map((s, i) => ({ index: i + 1, title: (s.frontmatter as SlideFrontmatter)?.title || "Untitled" }));
+      
+      for (let i = 0; i < slides.length; i++) {
+        if (!active) break;
+        const s = slides[i];
+        const cacheKey = `tips_${deckSlug}_${s.id}`;
+        
+        if (!localStorage.getItem(cacheKey) && !backgroundInProgress.has(cacheKey)) {
+          backgroundInProgress.add(cacheKey);
+          
+          const previousSlide = i > 0 ? slides[i - 1] : null;
+          const nextSlide = i < slides.length - 1 ? slides[i + 1] : null;
+          
+          const payload = {
+            deckSlug,
+            slideId: s.id,
+            image: undefined,
+            currentSlide: { frontmatter: s.frontmatter, content: s.mdx_content },
+            previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
+            nextSlide: nextSlide ? { frontmatter: nextSlide.frontmatter, content: nextSlide.mdx_content } : null,
+            toc
+          };
+
+          try {
+            const res = await fetch("/api/decks/slides/suggestions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (active && data.suggestions && data.suggestions.length > 0) {
+              localStorage.setItem(cacheKey, JSON.stringify(data.suggestions));
+              window.dispatchEvent(new CustomEvent('tipsGenerated', { detail: { slideId: s.id } }));
+            }
+          } catch (e) {
+            console.error("Background tips generation error:", e);
+          } finally {
+            backgroundInProgress.delete(cacheKey);
+          }
+        }
+      }
+    };
+    
+    generateMissingTips();
+
+    return () => { active = false; };
+  }, [deckSlug, slides]);
 
   useEffect(() => {
     if (loadingSuggestions) {
@@ -96,7 +151,9 @@ export function PromptSidebar({
   const fetchSuggestions = useCallback(async (force = false) => {
     if (!slideId || !deckSlug) return;
     if (!force && suggestions.length > 0) return;
+    if (isFetchingTipsRef.current) return;
     
+    isFetchingTipsRef.current = true;
     setLoadingSuggestions(true);
     setLoadingPhase(0);
     if (force) setSuggestions([]);
@@ -128,6 +185,7 @@ export function PromptSidebar({
         setSuggestions(data.suggestions);
       }
     } finally {
+      isFetchingTipsRef.current = false;
       setLoadingSuggestions(false);
     }
   }, [deckSlug, slideId, screenshot, slides, current, suggestions.length]);
@@ -146,10 +204,6 @@ export function PromptSidebar({
         }
       };
       fetchHistory();
-    }
-    
-    if (mode === "suggestions" && slideId && suggestions.length === 0) {
-      fetchSuggestions();
     }
     
     return () => { active = false; };
@@ -251,12 +305,6 @@ export function PromptSidebar({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <div className="text-xs text-slate-500">Slide {current + 1}</div>
-                {slideCost !== null && slideCost > 0 && (
-                  <div className="flex items-center gap-1 text-[9px] font-mono text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
-                    <Zap className="w-2.5 h-2.5" />
-                    ${slideCost.toFixed(4)}
-                  </div>
-                )}
               </div>
               <div className="text-sm font-bold text-white mb-1">{fm?.title ?? "Untitled"}</div>
               {fm?.subtitle && (
@@ -382,11 +430,18 @@ export function PromptSidebar({
             </div>
           ) : suggestions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center z-10 relative">
-              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] mb-4">
-                <Lightbulb className="w-5 h-5 text-slate-600" />
+              <div className="w-12 h-12 rounded-full border border-[#7c5cfc]/20 flex items-center justify-center bg-[#7c5cfc]/5 mb-4 shadow-[0_0_15px_rgba(124,92,252,0.1)]">
+                <Lightbulb className="w-5 h-5 text-[#7c5cfc]" />
               </div>
-              <div className="text-sm font-medium text-slate-400">Layout Canvas Empty</div>
-              <div className="text-xs text-slate-600 mt-1">Waiting for slide context...</div>
+              <div className="text-sm font-medium text-slate-300">No layout tips yet</div>
+              <div className="text-xs text-slate-500 mt-1 mb-6 text-center max-w-[200px]">Generate custom AI layout suggestions for this slide.</div>
+              <button
+                onClick={() => fetchSuggestions(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#7c5cfc] hover:bg-[#6b4de0] text-white text-xs font-semibold rounded-lg transition-colors shadow-lg"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Generate Tips
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-4 relative z-10">

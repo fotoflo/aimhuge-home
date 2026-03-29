@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Image as ImageIcon, PanelLeftOpen, PanelRightOpen, Maximize, Minimize, LayoutGrid, RefreshCw, Zap } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon, PanelLeftOpen, PanelRightOpen, Maximize, Minimize, LayoutGrid, RefreshCw } from "lucide-react";
 
 const ZOOM_OPTIONS: { label: string; value: number | "fit" }[] = [
   { label: "25%", value: 25 },
@@ -41,18 +41,6 @@ export function EditorTopBar({
   lightTable, onToggleLightTable, isFullscreen, onToggleFullscreen, onSignOut,
 }: EditorTopBarProps) {
   const [showZoomMenu, setShowZoomMenu] = useState(false);
-  const [globalCost, setGlobalCost] = useState<number | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    fetch(`/api/decks/cost?deckSlug=${deckSlug}`)
-      .then(res => res.json())
-      .then(data => {
-        if (active && data.cost !== undefined) setGlobalCost(data.cost);
-      })
-      .catch(console.error);
-    return () => { active = false; };
-  }, [deckSlug]);
 
   const zoomLabel = zoom === "fit" ? "Fit" : `${zoom}%`;
 
@@ -66,12 +54,6 @@ export function EditorTopBar({
         )}
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-slate-400">{deckSlug}</span>
-          {globalCost !== null && globalCost > 0 && (
-            <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
-              <Zap className="w-3 h-3" />
-              ${globalCost.toFixed(4)}
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-1">
           <button onClick={onPrev} disabled={current === 0} className="p-1 rounded hover:bg-white/10 disabled:opacity-30">

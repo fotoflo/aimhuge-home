@@ -39,6 +39,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const [lightTable, setLightTable] = useState(false);
   const [copilotText, setCopilotText] = useState("");
   const [userPrompt, setUserPrompt] = useState("");
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const editingInline = useRef(false);
@@ -201,43 +202,59 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
     }
   }, [slides, deckSlug]);
 
-  const handleDeleteSlide = useCallback(async (id: string) => {
-    if (!confirm("Are you sure you want to delete this slide?")) return;
-    
-    const index = slides.findIndex(s => s.id === id);
-    if (index === -1) return;
-    
-    const newSlides = [...slides];
-    newSlides.splice(index, 1);
+  const executeDelete = useCallback(async (ids: string[]) => {
+    const newSlides = slides.filter(s => !ids.includes(s.id));
     setSlides(newSlides);
     
-    if (current >= newSlides.length) {
-      setCurrent(Math.max(0, newSlides.length - 1));
-    }
+    const nextCurrent = current >= newSlides.length ? Math.max(0, newSlides.length - 1) : current;
+    setCurrent(nextCurrent);
     
     try {
-      await fetch("/api/decks/slides", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
+      await Promise.all(ids.map(id =>
+        fetch("/api/decks/slides", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        })
+      ));
+      // Refresh iframe after database is updated to reflect deletion
+      setRefreshKey(k => k + 1);
     } catch (err) {
-      console.error("Failed to delete slide", err);
+      console.error("Failed to delete slides", err);
     }
   }, [slides, current]);
 
-  const handleToggleSkip = useCallback(async (id: string, currentSkip: boolean) => {
-    const target = slides.find(s => s.id === id);
-    if (!target) return;
-    const updatedFrontmatter = { ...(target.frontmatter as SlideFrontmatter), skip: !currentSkip };
+  const handleDeleteSlides = useCallback((ids: string[]) => {
+    if (typeof window !== "undefined" && sessionStorage.getItem('skipDeleteConfirm') === 'true') {
+      executeDelete(ids);
+    } else {
+      setPendingDeleteIds(ids);
+    }
+  }, [executeDelete]);
+
+  const handleToggleSkips = useCallback(async (ids: string[], currentSkip: boolean) => {
+    const updatedSlides = [...slides];
+    const updatePromises = [];
     
-    setSlides(prev => prev.map(s => s.id === id ? { ...s, frontmatter: updatedFrontmatter } : s));
+    for (const id of ids) {
+      const targetIndex = updatedSlides.findIndex(s => s.id === id);
+      if (targetIndex === -1) continue;
+      
+      const target = updatedSlides[targetIndex];
+      const updatedFrontmatter = { ...(target.frontmatter as SlideFrontmatter), skip: !currentSkip };
+      updatedSlides[targetIndex] = { ...target, frontmatter: updatedFrontmatter };
+      
+      updatePromises.push(
+        fetch("/api/decks/slides", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, frontmatter: updatedFrontmatter }),
+        })
+      );
+    }
     
-    await fetch("/api/decks/slides", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, frontmatter: updatedFrontmatter }),
-    });
+    setSlides(updatedSlides);
+    await Promise.all(updatePromises);
   }, [slides]);
 
   // ── Title Edit ──
@@ -430,6 +447,44 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
     <div className="h-screen bg-[#08080a] text-white flex flex-col overflow-hidden" {...dropzoneProps}>
       <DropzoneOverlay />
 
+      {pendingDeleteIds && (() => {
+        const _ids = pendingDeleteIds;
+        const toggleDontAsk = (e: React.ChangeEvent<HTMLInputElement>) => {
+          if (e.target.checked) sessionStorage.setItem('skipDeleteConfirm', 'true');
+          else sessionStorage.removeItem('skipDeleteConfirm');
+        };
+        const handleConfirm = () => {
+          executeDelete(_ids);
+          setPendingDeleteIds(null);
+        };
+        const handleCancel = () => {
+          setPendingDeleteIds(null);
+        };
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-[#111114] border border-white/10 rounded-xl p-6 shadow-2xl w-full max-w-sm flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+              <h2 className="text-lg font-semibold text-white">Delete { _ids.length > 1 ? `${_ids.length} Slides` : "Slide" }?</h2>
+              <p className="text-sm text-slate-400">
+                Are you sure you want to delete { _ids.length > 1 ? 'these slides' : 'this slide' }? This action cannot be undone.
+              </p>
+              <label className="flex items-center gap-2 text-sm text-slate-300 mt-2 cursor-pointer">
+                <input type="checkbox" onChange={toggleDontAsk} className="w-4 h-4 rounded outline-none accent-[#7c5cfc] cursor-pointer" />
+                Don&apos;t ask again for this session
+              </label>
+              <div className="flex items-center justify-end gap-3 mt-4">
+                <button onClick={handleCancel} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleConfirm} className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {imageEditor && (
         <SlideImageEditor
           src={imageEditor.src}
@@ -473,8 +528,8 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
             onClose={() => setShowLeftPanel(false)}
             onRegenerateThumbnails={regenerateThumbnails}
             onAddSlide={handleAddSlide}
-            onDeleteSlide={handleDeleteSlide}
-            onToggleSkip={handleToggleSkip}
+            onDeleteSlides={handleDeleteSlides}
+            onToggleSkips={handleToggleSkips}
           />
         )}
 

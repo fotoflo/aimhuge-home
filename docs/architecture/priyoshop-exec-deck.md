@@ -68,7 +68,7 @@ The editor includes a streaming AI assistant powered by Gemini:
 
 3. **PromptSidebar** (3 tabs):
    - **Editor**: Chat-style UI with user prompt + AI copilot bubbles, auto-resizing textarea with manual resize handle
-   - **Tips**: Lazy-loaded AI suggestions with skeleton loader; fetched only when tab is opened
+   - **Tips**: Lazy-loaded AI suggestions cached in local storage. Features a manual generation button and a background queue that sequentially pre-generates tips for all slides on deck open.
    - **History**: Version timeline with thumbnail previews and one-click revert
 
 ### Canvas Constraints
