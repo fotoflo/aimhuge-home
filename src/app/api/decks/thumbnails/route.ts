@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       results.push({
         id: slide.id,
         slide_order: slide.slide_order,
-        thumbnail_url: publicUrl,
+        thumbnail_url: `${publicUrl}?t=${Date.now()}`,
       });
     }
 
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
     return {
       id: s.id,
       slide_order: s.slide_order,
-      thumbnail_url: publicUrl,
+      thumbnail_url: `${publicUrl}?t=${Date.now()}`,
     };
   });
 
