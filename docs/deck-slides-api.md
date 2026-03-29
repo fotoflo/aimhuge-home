@@ -87,6 +87,27 @@ Content-Type: application/json
 
 Use this to update both frontmatter and content, or to create a new slide at a given order.
 
+## Reordering Slides
+
+```
+POST /api/decks/slides/reorder
+Content-Type: application/json
+
+{
+  "slides": [
+    { "id": "uuid-1", "slide_order": 10 },
+    { "id": "uuid-2", "slide_order": 20 },
+    { "id": "uuid-3", "slide_order": 30 }
+  ]
+}
+```
+
+Updates `slide_order` for each slide. Handles unique constraint conflicts internally. You can either:
+- Move a single slide by giving it an order between two existing slides (e.g. `15` between `10` and `20`)
+- Renumber the entire deck in one call
+
+Returns `{ "ok": true, "updated": N }`.
+
 ## Deleting a Slide (soft-delete)
 
 ```

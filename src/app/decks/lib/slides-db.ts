@@ -36,11 +36,11 @@ export async function upsertSlide(
   slideOrder: number,
   frontmatter: SlideFrontmatter,
   mdxContent: string,
-): Promise<void> {
+): Promise<SlideRow> {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase not configured");
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("deck_slides")
     .upsert(
       {
@@ -52,9 +52,12 @@ export async function upsertSlide(
         deleted_at: null,
       },
       { onConflict: "deck_slug,slide_order" },
-    );
+    )
+    .select()
+    .single();
 
   if (error) throw error;
+  return data as SlideRow;
 }
 
 /** Update just the MDX content for a slide */
@@ -68,6 +71,22 @@ export async function updateSlideContent(
   const { error } = await supabase
     .from("deck_slides")
     .update({ mdx_content: mdxContent, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+/** Update just the frontmatter for a slide */
+export async function updateSlideFrontmatter(
+  id: string,
+  frontmatter: SlideFrontmatter,
+): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { error } = await supabase
+    .from("deck_slides")
+    .update({ frontmatter, updated_at: new Date().toISOString() })
     .eq("id", id);
 
   if (error) throw error;

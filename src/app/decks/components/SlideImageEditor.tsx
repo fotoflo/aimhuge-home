@@ -2,6 +2,7 @@
 
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { X, Crop, Maximize2 } from "lucide-react";
+import { computeResize, computeCropEdge } from "@/app/decks/lib/editor-utils";
 
 interface ImageState {
   width: number;       // percentage of container
@@ -55,11 +56,7 @@ export function SlideImageEditor({ src, initialState, onSave, onClose }: SlideIm
       const startX = e.clientX;
       const startW = state.width;
 
-      const compute = (clientX: number) => {
-        const dx = ((clientX - startX) / containerW) * 100;
-        if (corner === "br" || corner === "tr") return Math.max(10, startW + dx);
-        return Math.max(10, startW - dx);
-      };
+      const compute = (clientX: number) => computeResize(startW, clientX - startX, containerW, corner);
 
       const onMove = (ev: PointerEvent) => setLocalWidth(Math.round(compute(ev.clientX) * 10) / 10);
       const onUp = (ev: PointerEvent) => {
@@ -85,27 +82,10 @@ export function SlideImageEditor({ src, initialState, onSave, onClose }: SlideIm
       const rect = el.getBoundingClientRect();
       const startX = e.clientX;
       const startY = e.clientY;
-      const startTop = state.cropTop;
-      const startRight = state.cropRight;
-      const startBottom = state.cropBottom;
-      const startLeft = state.cropLeft;
+      const startCrop = { cropTop: state.cropTop, cropRight: state.cropRight, cropBottom: state.cropBottom, cropLeft: state.cropLeft };
 
-      const compute = (clientX: number, clientY: number) => {
-        const dx = ((clientX - startX) / rect.width) * 100;
-        const dy = ((clientY - startY) / rect.height) * 100;
-        const clamp = (v: number) => Math.round(Math.max(0, Math.min(90, v)) * 10) / 10;
-        const crop: Partial<ImageState> = {
-          cropTop: startTop,
-          cropRight: startRight,
-          cropBottom: startBottom,
-          cropLeft: startLeft,
-        };
-        if (edge === "top") crop.cropTop = clamp(startTop + dy);
-        else if (edge === "bottom") crop.cropBottom = clamp(startBottom - dy);
-        else if (edge === "left") crop.cropLeft = clamp(startLeft + dx);
-        else if (edge === "right") crop.cropRight = clamp(startRight - dx);
-        return crop;
-      };
+      const compute = (clientX: number, clientY: number) =>
+        computeCropEdge(edge, clientX - startX, clientY - startY, rect.width, rect.height, startCrop);
 
       const onMove = (ev: PointerEvent) => setLocalCrop(compute(ev.clientX, ev.clientY));
       const onUp = (ev: PointerEvent) => {

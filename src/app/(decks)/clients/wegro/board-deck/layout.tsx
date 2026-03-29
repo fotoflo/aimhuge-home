@@ -12,7 +12,7 @@ export default function BoardDeckLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${firaSans.className} fixed inset-0 z-[100] bg-[#011412] text-slate-800 overflow-hidden`}>
+    <div className={`${firaSans.className} min-h-screen bg-[#011412] text-slate-800`}>
       {children}
     </div>
   );

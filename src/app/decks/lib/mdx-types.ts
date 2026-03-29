@@ -20,6 +20,8 @@ export interface SlideFrontmatter {
   backgroundOverlay?: string;
   /** Which logo to show: "white" for dark slides, "color" for light, false for none */
   logo?: "white" | "color" | false;
+  /** Nesting level: 0 = top-level, 1 = subslide (max 2 levels) */
+  level?: number;
 }
 
 export interface MDXSlideModule {

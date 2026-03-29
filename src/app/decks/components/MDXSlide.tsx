@@ -6,6 +6,22 @@ import { Tag } from "./Tag";
 import Image from "next/image";
 import type { SlideFrontmatter } from "../lib/mdx-types";
 
+/** Convert HTML style="..." attributes to JSX style={{...}} in MDX source */
+function fixStringStyles(mdx: string): string {
+  // Match style="..." on any JSX/HTML element
+  return mdx.replace(/\bstyle="([^"]*)"/g, (_match, css: string) => {
+    const pairs = css
+      .split(";")
+      .filter(Boolean)
+      .map((s: string) => {
+        const [key, ...val] = s.split(":");
+        const camel = key.trim().replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase());
+        return `${JSON.stringify(camel)}: ${JSON.stringify(val.join(":").trim())}`;
+      });
+    return `style={{${pairs.join(", ")}}}`;
+  });
+}
+
 /** img tag that works without width/height (uses unoptimized next/image or plain img) */
 function MdxImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
   // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
@@ -37,11 +53,12 @@ function renderLogo(fm: SlideFrontmatter) {
   const invert = fm.variant === "light";
   return (
     <Image
-      src="/images/logo-white.png"
+      src="https://cnnttsihfbyxhzlmzdtv.supabase.co/storage/v1/object/public/deck-assets/site-images/logo-white.png"
       alt="AimHuge"
       width={60}
       height={20}
       className={invert ? "invert" : ""}
+      style={{ width: "auto", height: "auto" }}
     />
   );
 }
@@ -52,7 +69,7 @@ export function MDXSlide({ frontmatter: fm, content }: MDXSlideProps) {
     return (
       <div className={`slide slide-${fm.variant}`}>
         <div className="relative z-10">
-                    <MDXRemote source={content} components={mdxComponents} />
+                    <MDXRemote source={fixStringStyles(content)} components={mdxComponents} />
         </div>
       </div>
     );
@@ -69,7 +86,7 @@ export function MDXSlide({ frontmatter: fm, content }: MDXSlideProps) {
       backgroundImage={fm.backgroundImage}
       backgroundOverlay={fm.backgroundOverlay}
     >
-            <MDXRemote source={content} components={mdxComponents} />
+            <MDXRemote source={fixStringStyles(content)} components={mdxComponents} />
     </SlideShell>
   );
 }

@@ -2,7 +2,24 @@
 
 ## Overview
 
-A reusable slide deck framework with MDX-based content stored in Supabase, rendered at request time via `next-mdx-remote`. Supports presentation mode (click/keyboard navigation), a visual editor with AI-assisted slide editing (Gemini 2.5 Flash), inline text editing, and image resize/crop.
+A reusable slide deck framework with MDX-based content stored in Supabase, rendered at request time via `next-mdx-remote`. Supports presentation mode (click/keyboard navigation), a visual editor with AI-assisted slide editing (Gemini 2.5 Flash), inline text editing, image resize/crop, thumbnail caching, and light table view.
+
+## Route Groups
+
+Decks live in a `(decks)` route group with its own root `<html>` layout — completely isolated from the main site's nav/footer. The main site is in a `(site)` route group.
+
+```
+src/app/
+  layout.tsx              # Pass-through root (renders children)
+  (site)/                 # Main website — has nav, footer, analytics
+    layout.tsx            # Full site root layout
+    globals.css
+    page.tsx, about/, blog/, etc.
+  (decks)/                # Decks — minimal <html>/<body>, no site chrome
+    layout.tsx            # Deck root layout (imports globals.css for Tailwind)
+    clients/priyoshop/exec-deck/
+    clients/wegro/board-deck/
+```
 
 ## Key Files
 
@@ -10,25 +27,31 @@ A reusable slide deck framework with MDX-based content stored in Supabase, rende
 
 | File | Purpose |
 |------|---------|
-| `components/DeckShell.tsx` | Top-level deck container — slide navigation, URL hash sync, click/keyboard controls |
+| `components/DeckShell.tsx` | Top-level container — renders slides at 1920x1080, scales to viewport via `useSyncExternalStore`, Cmd+scroll zoom |
 | `components/SlideShell.tsx` | Slide chrome wrapper — variant styling, logo, title, subtitle, background image support |
-| `components/MDXSlide.tsx` | Renders MDX content via `next-mdx-remote/rsc`, wraps in SlideShell using frontmatter |
-| `components/SlideImageEditor.tsx` | Modal image editor with resize handles and crop (inset-based) |
+| `components/MDXSlide.tsx` | Renders MDX content via `next-mdx-remote/rsc`, wraps in SlideShell using frontmatter, handles string→object style conversion |
+| `components/SlideImageEditor.tsx` | Modal image editor with corner resize handles and inset-based crop (ported from habitcal) |
 | `components/Card.tsx` | Card, CardTitle, CardText, CardList components available in MDX |
 | `components/Stat.tsx`, `Tag.tsx` | Stat/Tag components available in MDX |
-| `lib/useSlideNavigation.ts` | Hook: slide index state + two-way URL hash sync |
-| `lib/useSlideControls.ts` | Hook: keyboard (arrows, space) + split-screen click navigation |
-| `lib/slides-db.ts` | Supabase CRUD for `deck_slides` table |
+| `lib/useSlideNavigation.ts` | Hook: `useSyncExternalStore`-based slide index + URL hash sync (no useState/useEffect — strict React 19 compliant) |
+| `lib/useSlideControls.ts` | Hook: keyboard (arrows, space) + split-screen click navigation, disabled in `?edit` mode |
+| `lib/slides-db.ts` | Supabase CRUD for `deck_slides` table (soft-delete via `deleted_at`) |
 | `lib/mdx-types.ts` | TypeScript types for SlideFrontmatter, MDXSlideModule |
-| `deck.css` | Base slide system CSS (`.slide`, `.slide-dark`, `.slide-light`, `.slide-hero`, `.slide-close`) |
+| `lib/editor-utils.ts` | Utility functions for the editor (indent/outdent, width class mapping, image tag building) |
+| `deck.css` | Base slide CSS — fixed 1920x1080 `.slide` inside `.slide-container`, variant backgrounds, image constraints |
 
-### Priyoshop Exec Deck (`src/app/clients/priyoshop/exec-deck/`)
+### Priyoshop Exec Deck (`src/app/(decks)/clients/priyoshop/exec-deck/`)
 
 | File | Purpose |
 |------|---------|
 | `page.tsx` | Server component — fetches slides from Supabase, renders with DeckShell + MDXSlide |
 | `edit/page.tsx` | Editor page — fetches slides, renders SlideEditor (auth-gated) |
-| `edit/SlideEditor.tsx` | Full editor UI — iframe preview, AI prompt sidebar, inline text editing, image editor |
+| `edit/SlideEditor.tsx` | Main editor — iframe preview, thumbnails, AI prompt, inline editing, image editor, light table |
+| `edit/components/EditorTopBar.tsx` | Top bar — nav arrows, zoom dropdown, light table toggle, assets, present, fullscreen |
+| `edit/components/SlideSidebar.tsx` | Left sidebar — cached thumbnail previews, click to navigate |
+| `edit/components/PromptSidebar.tsx` | Right sidebar — slide info, example prompts, AI prompt textarea |
+| `edit/components/AssetPanel.tsx` | Asset browser — grid of uploaded images, click to copy URL |
+| `edit/components/LightTable.tsx` | Grid view of all slides with cached thumbnails |
 | `layout.tsx` | Deck layout with Geist font |
 | `aimhuge.css` | AimHuge theme CSS variables |
 
@@ -41,7 +64,10 @@ A reusable slide deck framework with MDX-based content stored in Supabase, rende
 | `PUT /api/decks/slides` | Upsert slide (create or full replace) |
 | `PATCH /api/decks/slides` | Update slide content by id |
 | `DELETE /api/decks/slides` | Soft-delete slide by id |
+| `POST /api/decks/slides/reorder` | Reorder slides (two-phase update to avoid unique constraint conflicts) |
 | `POST /api/decks/slides/prompt` | AI-powered slide edit via Gemini 2.5 Flash |
+| `GET /api/decks/thumbnails?deck=<slug>` | Get cached thumbnail URLs from Supabase Storage |
+| `POST /api/decks/thumbnails?deck=<slug>` | Generate thumbnails via Puppeteer + sharp, upload to Supabase Storage |
 | `POST /api/assets` | Upload image to Supabase Storage |
 | `GET /api/assets` | List uploaded assets |
 
@@ -52,56 +78,39 @@ A reusable slide deck framework with MDX-based content stored in Supabase, rende
 | `src/lib/supabase.ts` | Server-side Supabase client (service role key) |
 | `src/lib/supabase-browser.ts` | Browser-side Supabase client |
 | `src/lib/supabase-server.ts` | Server-side Supabase client with cookie auth |
+| `src/lib/chromium-launcher.ts` | Puppeteer Chrome launcher (local macOS or Vercel serverless) |
 | `src/lib/hooks/useAuth.ts` | Client hook: Google OAuth sign-in/out, user state |
 | `src/lib/hooks/useImageDropzone.tsx` | Global paste/drag-to-upload for images |
 | `src/app/auth/callback/route.ts` | OAuth code exchange callback |
 
-## Data Architecture
+## Slide Rendering
 
-### Supabase Postgres — `deck_slides` table
+Slides are fixed at 1920x1080px and scaled to fit the viewport:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid (PK) | Auto-generated |
-| `deck_slug` | text | e.g. "priyoshop-exec" |
-| `slide_order` | integer | 10, 20, 30... (gaps for insertion) |
-| `frontmatter` | jsonb | `{variant, title, subtitle, sectionLabel, backgroundImage, logo, topRight, ...}` |
-| `mdx_content` | text | Raw MDX/JSX body |
-| `deleted_at` | timestamptz | Soft-delete timestamp (null = active) |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | |
-| | | UNIQUE(deck_slug, slide_order) |
+```
+.slide-container (100vw x 100vh, flex center, black bg)
+  └── div (transform: scale(autoScale * userZoom))
+       └── .slide (1920x1080, overflow: hidden)
+            └── content
+```
 
-### Supabase Storage — `deck-assets` bucket
-
-Public bucket for slide images. Uploaded via `/api/assets`.
-
-## Slide Variants
-
-- **`dark`** — dark gradient background, white text
-- **`light`** — light background, dark text
-- **`hero`** — centered layout for title slides (no SlideShell chrome)
-- **`close`** — centered layout for closing slides (no SlideShell chrome)
-
-Any variant can have a `backgroundImage` — SlideShell renders it with a configurable overlay.
-
-## MDX Content Rules
-
-- Use `className` not `class`
-- Use `<div>` not `<p>` for text (MDX auto-wraps text in `<p>`, causing nesting errors)
-- No `.map()` or JS expressions — write each element explicitly
-- Available components (no import needed): `Card`, `CardTitle`, `CardText`, `CardList`, `Stat`, `MetricRow`, `Tag`
-- Use `<img>` for images (not next/image)
-- Compiled at request time by `next-mdx-remote/rsc`
+- `autoScale` = `min(viewportWidth/1920, viewportHeight/1080)`
+- Cmd+scroll wheel adjusts `userZoom` (0.25x–3x)
+- Content never overflows — `overflow: hidden` on `.slide`
+- Images constrained to `max-height: 900px`
 
 ## Editor Features
 
-- **Slide preview** — iframe showing the actual rendered slide
-- **Slide thumbnails** — scaled-down iframes in the left sidebar
+- **Slide preview** — iframe at selectable zoom level (25%–200% or Fit)
+- **Slide thumbnails** — Puppeteer-generated WebP images cached in Supabase Storage
+- **Light table** — 3-column grid of all slide thumbnails, click to jump
 - **AI prompt** — right sidebar, powered by Gemini 2.5 Flash
-- **Inline text editing** — double-click text in the preview to edit, saves to Supabase on blur/Enter
+- **Inline text editing** — double-click text in the preview to edit, saves on blur/Enter
 - **Image editor** — click an image to open resize/crop modal
 - **Paste/drag upload** — global image upload to `deck-assets` bucket
+- **Fullscreen** — browser fullscreen toggle
+- **Tab/Shift+Tab** — indent/outdent slides (adjusts `level` in frontmatter)
+- **Arrow Up/Down** — navigate slides from keyboard
 - **Google OAuth** — auth-gated editor access
 
 ## Deployment
@@ -109,3 +118,4 @@ Any variant can have a `backgroundImage` — SlideShell renders it with a config
 - Supabase project: `cnnttsihfbyxhzlmzdtv` (shared with claw-home)
 - Auth redirect URLs configured for localhost:4000 and www.aimhuge.com
 - Slides fetched at request time (`force-dynamic`) — edits are live immediately
+- Images served from Supabase Storage (deck content) or `/images/` (main site)

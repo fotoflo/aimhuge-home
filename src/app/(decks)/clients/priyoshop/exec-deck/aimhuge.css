@@ -1,0 +1,22 @@
+/* AimHuge theme overrides for deck system */
+:root {
+  --deck-primary: #7c5cfc;
+  --deck-secondary: #9b82fd;
+  --deck-bg-dark: #08080a;
+  --deck-bg-dark-end: #16161a;
+  --deck-bg-light: #f8fafc;
+  --deck-hero-bg: none;
+  --deck-close-bg: none;
+}
+
+/* Matrix rain animation */
+@keyframes matrixFall {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Pulse animation for voice slide */
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.15; }
+}

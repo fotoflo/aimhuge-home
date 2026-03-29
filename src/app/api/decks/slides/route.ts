@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSlides, upsertSlide, updateSlideContent, softDeleteSlide } from "@/app/decks/lib/slides-db";
+import { getSlides, upsertSlide, updateSlideContent, updateSlideFrontmatter, softDeleteSlide } from "@/app/decks/lib/slides-db";
 
 /** GET /api/decks/slides?deck=priyoshop-exec */
 export async function GET(req: NextRequest) {
@@ -19,20 +19,21 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  await upsertSlide(deck_slug, slide_order, frontmatter, mdx_content);
-  return NextResponse.json({ ok: true });
+  const slide = await upsertSlide(deck_slug, slide_order, frontmatter, mdx_content);
+  return NextResponse.json({ ok: true, slide });
 }
 
-/** PATCH /api/decks/slides — update slide content by id */
+/** PATCH /api/decks/slides — update slide content and/or frontmatter by id */
 export async function PATCH(req: NextRequest) {
   const body = await req.json();
-  const { id, mdx_content } = body;
+  const { id, mdx_content, frontmatter } = body;
 
-  if (!id || mdx_content == null) {
-    return NextResponse.json({ error: "Missing id or mdx_content" }, { status: 400 });
+  if (!id || (mdx_content == null && frontmatter == null)) {
+    return NextResponse.json({ error: "Missing id or update fields" }, { status: 400 });
   }
 
-  await updateSlideContent(id, mdx_content);
+  if (mdx_content != null) await updateSlideContent(id, mdx_content);
+  if (frontmatter != null) await updateSlideFrontmatter(id, frontmatter);
   return NextResponse.json({ ok: true });
 }
 
