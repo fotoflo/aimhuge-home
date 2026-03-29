@@ -17,6 +17,7 @@ src/app/
     page.tsx, about/, blog/, etc.
   (decks)/                # Decks — minimal <html>/<body>, no site chrome
     layout.tsx            # Deck root layout (imports globals.css for Tailwind)
+    SuppressHydrationWarning.tsx  # Filters cursor:pointer hydration mismatch (dev only)
     clients/priyoshop/exec-deck/
     clients/wegro/board-deck/
 ```
