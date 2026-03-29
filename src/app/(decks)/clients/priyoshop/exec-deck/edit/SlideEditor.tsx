@@ -26,8 +26,8 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
   const [slides, setSlides] = useState(initialSlides);
   const [current, setCurrent] = useState(0);
-  const [prompt, setPrompt] = useState("");
-  const [prompting, setPrompting] = useState(false);
+  const [prompts, setPrompts] = useState<Record<string, string>>({});
+  const [promptingSlides, setPromptingSlides] = useState<Set<string>>(new Set());
   const [showCode, setShowCode] = useState(false);
   const [showAssets, setShowAssets] = useState(false);
   const [assets, setAssets] = useState<{ name: string; url: string }[]>([]);
@@ -37,8 +37,8 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState<number | "fit">("fit");
   const [lightTable, setLightTable] = useState(false);
-  const [copilotText, setCopilotText] = useState("");
-  const [userPrompt, setUserPrompt] = useState("");
+  const [copilotTexts, setCopilotTexts] = useState<Record<string, string>>({});
+  const [userPrompts, setUserPrompts] = useState<Record<string, string>>({});
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -280,21 +280,30 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   // ── AI Prompt ──
 
   const handlePrompt = async () => {
-    if (!prompt.trim()) return;
-    setPrompting(true);
-    setCopilotText("");
-    setUserPrompt(prompt.trim());
+    const currentSlide = slide; // Capture current slide in closure
+    if (!currentSlide) return;
+    const currentPromptText = prompts[currentSlide.id]?.trim() || "";
+    if (!currentPromptText) return;
+
+    setPromptingSlides(prev => {
+      const next = new Set(prev);
+      next.add(currentSlide.id);
+      return next;
+    });
+    setCopilotTexts(prev => ({ ...prev, [currentSlide.id]: "" }));
+    setUserPrompts(prev => ({ ...prev, [currentSlide.id]: currentPromptText }));
+
     try {
       const res = await fetch("/api/decks/slides/prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           deckSlug,
-          slideId: slide.id,
-          currentContent: slide.mdx_content,
-          currentFrontmatter: slide.frontmatter,
-          prompt: prompt.trim(),
-          image: thumbnails[slide.id],
+          slideId: currentSlide.id,
+          currentContent: currentSlide.mdx_content,
+          currentFrontmatter: currentSlide.frontmatter,
+          prompt: currentPromptText,
+          image: thumbnails[currentSlide.id],
         }),
       });
 
@@ -304,7 +313,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
       
       let fullText = "";
       let isCodeMode = false;
-      let streamedMdx = slide.mdx_content;
+      let streamedMdx = currentSlide.mdx_content;
       
       while (true) {
         const { value, done } = await reader.read();
@@ -314,11 +323,11 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
         
         const mdxStartIdx = fullText.indexOf("```mdx\n");
         if (mdxStartIdx === -1) {
-          setCopilotText(fullText);
+          setCopilotTexts(prev => ({ ...prev, [currentSlide.id]: fullText }));
         } else {
           if (!isCodeMode) {
             isCodeMode = true;
-            setCopilotText(fullText.substring(0, mdxStartIdx).trim());
+            setCopilotTexts(prev => ({ ...prev, [currentSlide.id]: fullText.substring(0, mdxStartIdx).trim() }));
           }
           
           const remainingText = fullText.substring(mdxStartIdx + 7);
@@ -331,7 +340,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
           }
           
           // Optimistically update the raw editor
-          setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, mdx_content: streamedMdx } : s));
+          setSlides(prev => prev.map(s => s.id === currentSlide.id ? { ...s, mdx_content: streamedMdx } : s));
         }
       }
 
@@ -344,23 +353,27 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
       }
 
       // Final full text parsed for frontmatter
-      let finalFm = slide.frontmatter;
+      let finalFm = currentSlide.frontmatter;
       const jsonMatch = fullText.match(/```json\n([\s\S]*?)```/);
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[1]);
-          finalFm = { ...slide.frontmatter, ...parsed };
+          finalFm = { ...currentSlide.frontmatter, ...parsed };
         } catch {}
       }
       
-      setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, mdx_content: streamedMdx, frontmatter: finalFm } : s));
+      setSlides(prev => prev.map(s => s.id === currentSlide.id ? { ...s, mdx_content: streamedMdx, frontmatter: finalFm } : s));
       setRefreshKey((k) => k + 1);
-      regenerateThumbnails([slide.id]);
-      setPrompt("");
+      regenerateThumbnails([currentSlide.id]);
+      setPrompts(prev => ({ ...prev, [currentSlide.id]: "" }));
     } catch (err) {
       console.error("AI prompt error:", err);
     } finally {
-      setPrompting(false);
+      setPromptingSlides(prev => {
+        const next = new Set(prev);
+        next.delete(currentSlide.id);
+        return next;
+      });
     }
   };
 
@@ -581,12 +594,14 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
             deckSlug={deckSlug}
             current={current}
             frontmatter={fm}
-            prompt={prompt}
-            prompting={prompting}
-            copilotText={copilotText}
-            userPrompt={userPrompt}
+            prompt={slide?.id ? prompts[slide.id] || "" : ""}
+            prompting={slide?.id ? promptingSlides.has(slide.id) : false}
+            copilotText={slide?.id ? copilotTexts[slide.id] || "" : ""}
+            userPrompt={slide?.id ? userPrompts[slide.id] || "" : ""}
             screenshot={thumbnails[slide?.id]}
-            onPromptChange={setPrompt}
+            onPromptChange={(val) => {
+              if (slide?.id) setPrompts(prev => ({ ...prev, [slide.id]: val }));
+            }}
             onSubmit={handlePrompt}
             onRevert={handleRevert}
             onClose={() => setShowRightPanel(false)}

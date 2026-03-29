@@ -67,7 +67,7 @@ The editor includes a streaming AI assistant powered by Gemini:
    - Results cached per-slide in a `useRef` to avoid redundant API calls
 
 3. **PromptSidebar** (3 tabs):
-   - **Editor**: Chat-style UI with user prompt + AI copilot bubbles, auto-resizing textarea with manual resize handle
+   - **Editor**: Chat-style UI with user prompt + AI copilot bubbles, auto-resizing textarea with manual resize handle. Supports concurrent prompting across multiple slides simultaneously via per-slide state dictionaries.
    - **Tips**: Lazy-loaded AI suggestions cached in local storage. Features a manual generation button and a background queue that sequentially pre-generates tips for all slides on deck open.
    - **History**: Version timeline with thumbnail previews and one-click revert
 
