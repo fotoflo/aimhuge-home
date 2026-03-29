@@ -13,8 +13,8 @@ const SYSTEM_PROMPT = `You are an AI slide copilot focusing on BOLD, production-
 
 Rules for output:
 1. Start with a plain text conversational explanation of what you are doing.
-2. Provide the NEW slide MDX content wrapped strictly inside a \`\`\`mdx code fence.
-3. If frontmatter (variant, title, subtitle, sectionLabel) needs changing, provide it as a JSON object inside a \`\`\`json code fence.
+2. If you are just modifying the current slide: provide the NEW slide MDX content strictly inside a single \`\`\`mdx code fence, and its frontmatter inside a single \`\`\`json code fence.
+3. If you want to break the current slide into MULTIPLE slides: output MULTIPLE pairs of \`\`\`json and \`\`\`mdx code blocks in sequential order! The first pair will overwrite the current slide, and the subsequent pairs will be created as brand new slides inserted immediately after.
 
 Creative & Aesthetic Guidelines:
 - Commit to a BOLD aesthetic direction (e.g. brutally minimal, editorial/magazine, brutalist/raw, geometric). Absolutely NO generic, cookie-cutter "AI slop" aesthetics.
@@ -172,28 +172,91 @@ export async function POST(req: NextRequest) {
             }
           }
           
-          let finalMdx = currentContent;
-          let finalFm = currentFrontmatter;
-          
-          const mdxMatch = fullText.match(/\`\`\`mdx\n([\s\S]*?)\`\`\`/);
-          if (mdxMatch) finalMdx = mdxMatch[1].trim();
-          
-          const jsonMatch = fullText.match(/\`\`\`json\n([\s\S]*?)\`\`\`/);
-          if (jsonMatch) {
-            try {
-              const parsed = JSON.parse(jsonMatch[1]);
-              finalFm = { ...currentFrontmatter, ...parsed };
-            } catch {}
-          }
-          
           if (slideId) {
             const supabaseServer = getSupabase();
             if (supabaseServer) {
-              await supabaseServer.from("deck_slides").update({
-                mdx_content: finalMdx,
-                frontmatter: finalFm,
-                updated_at: new Date().toISOString(),
-              }).eq("id", slideId);
+              const mdxBlocks = [...fullText.matchAll(/```mdx\n([\s\S]*?)```/g)].map(m => m[1].trim());
+              const jsonBlocks = [...fullText.matchAll(/```json\n([\s\S]*?)```/g)].map(m => m[1].trim());
+
+              if (mdxBlocks.length === 0) {
+                 // Fallback if formatting isn't perfect
+                 let finalMdx = currentContent;
+                 let finalFm = currentFrontmatter;
+                 const mdxMatch = fullText.match(/```mdx\n([\s\S]*?)```/);
+                 if (mdxMatch) finalMdx = mdxMatch[1].trim();
+                 const jsonMatch = fullText.match(/```json\n([\s\S]*?)```/);
+                 if (jsonMatch) {
+                   try { finalFm = { ...currentFrontmatter, ...JSON.parse(jsonMatch[1]) }; } catch {}
+                 }
+                 
+                 await supabaseServer.from("deck_slides").update({
+                   mdx_content: finalMdx,
+                   frontmatter: finalFm,
+                   updated_at: new Date().toISOString(),
+                 }).eq("id", slideId);
+              } else {
+                 // Update the primary slide
+                 let firstFm = currentFrontmatter;
+                 if (jsonBlocks[0]) {
+                   try { firstFm = { ...currentFrontmatter, ...JSON.parse(jsonBlocks[0]) }; } catch {}
+                 }
+                 await supabaseServer.from("deck_slides").update({
+                   mdx_content: mdxBlocks[0],
+                   frontmatter: firstFm,
+                   updated_at: new Date().toISOString(),
+                 }).eq("id", slideId);
+                 
+                 // If the AI returned multiple slides, insert them dynamically
+                 if (mdxBlocks.length > 1) {
+                    const { data: allSlides } = await supabaseServer
+                      .from("deck_slides")
+                      .select("id, slide_order")
+                      .eq("deck_slug", deckSlug)
+                      .order("slide_order", { ascending: true });
+                      
+                    if (allSlides) {
+                       const targetIdx = allSlides.findIndex(s => s.id === slideId);
+                       if (targetIdx !== -1) {
+                          const newSlides = [];
+                          for (let i = 1; i < mdxBlocks.length; i++) {
+                             let newFm = currentFrontmatter;
+                             if (jsonBlocks[i]) {
+                               try { newFm = { ...currentFrontmatter, ...JSON.parse(jsonBlocks[i]) }; } catch {}
+                             }
+                             newSlides.push({
+                               id: require("crypto").randomUUID(),
+                               deck_slug: deckSlug,
+                               slide_order: 0,
+                               frontmatter: newFm,
+                               mdx_content: mdxBlocks[i],
+                               updated_at: new Date().toISOString(),
+                               deleted_at: null
+                             });
+                          }
+                          
+                          const combined = [...allSlides];
+                          combined.splice(targetIdx + 1, 0, ...newSlides);
+                          
+                          const payload = combined.map((s, i) => ({ ...s, slide_order: (i + 1) * 10 }));
+                          
+                          // 1. Shift old slides to temporary negative orders to avoid uniqueness conflict
+                          for (const s of allSlides) {
+                             await supabaseServer.from("deck_slides").update({ slide_order: -(100000 + s.slide_order) }).eq("id", s.id);
+                          }
+                          // 2. Insert new slides
+                          for (const newSlide of newSlides) {
+                             newSlide.slide_order = payload.find(p => p.id === newSlide.id)?.slide_order || 0;
+                             await supabaseServer.from("deck_slides").insert(newSlide);
+                          }
+                          // 3. Restore final new orders to old slides
+                          for (const s of allSlides) {
+                             const finalOrder = payload.find(p => p.id === s.id)?.slide_order || 0;
+                             await supabaseServer.from("deck_slides").update({ slide_order: finalOrder }).eq("id", s.id);
+                          }
+                       }
+                    }
+                 }
+              }
             }
           }
           if (totalUsage) {

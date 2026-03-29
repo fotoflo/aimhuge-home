@@ -92,7 +92,7 @@ export default function TokensDashboard() {
       <div className="max-w-6xl mx-auto px-6 py-12 relative z-10">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div className="flex flex-col gap-2">
-            <Link href="/" className="inline-flex items-center gap-2 text-[#7c5cfc] hover:text-[#9b82fd] font-mono text-xs uppercase tracking-widest mb-4 transition-colors">
+            <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#7c5cfc] hover:text-[#9b82fd] font-mono text-xs uppercase tracking-widest mb-4 transition-colors">
               <ChevronLeft className="w-4 h-4" /> Go back
             </Link>
             <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter uppercase font-mono">

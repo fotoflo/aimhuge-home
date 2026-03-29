@@ -27,10 +27,10 @@ export function LoginButton() {
     <div className="flex items-center gap-4">
       {isAllowed && (
         <a
-          href="/decks"
+          href="/dashboard"
           className="text-sm text-muted hover:text-foreground transition-colors"
         >
-          Decks
+          Dashboard
         </a>
       )}
       <button

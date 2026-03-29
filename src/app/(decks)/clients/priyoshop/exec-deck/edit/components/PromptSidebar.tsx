@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Sparkles, PanelRightClose, History, Undo, Lightbulb, Zap } from "lucide-react";
+import { Sparkles, PanelRightClose, History, Undo, Lightbulb, Zap, RefreshCw } from "lucide-react";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 
@@ -44,12 +44,19 @@ export function PromptSidebar({
   const [revertingId, setRevertingId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState(0);
   const [slideCost, setSlideCost] = useState<number | null>(null);
-  const suggestionCacheRef = useRef<Record<string, string[]>>({});
+  const [manualHeight, setManualHeight] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fmKey = JSON.stringify(fm);
 
-  // Fetch slide cost
+  const loadingPhrases = [
+    "Synthesizing aesthetics...",
+    "Scanning layout geometry...",
+    "Analyzing narrative context...",
+    "Refining graphic details..."
+  ];
+
   useEffect(() => {
     let active = true;
     if (slideId && deckSlug) {
@@ -63,17 +70,67 @@ export function PromptSidebar({
       setSlideCost(null);
     }
     return () => { active = false; };
-  }, [slideId, deckSlug, prompting]); // Re-fetch after prompting completes
+  }, [slideId, deckSlug, prompting]);
 
-  // Reset state when the active slide changes
   useEffect(() => {
     setMode("editor");
-    if (slideId && suggestionCacheRef.current[slideId]) {
-      setSuggestions(suggestionCacheRef.current[slideId]);
+    if (slideId && deckSlug) {
+      const cached = localStorage.getItem(`tips_${deckSlug}_${slideId}`);
+      if (cached) {
+        try { setSuggestions(JSON.parse(cached)); } catch { setSuggestions([]); }
+      } else {
+        setSuggestions([]);
+      }
     } else {
       setSuggestions([]);
     }
-  }, [slideId]);
+  }, [slideId, deckSlug]);
+
+  useEffect(() => {
+    if (loadingSuggestions) {
+      const int = setInterval(() => setLoadingPhase(p => (p + 1) % loadingPhrases.length), 3000);
+      return () => clearInterval(int);
+    }
+  }, [loadingSuggestions, loadingPhrases.length]);
+
+  const fetchSuggestions = useCallback(async (force = false) => {
+    if (!slideId || !deckSlug) return;
+    if (!force && suggestions.length > 0) return;
+    
+    setLoadingSuggestions(true);
+    setLoadingPhase(0);
+    if (force) setSuggestions([]);
+
+    try {
+      const currentSlide = slides[current];
+      const previousSlide = current > 0 ? slides[current - 1] : null;
+      const nextSlide = current < slides.length - 1 ? slides[current + 1] : null;
+      const toc = slides.map((s, i) => ({ index: i + 1, title: (s.frontmatter as SlideFrontmatter)?.title || "Untitled" }));
+      
+      const payload = {
+        deckSlug,
+        slideId,
+        image: screenshot,
+        currentSlide: { frontmatter: currentSlide?.frontmatter, content: currentSlide?.mdx_content },
+        previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
+        nextSlide: nextSlide ? { frontmatter: nextSlide.frontmatter, content: nextSlide.mdx_content } : null,
+        toc
+      };
+
+      const res = await fetch("/api/decks/slides/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.suggestions) {
+        localStorage.setItem(`tips_${deckSlug}_${slideId}`, JSON.stringify(data.suggestions));
+        setSuggestions(data.suggestions);
+      }
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, [deckSlug, slideId, screenshot, slides, current, suggestions.length]);
 
   useEffect(() => {
     let active = true;
@@ -92,43 +149,11 @@ export function PromptSidebar({
     }
     
     if (mode === "suggestions" && slideId && suggestions.length === 0) {
-      const fetchSuggestions = async () => {
-        setLoadingSuggestions(true);
-        try {
-          const currentSlide = slides[current];
-          const previousSlide = current > 0 ? slides[current - 1] : null;
-          const nextSlide = current < slides.length - 1 ? slides[current + 1] : null;
-          const toc = slides.map((s, i) => ({ index: i + 1, title: (s.frontmatter as SlideFrontmatter)?.title || "Untitled" }));
-          
-          const payload = {
-            deckSlug,
-            slideId,
-            image: screenshot,
-            currentSlide: { frontmatter: currentSlide?.frontmatter, content: currentSlide?.mdx_content },
-            previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
-            nextSlide: nextSlide ? { frontmatter: nextSlide.frontmatter, content: nextSlide.mdx_content } : null,
-            toc
-          };
-
-          const res = await fetch("/api/decks/slides/suggestions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          const data = await res.json();
-          if (active && data.suggestions) {
-            suggestionCacheRef.current[slideId] = data.suggestions;
-            setSuggestions(data.suggestions);
-          }
-        } finally {
-          if (active) setLoadingSuggestions(false);
-        }
-      };
       fetchSuggestions();
     }
     
     return () => { active = false; };
-  }, [mode, slideId, deckSlug, screenshot, fmKey, suggestions.length, current, slides]);
+  }, [mode, slideId, deckSlug, screenshot, fmKey, suggestions.length, current, slides, fetchSuggestions]);
 
   const handleRevert = async (id: string) => {
     setRevertingId(id);
@@ -136,15 +161,31 @@ export function PromptSidebar({
     setRevertingId(null);
   };
 
-  // Auto-resize the textarea when prompt changes
+  const handleDrag = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = textareaRef.current?.getBoundingClientRect().height || 80;
+    
+    const onMove = (me: MouseEvent) => {
+      const delta = startY - me.clientY;
+      setManualHeight(Math.max(80, Math.min(window.innerHeight * 0.6, startH + delta)));
+    };
+    const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
   useEffect(() => {
     if (textareaRef.current) {
-      // Reset height to compute actual scrollHeight
-      textareaRef.current.style.height = "auto";
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${Math.min(scrollHeight, 250)}px`;
+      if (manualHeight && prompt.trim()) {
+        textareaRef.current.style.height = `${manualHeight}px`;
+      } else {
+        textareaRef.current.style.height = "auto";
+        const scrollHeight = textareaRef.current.scrollHeight;
+        textareaRef.current.style.height = `${scrollHeight}px`;
+      }
     }
-  }, [prompt]);
+  }, [prompt, manualHeight]);
 
   return (
     <div className="w-80 border-l border-white/10 bg-[#0a0a0e] flex flex-col shrink-0 relative">
@@ -156,11 +197,10 @@ export function PromptSidebar({
         <PanelRightClose className="w-3.5 h-3.5" />
       </button>
 
-      {/* Tabs */}
       <div className="flex border-b border-white/10 pt-10 px-3 pb-0 overflow-hidden">
         <button
           onClick={() => setMode("editor")}
-          className={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 border-b-2 transition-colors ${
+          className={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 border-b-2 transition-colors focus:outline-none focus-visible:ring-0 ${
             mode === "editor" ? "border-[#7c5cfc] text-[#7c5cfc]" : "border-transparent text-slate-500 hover:text-slate-300"
           }`}
         >
@@ -168,7 +208,7 @@ export function PromptSidebar({
         </button>
         <button
           onClick={() => setMode("suggestions")}
-          className={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 border-b-2 flex items-center justify-center gap-1.5 transition-colors ${
+          className={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 border-b-2 flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-0 ${
             mode === "suggestions" ? "border-[#7c5cfc] text-[#7c5cfc]" : "border-transparent text-slate-500 hover:text-slate-300"
           }`}
         >
@@ -177,7 +217,7 @@ export function PromptSidebar({
         </button>
         <button
           onClick={() => setMode("history")}
-          className={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 border-b-2 flex items-center justify-center gap-1.5 transition-colors ${
+          className={`flex-1 text-xs font-semibold uppercase tracking-wider pb-2 border-b-2 flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-0 ${
             mode === "history" ? "border-[#7c5cfc] text-[#7c5cfc]" : "border-transparent text-slate-500 hover:text-slate-300"
           }`}
         >
@@ -188,7 +228,7 @@ export function PromptSidebar({
 
       {mode === "editor" ? (
         <>
-          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {/* Screenshot context */}
             {screenshot && (
               <div className="bg-white/5 border border-white/10 rounded-lg p-2">
@@ -259,8 +299,14 @@ export function PromptSidebar({
           </div>
 
           {/* Prompt input */}
-          <div className="p-3 border-t border-white/10">
-            <div className="flex flex-col gap-2">
+          <div className="p-3 border-t border-white/10 relative">
+            <div 
+              className="absolute top-0 left-0 right-0 h-2 -translate-y-1 cursor-ns-resize group"
+              onMouseDown={handleDrag}
+            >
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-1 bg-white/10 group-hover:bg-[#7c5cfc]/50 rounded-full transition-colors" />
+            </div>
+            <div className="flex flex-col gap-2 pt-1">
               <textarea
                 ref={textareaRef}
                 value={prompt}
@@ -272,7 +318,7 @@ export function PromptSidebar({
                   }
                 }}
                 placeholder="Describe the change..."
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#7c5cfc]/50 resize-none overflow-y-auto"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#7c5cfc]/50 resize-none overflow-y-auto max-h-[50vh] min-h-[80px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                 rows={3}
                 disabled={prompting}
               />
@@ -288,17 +334,28 @@ export function PromptSidebar({
           </div>
         </>
       ) : mode === "suggestions" ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 min-w-0 relative">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 min-w-0 relative [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Subtle background glow */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#7c5cfc]/10 rounded-full blur-3xl pointer-events-none mix-blend-screen" />
           
-          <div className="flex items-center gap-3 mb-6 relative z-10">
-            <div className="p-1.5 bg-[#7c5cfc]/10 rounded-md border border-[#7c5cfc]/20">
-              <Lightbulb className="w-3.5 h-3.5 text-[#7c5cfc]" />
+          <div className="flex items-center justify-between mb-6 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-[#7c5cfc]/10 rounded-md border border-[#7c5cfc]/20">
+                <Lightbulb className="w-3.5 h-3.5 text-[#7c5cfc]" />
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300">
+                AI Layout Tips
+              </span>
             </div>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300">
-              AI Layout Tips
-            </span>
+            {suggestions.length > 0 && !loadingSuggestions && (
+              <button 
+                onClick={() => fetchSuggestions(true)}
+                className="p-1.5 rounded hover:bg-white/10 text-slate-500 hover:text-slate-300 transition-colors"
+                title="Generate new tips"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           
           {loadingSuggestions ? (
@@ -306,7 +363,7 @@ export function PromptSidebar({
               <div className="flex items-center gap-2 mb-5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#7c5cfc] animate-ping" />
                 <span className="text-[9px] font-mono tracking-widest text-[#7c5cfc] uppercase">
-                  Synthesizing aesthetics...
+                  {loadingPhrases[loadingPhase]}
                 </span>
               </div>
               <div className="flex flex-col gap-4">
@@ -337,8 +394,8 @@ export function PromptSidebar({
                 <button
                   key={idx}
                   onClick={() => {
-                    onPromptChange(suggestion);
-                    setMode("editor");
+                    const newPrompt = prompt.trim() ? prompt.trim() + "\n\n" + suggestion : suggestion;
+                    onPromptChange(newPrompt);
                   }}
                   className="group relative block w-full text-left rounded-xl bg-gradient-to-b from-[#161622] to-[#0e0e15] overflow-hidden border border-white/5 hover:border-[#7c5cfc]/40 transition-all duration-400 transform hover:-translate-y-1 shadow-lg hover:shadow-[0_8px_30px_rgba(124,92,252,0.15)] animate-fade-up"
                   style={{ animationFillMode: "both", animationDelay: `${idx * 120}ms` }}
@@ -365,7 +422,7 @@ export function PromptSidebar({
           )}
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-3">
+        <div className="flex-1 overflow-y-auto p-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {loadingHistory ? (
             <div className="text-center text-xs text-slate-500 py-10">Loading history...</div>
           ) : versions.length === 0 ? (

@@ -318,6 +318,14 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
         }
       }
 
+      const mdxMatches = [...fullText.matchAll(/```mdx\n([\s\S]*?)```/g)];
+      
+      if (mdxMatches.length > 1) {
+        // The backend created multiple slides; perform a full reload to sync state and routing
+        window.location.reload();
+        return;
+      }
+
       // Final full text parsed for frontmatter
       let finalFm = slide.frontmatter;
       const jsonMatch = fullText.match(/```json\n([\s\S]*?)```/);
