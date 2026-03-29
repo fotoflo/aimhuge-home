@@ -229,7 +229,7 @@ export async function POST(req: NextRequest) {
                                try { newFm = { ...currentFrontmatter, ...JSON.parse(jsonBlocks[i]) }; } catch {}
                              }
                              newSlides.push({
-                               id: require("crypto").randomUUID(),
+                               id: crypto.randomUUID(),
                                deck_slug: deckSlug,
                                slide_order: 0,
                                frontmatter: newFm,

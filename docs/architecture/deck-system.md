@@ -148,10 +148,11 @@ The AI editing experience uses a streaming architecture to provide immediate fee
    - Start with a plain-text conversational explanation.
    - Wrap the updated MDX in a ```mdx code block.
    - Wrap any frontmatter changes in a ```json code block.
-3. **Frontend Processing**: `SlideEditor` reads the stream. As text arrives, it updates the `copilotText` state.
-4. **Code Mode Flip**: Once the stream encounters the ```mdx marker, the editor automatically flips into **Code Mode** (see below).
-5. **Incremental Update**: The MDX content is optimistically updated in the local slides state as it streams, providing a "typing" effect in the code editor.
-6. **Finalization**: When the stream ends, the API route parses the full response, performs a final database update (`deck_slides`), and the frontend flips back to visual mode after regenerating the slide thumbnail.
+3. **Function Calling (Tools)**: For complex tasks like generating images, the model invokes tools. During a function call, the exact `Part` requested by the model is echoed back to the stream including its internal metadata (`thoughtSignature`), which is strictly required for Gemini 3.0+ to fulfill tool calls without error.
+4. **Frontend Processing**: `SlideEditor` reads the stream. As text arrives, it updates the `copilotText` state.
+5. **Code Mode Flip**: Once the stream encounters the ```mdx marker, the editor automatically flips into **Code Mode** (see below).
+6. **Incremental Update**: The MDX content is optimistically updated in the local slides state as it streams, providing a "typing" effect in the code editor.
+7. **Finalization**: When the stream ends, the API route parses the full response, performs a final database update (`deck_slides`), and the frontend flips back to visual mode after regenerating the slide thumbnail.
 
 ### Code Mode Flip Pattern
 
