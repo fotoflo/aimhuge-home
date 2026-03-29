@@ -68,31 +68,22 @@ To get the list:
 3. For line counts, run \`git diff --stat\` on only uncommitted
    files`;
 
-const phaseExample = `### Phase 1: Update Architecture Docs
+const phaseExample = `### Phase 0: Gather Session Context
 
-1. Gather session changes — compile the list of files YOU touched
-2. Identify affected areas (pages, components, styles, etc.)
-3. Read the changed code to understand the current state
-4. Check existing docs in \`docs/architecture/\`
-5. Write/update docs covering: Overview, Key files, Data flow,
-   Important patterns
+Compile session files, check for bug fixes, count modified files.
 
-### Phase 2: Lint Fix
+### Parallel Phase: Launch subagents for Phases 1-4
 
-Run your linter and fix errors ONLY in session files.
-Do NOT fix pre-existing errors in untouched files.
+Launch ALL applicable phases as parallel subagents in a single
+message. Each agent works independently and reports back.
 
-### Phase 3: File Sizes
+  Agent: Architecture Docs (always)
+  Agent: Bug Fix Docs (if a bug was fixed)
+  Agent: Lint Fix (always)
+  Agent: File Sizes (if 3+ files modified)
+  Agent: Tests + Coverage (always)
 
-Scan all source files and build a distribution table by
-line-count bucket and file type. Compare to previous snapshot.
-
-### Phase 4: Tests + Coverage
-
-Run tests if a runner is configured. Generate a short coverage
-summary. Skip gracefully if no test runner exists.
-
-### Phase 5: Commit
+### Phase 5: Commit (after all agents complete)
 
 Stage all changed files and commit using conventional commits.
 Include a session productivity summary in the commit body.
@@ -255,6 +246,10 @@ export default function BlogPostDoneSkill() {
                 desc: "If you have a test runner, coverage stats are included in every commit. If not, the skill notes it and moves on — no broken builds.",
               },
               {
+                title: "Bug fixes get documented",
+                desc: "When a session involves a bug fix, a structured report is auto-generated with symptom, root cause, fix, and a key rule to prevent recurrence.",
+              },
+              {
                 title: "You get a productivity report",
                 desc: "Session duration, prompt count, lines changed — all computed automatically so you can track how you work.",
               },
@@ -406,6 +401,106 @@ export default function BlogPostDoneSkill() {
                 height={600}
                 className="rounded-xl border border-card-border w-full"
               />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Parallelizing with subagents */}
+      <section className="bg-card-bg border-y border-card-border">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl font-bold mb-6">
+              Parallelizing with Subagents
+            </h2>
+            <div className="space-y-4 text-muted leading-relaxed">
+              <p>
+                The phases in a{" "}
+                <code className="font-mono text-accent">/done</code> skill are
+                mostly independent — architecture docs don&apos;t depend on lint
+                results, and tests don&apos;t depend on file size scans. So why
+                run them sequentially?
+              </p>
+              <p>
+                Claude Code can launch{" "}
+                <strong className="text-foreground">parallel subagents</strong>{" "}
+                — independent processes that each handle one phase concurrently.
+                The main agent gathers session context first, then fires off all
+                applicable phases in a single message. Each subagent runs its
+                phase, writes any files it needs to, and reports back. The main
+                agent waits for all to complete, then handles the sequential
+                phases (commit and report).
+              </p>
+            </div>
+
+            <div className="mt-8">
+              <p className="text-sm font-medium text-foreground mb-3">
+                Four parallel agents running simultaneously
+              </p>
+              <Image
+                src="/images/blog/done-parallel-agents.png"
+                alt="Claude Code running 4 parallel subagents: Explore for architecture docs, Agent for lint check, Agent for tests, and Agent for file size distribution"
+                width={800}
+                height={300}
+                className="rounded-xl border border-card-border w-full"
+              />
+            </div>
+
+            <div className="mt-8 space-y-4 text-muted leading-relaxed">
+              <p>
+                The key instruction in the skill is:{" "}
+                <em className="text-foreground">
+                  &quot;Launch ALL applicable phases as parallel subagents in a
+                  single message.&quot;
+                </em>{" "}
+                This tells Claude to use the Agent tool multiple times in one
+                response, which starts them concurrently. The phases are:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {[
+                {
+                  title: "Architecture docs (always)",
+                  desc: "An Explore agent reads session files and updates docs/architecture/ to reflect the current state.",
+                },
+                {
+                  title: "Bug fix docs (conditional)",
+                  desc: "Only launched if the session involved fixing a bug. Creates a numbered report in docs/bug-fixes/ with symptom, root cause, and fix.",
+                },
+                {
+                  title: "Lint fix (always)",
+                  desc: "Runs the linter, fixes errors only in session files, and confirms clean output.",
+                },
+                {
+                  title: "Tests (always)",
+                  desc: "Runs the test suite and reports pass/fail counts. Investigates failures if any.",
+                },
+                {
+                  title: "File sizes (conditional)",
+                  desc: "Only if 3+ files were modified. Builds a distribution table and compares to the previous snapshot.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-xl border border-card-border p-5"
+                >
+                  <h3 className="font-semibold text-foreground mb-1 text-sm">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-muted">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 text-muted leading-relaxed">
+              <p>
+                The result: what used to take 90+ seconds sequentially now
+                completes in about 50 seconds — bounded by the slowest agent
+                rather than the sum of all phases. And the commit phase still
+                runs last, so it can incorporate fixes from any agent that
+                found issues.
+              </p>
             </div>
           </div>
         </div>
