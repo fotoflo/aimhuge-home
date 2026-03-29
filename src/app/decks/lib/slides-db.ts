@@ -30,6 +30,25 @@ export async function getSlides(deckSlug: string): Promise<SlideRow[]> {
   return data ?? [];
 }
 
+/** Fetch a single slide by ID */
+export async function getSlideById(id: string): Promise<SlideRow | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("deck_slides")
+    .select("*")
+    .eq("id", id)
+    .is("deleted_at", null)
+    .single();
+
+  if (error) {
+    console.error("Failed to fetch slide:", error);
+    return null;
+  }
+  return data as SlideRow;
+}
+
 /** Upsert a single slide (by deck_slug + slide_order) */
 export async function upsertSlide(
   deckSlug: string,

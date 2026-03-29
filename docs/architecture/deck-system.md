@@ -65,7 +65,9 @@ src/app/
 |-------|---------|
 | `GET /api/decks` | List all deck slugs with slide counts |
 | `GET /api/decks/summary?deck=<slug>` | Lightweight slide index (no content) |
+| `GET /api/decks/summary?id=<id>` | Lightweight summary of a single slide |
 | `GET /api/decks/slides?deck=<slug>` | Full slides with MDX content |
+| `GET /api/decks/slides?id=<id>` | Full MDX content of a single slide |
 | `PUT /api/decks/slides` | Upsert slide (create or full replace) |
 | `PATCH /api/decks/slides` | Update slide content by id |
 | `DELETE /api/decks/slides` | Soft-delete slide by id |

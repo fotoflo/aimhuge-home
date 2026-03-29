@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSlides, upsertSlide, updateSlideContent, updateSlideFrontmatter, softDeleteSlide } from "@/app/decks/lib/slides-db";
+import { getSlides, upsertSlide, updateSlideContent, updateSlideFrontmatter, softDeleteSlide, getSlideById } from "@/app/decks/lib/slides-db";
 
-/** GET /api/decks/slides?deck=priyoshop-exec */
+/** GET /api/decks/slides?deck=priyoshop-exec OR ?id=slide-uuid */
 export async function GET(req: NextRequest) {
   const deck = req.nextUrl.searchParams.get("deck");
-  if (!deck) return NextResponse.json({ error: "Missing deck param" }, { status: 400 });
+  const id = req.nextUrl.searchParams.get("id");
+
+  if (id) {
+    const slide = await getSlideById(id);
+    if (!slide) return NextResponse.json({ error: "Slide not found" }, { status: 404 });
+    return NextResponse.json(slide);
+  }
+
+  if (!deck) return NextResponse.json({ error: "Missing deck or id param" }, { status: 400 });
 
   const slides = await getSlides(deck);
   return NextResponse.json(slides);

@@ -13,8 +13,8 @@ const SYSTEM_PROMPT = `You are an AI slide copilot focusing on BOLD, production-
 
 Rules for output:
 1. Start with a plain text conversational explanation of what you are doing.
-2. ALWAYS call the \`apply_slide_changes\` tool when you have finished generating the changes. Pass the final updated MDX and frontmatter for the current slide.
-3. If you want to break the current slide into MULTIPLE slides: use the \`additional_slides\` array in the \`apply_slide_changes\` tool to provide the content for brand new slides that should be inserted immediately after!
+2. If you are just modifying the current slide: provide the NEW slide MDX content strictly inside a single \`\`\`mdx code fence, and its frontmatter inside a single \`\`\`json code fence.
+3. If you want to break the current slide into MULTIPLE slides: output MULTIPLE pairs of \`\`\`json and \`\`\`mdx code blocks in sequential order! The first pair will overwrite the current slide, and the subsequent pairs will be created as brand new slides inserted immediately after.
 
 Creative & Aesthetic Guidelines:
 - Commit to a BOLD aesthetic direction (e.g. brutally minimal, editorial/magazine, brutalist/raw, geometric). Absolutely NO generic, cookie-cutter "AI slop" aesthetics.
@@ -97,29 +97,6 @@ export async function POST(req: NextRequest) {
       name: "generate_image",
       description: "Generate a custom photographic or detailed image to use inside the slide. Returns the public URL.",
       parameters: { type: "OBJECT", properties: { prompt: { type: "STRING", description: "Detailed visual description of the image to generate" } }, required: ["prompt"] }
-    }, {
-      name: "apply_slide_changes",
-      description: "Apply the final MDX and frontmatter to the current slide. Optionally provide additional slides if splitting content.",
-      parameters: {
-        type: "OBJECT",
-        properties: {
-          current_slide_mdx: { type: "STRING", description: "The NEW updated MDX content for the current slide." },
-          current_slide_frontmatter: { type: "OBJECT", description: "The NEW updated JSON frontmatter." },
-          additional_slides: {
-            type: "ARRAY",
-            description: "Optional. Brand new slides to be created and inserted sequentially after the current one.",
-            items: {
-              type: "OBJECT",
-              properties: {
-                mdx_content: { type: "STRING" },
-                frontmatter: { type: "OBJECT" }
-              },
-              required: ["mdx_content", "frontmatter"]
-            }
-          }
-        },
-        required: ["current_slide_mdx", "current_slide_frontmatter"]
-      }
     }]
   }];
 
@@ -138,82 +115,73 @@ export async function POST(req: NextRequest) {
 
           let fullText = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let finalToolCall: any = null;
+          let toolCall: any = null;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let toolCallPart: any = null;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let totalUsage: any = null;
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          async function processStream(currentStream: any) {
-            for await (const chunk of currentStream) {
-              if (chunk.usageMetadata) {
-                if (!totalUsage) totalUsage = chunk.usageMetadata;
-                else {
-                  totalUsage.promptTokenCount += chunk.usageMetadata.promptTokenCount || 0;
-                  totalUsage.candidatesTokenCount += chunk.usageMetadata.candidatesTokenCount || 0;
-                  totalUsage.totalTokenCount += chunk.usageMetadata.totalTokenCount || 0;
-                }
-              }
-              if (chunk.functionCalls && chunk.functionCalls.length > 0) {
-                const tCall = chunk.functionCalls[0];
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const tCallPart = chunk.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall);
-                
-                if (tCall.name === "generate_image") {
-                  controller.enqueue(encoder.encode(`\n*Generating image: "${tCall.args.prompt}"...*\n`));
-                  try {
-                    const url = await generateAndUploadImage(tCall.args.prompt);
-                    logAiUsage({ endpoint: "generate_image_tool_api", model: IMAGE_MODEL, imagesGenerated: 1, slideId, deckSlug });
-                    messages.push({ role: "model", parts: [tCallPart || { functionCall: tCall }] });
-                    messages.push({ role: "tool", parts: [{ functionResponse: { name: tCall.name, response: { url } } }] });
-                    const nextStream = await ai.models.generateContentStream({ model: DEFAULT_MODEL, contents: messages, config: { tools } });
-                    await processStream(nextStream);
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  } catch (err: any) {
-                    controller.enqueue(encoder.encode(`\n*(Image generation failed: ${err?.message})*\n`));
-                    messages.push({ role: "model", parts: [tCallPart || { functionCall: tCall }] });
-                    messages.push({ role: "tool", parts: [{ functionResponse: { name: tCall.name, response: { error: err?.message } } }] });
-                    const nextStream = await ai.models.generateContentStream({ model: DEFAULT_MODEL, contents: messages, config: { tools } });
-                    await processStream(nextStream);
-                  }
-                  break;
-                } else if (tCall.name === "apply_slide_changes") {
-                  finalToolCall = tCall;
-                  break;
-                }
-              }
-              if (chunk.text) {
-                fullText += chunk.text;
-                controller.enqueue(encoder.encode(chunk.text));
-              }
+          for await (const chunk of stream) {
+            if (chunk.functionCalls && chunk.functionCalls.length > 0) {
+               toolCall = chunk.functionCalls[0];
+               // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               toolCallPart = chunk.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall);
+               break; // Stop streaming text if tool is invoked
+            }
+            if (chunk.usageMetadata) totalUsage = chunk.usageMetadata;
+            if (chunk.text) {
+              fullText += chunk.text;
+              controller.enqueue(encoder.encode(chunk.text));
             }
           }
+          
+          if (toolCall && toolCall.name === "generate_image") {
+            try {
+              controller.enqueue(encoder.encode(`\n*Generating image: "${toolCall.args.prompt}"...*\n`));
+              const url = await generateAndUploadImage(toolCall.args.prompt);
+              
+              logAiUsage({
+                endpoint: "generate_image_tool_api",
+                model: IMAGE_MODEL,
+                imagesGenerated: 1,
+                slideId,
+                deckSlug
+              });
+              
+              const modelPart = toolCallPart || { functionCall: toolCall };
+              messages.push({ role: "model", parts: [modelPart] });
+              messages.push({ role: "tool", parts: [{ functionResponse: { name: toolCall.name, response: { url } } }] });
+              
+              const stream2 = await ai.models.generateContentStream({
+                 model: DEFAULT_MODEL,
+                 contents: messages,
+                 config: { tools }
+              });
 
-          await processStream(stream);
+              for await (const chunk of stream2) {
+                if (chunk.usageMetadata) {
+                  if (!totalUsage) totalUsage = chunk.usageMetadata;
+                  else {
+                    totalUsage.promptTokenCount += chunk.usageMetadata.promptTokenCount || 0;
+                    totalUsage.candidatesTokenCount += chunk.usageMetadata.candidatesTokenCount || 0;
+                    totalUsage.totalTokenCount += chunk.usageMetadata.totalTokenCount || 0;
+                  }
+                }
+                if (chunk.text) {
+                  fullText += chunk.text;
+                  controller.enqueue(encoder.encode(chunk.text));
+                }
+              }
+            } catch (err: unknown) {
+               controller.enqueue(encoder.encode(`\n*(Image generation failed: ${err instanceof Error ? err.message : String(err)})*\n`));
+            }
+          }
           
           if (slideId) {
             const supabaseServer = getSupabase();
             if (supabaseServer) {
-              let mdxBlocks = [...fullText.matchAll(/```mdx\n([\s\S]*?)```/g)].map(m => m[1].trim());
-              let jsonBlocks = [...fullText.matchAll(/```json\n([\s\S]*?)```/g)].map(m => m[1].trim());
-
-              if (finalToolCall) {
-                const { current_slide_mdx, current_slide_frontmatter, additional_slides } = finalToolCall.args;
-                
-                // Emulate the markdown streaming output so the frontend parses it flawlessly
-                controller.enqueue(encoder.encode(`\n\`\`\`json\n${JSON.stringify(current_slide_frontmatter, null, 2)}\n\`\`\`\n`));
-                controller.enqueue(encoder.encode(`\n\`\`\`mdx\n${current_slide_mdx}\n\`\`\`\n`));
-                mdxBlocks = [current_slide_mdx];
-                jsonBlocks = [JSON.stringify(current_slide_frontmatter)];
-
-                if (additional_slides) {
-                  for (const slide of additional_slides) {
-                    controller.enqueue(encoder.encode(`\n\`\`\`json\n${JSON.stringify(slide.frontmatter, null, 2)}\n\`\`\`\n`));
-                    controller.enqueue(encoder.encode(`\n\`\`\`mdx\n${slide.mdx_content}\n\`\`\`\n`));
-                    mdxBlocks.push(slide.mdx_content);
-                    jsonBlocks.push(JSON.stringify(slide.frontmatter));
-                  }
-                }
-              }
+              const mdxBlocks = [...fullText.matchAll(/```mdx\n([\s\S]*?)```/g)].map(m => m[1].trim());
+              const jsonBlocks = [...fullText.matchAll(/```json\n([\s\S]*?)```/g)].map(m => m[1].trim());
 
               if (mdxBlocks.length === 0) {
                  // Fallback if formatting isn't perfect
