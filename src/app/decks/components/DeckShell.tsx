@@ -1,48 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback, ReactElement } from "react";
-import { SlideNav } from "./SlideNav";
+import type { ReactElement } from "react";
+import { useSlideNavigation } from "../lib/useSlideNavigation";
+import { useSlideControls } from "../lib/useSlideControls";
 
 interface DeckShellProps {
   slides: ReactElement[];
   /** Starting slide index (0-based) */
   startAt?: number;
-  /** Custom nav button colors — defaults to semi-transparent dark */
-  navClassName?: string;
 }
 
-export function DeckShell({ slides, startAt = 0, navClassName }: DeckShellProps) {
-  const total = slides.length;
-  const [current, setCurrent] = useState(startAt);
-
-  const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total]);
-  const prev = useCallback(() => setCurrent((c) => (c - 1 + total) % total), [total]);
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight" || e.key === " ") {
-        e.preventDefault();
-        next();
-      }
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        prev();
-      }
-    }
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [next, prev]);
+/**
+ * Top-level deck container.
+ *
+ * Renders one slide at a time and wires up navigation:
+ * - URL hash sync (refresh preserves position)
+ * - Keyboard (arrow keys, spacebar)
+ * - Click (left half = back, right half = forward)
+ */
+export function DeckShell({ slides, startAt = 0 }: DeckShellProps) {
+  const { current, next, prev } = useSlideNavigation(slides.length, startAt);
+  const { handleClick } = useSlideControls(next, prev);
 
   return (
-    <>
+    <div onClick={handleClick} className="relative cursor-pointer">
       {slides[current]}
-      <SlideNav
-        current={current}
-        total={total}
-        onPrev={prev}
-        onNext={next}
-        className={navClassName}
-      />
-    </>
+      <div className="fixed bottom-4 right-6 text-xs text-slate-500 font-medium z-50 pointer-events-none">
+        {current + 1} / {slides.length}
+      </div>
+    </div>
   );
 }
