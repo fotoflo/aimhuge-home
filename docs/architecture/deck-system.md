@@ -34,7 +34,7 @@ src/app/
 | `components/SlideImageEditor.tsx` | Modal image editor with corner resize handles and inset-based crop (ported from habitcal) |
 | `components/Card.tsx` | Card, CardTitle, CardText, CardList components available in MDX |
 | `components/Stat.tsx`, `Tag.tsx` | Stat/Tag components available in MDX |
-| `lib/useSlideNavigation.ts` | Hook: `useSyncExternalStore`-based slide index + URL hash sync (no useState/useEffect — strict React 19 compliant) |
+| `lib/useSlideNavigation.ts` | Hook: `useSyncExternalStore`-based slide index + URL hash sync + `postMessage` listener for editor-driven navigation (no useState/useEffect — strict React 19 compliant) |
 | `lib/useSlideControls.ts` | Hook: keyboard (arrows, space) + split-screen click navigation, disabled in `?edit` mode |
 | `lib/slides-db.ts` | Supabase CRUD for `deck_slides` table (soft-delete via `deleted_at`) |
 | `lib/mdx-types.ts` | TypeScript types for SlideFrontmatter, MDXSlideModule |
@@ -110,6 +110,14 @@ Slides are fixed at 1920x1080px and scaled to fit the viewport:
 - Cmd+scroll wheel adjusts `userZoom` (0.25x–3x)
 - Content never overflows — `overflow: hidden` on `.slide`
 - Inline images constrained to `max-height: 900px` (background `fill` images excluded via `:not([data-nimg="fill"])` selector)
+
+## Editor ↔ Iframe Communication
+
+The editor (`SlideEditor`) embeds the viewer (`DeckShell`) in an iframe. Navigation between slides uses **`postMessage`** — the editor sends `{ type: "goToSlide", index }` and `useSlideNavigation` inside the iframe listens for it.
+
+**Why not `location.replace`?** Calling `iframe.contentWindow.location.replace('#slide-N')` triggers `hashchange` events inside the iframe, which feeds back into `useSyncExternalStore`'s subscription → `getSnapshot` loop, causing recursive rendering. `postMessage` sets an override directly without touching the URL hash, breaking the cycle.
+
+The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slide-1`) and **static `key`** (`refreshKey`). The `key` only changes when slide content is updated (AI edit, reorder), forcing an iframe remount. After remount, `handleIframeLoad` sends a `postMessage` to navigate to the current slide.
 
 ## Editor Features
 
