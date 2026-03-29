@@ -1,17 +1,33 @@
-# Claude Code Skills
+# Claude Code Skills & Configuration
 
 ## Overview
 
-The `.claude/skills/` directory contains reusable Claude Code skills — markdown-based prompts that Claude follows step by step when invoked with `/<name>` in a session.
+The `.claude/` directory contains reusable Claude Code skills, hooks, and statusline configuration.
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `.claude/skills/done/SKILL.md` | Session wrap-up skill — updates docs, runs lint, commits, and reports |
+| `.claude/skills/watch-dev/` | Dev server watcher skill |
+| `.claude/settings.json` | Global settings: statusline, hooks, plugins |
 | `.claude/settings.local.json` | Project-level permissions for Claude Code tools and MCP servers |
+| `.claude/statusline-command.sh` | Statusline script — shows task label, git branch, context % |
+| `.claude/stop-hook-label.sh` | Stop hook — extracts task label from last message for statusline |
 
-## Important Patterns
+## Statusline
+
+The statusline displays: `task label | branch | ctx: X%`
+
+- Task label is extracted from the last assistant message by the Stop hook
+- Written to `/tmp/claude-task-label.txt` and read by the statusline script
+- Git branch and context window percentage come from Claude Code's JSON input
+
+## Hooks
+
+- **Stop hook**: Fires after each Claude response; runs `stop-hook-label.sh` async to update the task label file without blocking
+
+## Skills
 
 - Skills live at `.claude/skills/<name>/SKILL.md` with YAML frontmatter (`name`, `description`, `argument-hint`)
 - The `/done` skill runs 6 phases: Architecture Docs, Lint Fix, File Sizes, Tests + Coverage, Commit, Report
