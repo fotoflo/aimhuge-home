@@ -63,6 +63,7 @@ src/app/
 
 | Route | Purpose |
 |-------|---------|
+| `GET /api/decks` | List all deck slugs with slide counts |
 | `GET /api/decks/summary?deck=<slug>` | Lightweight slide index (no content) |
 | `GET /api/decks/slides?deck=<slug>` | Full slides with MDX content |
 | `PUT /api/decks/slides` | Upsert slide (create or full replace) |
@@ -74,6 +75,12 @@ src/app/
 | `POST /api/decks/thumbnails?deck=<slug>` | Generate thumbnails via Puppeteer + sharp, upload to Supabase Storage |
 | `POST /api/assets` | Upload image to Supabase Storage |
 | `GET /api/assets` | List uploaded assets |
+
+### Deck Listing (`src/app/(site)/decks/`)
+
+| File | Purpose |
+|------|---------|
+| `page.tsx` | Client page listing all deck slugs from Supabase — gated to `fotoflo@gmail.com`, uses `<a>` tags (not `<Link>`) for cross-route-group navigation to `(decks)` |
 
 ### Auth & Infrastructure
 
