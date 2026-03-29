@@ -10,6 +10,7 @@ The `.claude/` directory contains reusable Claude Code skills, hooks, and status
 |------|---------|
 | `.claude/skills/done/SKILL.md` | Session wrap-up skill — updates docs, runs lint, commits, and reports |
 | `.claude/skills/watch-dev/` | Dev server watcher skill |
+| `.claude/skills/migrate/SKILL.md` | Supabase migration runner — creates timestamped SQL, pushes to remote |
 | `.claude/settings.json` | Global settings: statusline, hooks, plugins |
 | `.claude/settings.local.json` | Project-level permissions for Claude Code tools and MCP servers |
 | `.claude/statusline-command.sh` | Statusline script — shows task label, git branch, context % |
@@ -32,6 +33,7 @@ The statusline displays: `task label | branch | Model [style]`
 
 - Skills live at `.claude/skills/<name>/SKILL.md` with YAML frontmatter (`name`, `description`, `argument-hint`)
 - The `/done` skill runs 6 phases: Architecture Docs, Lint Fix, File Sizes, Tests + Coverage, Commit, Report
+- The `/migrate` skill creates a timestamped migration file via `supabase migration new`, writes SQL, and pushes with `supabase db push`
 - Session file detection uses conversation memory, not `git diff HEAD~N`, to handle concurrent sessions
 - Commits follow conventional commit format with session productivity stats in the body
 - Safety rules: no `--no-verify`, no force push, no secrets, no push without explicit request

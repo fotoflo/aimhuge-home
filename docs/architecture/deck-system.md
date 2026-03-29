@@ -35,7 +35,7 @@ src/app/
 | `components/Stat.tsx`, `Tag.tsx` | Stat/Tag components available in MDX |
 | `lib/useSlideNavigation.ts` | Hook: `useSyncExternalStore`-based slide index + URL hash sync + `postMessage` listener for editor-driven navigation (no useState/useEffect — strict React 19 compliant) |
 | `lib/useSlideControls.ts` | Hook: keyboard (arrows, space) + split-screen click navigation, disabled in `?edit` mode |
-| `lib/slides-db.ts` | Supabase CRUD for `deck_slides` table (soft-delete via `deleted_at`) |
+| `lib/slides-db.ts` | Supabase CRUD for `deck_slides` table (soft-delete via `deleted_at`) + version history (snapshot, list, revert) |
 | `lib/mdx-types.ts` | TypeScript types for SlideFrontmatter, MDXSlideModule |
 | `lib/editor-utils.ts` | Pure utility functions: reorder cursor tracking, indent/outdent, width↔class mapping, image tag building/parsing, crop parsing, resize/crop geometry |
 | `lib/viewport.ts` | Pure functions for slide scaling (`computeSlideScale`), wheel zoom clamping, click-half navigation |
@@ -70,7 +70,9 @@ src/app/
 | `PATCH /api/decks/slides` | Update slide content by id |
 | `DELETE /api/decks/slides` | Soft-delete slide by id |
 | `POST /api/decks/slides/reorder` | Reorder slides (two-phase update to avoid unique constraint conflicts) |
-| `POST /api/decks/slides/prompt` | AI-powered slide edit via Gemini 2.5 Flash |
+| `POST /api/decks/slides/prompt` | AI-powered slide edit via Gemini 2.5 Flash (snapshots version before edit) |
+| `GET /api/decks/slides/versions?slideId=<id>` | List version history for a slide, newest first |
+| `POST /api/decks/slides/versions/revert` | Revert a slide to a previous version (snapshots current state first) |
 | `GET /api/decks/thumbnails?deck=<slug>` | Get cached thumbnail URLs from Supabase Storage |
 | `POST /api/decks/thumbnails?deck=<slug>` | Generate thumbnails via Puppeteer + sharp, upload to Supabase Storage |
 | `POST /api/assets` | Upload image to Supabase Storage |
@@ -132,6 +134,32 @@ The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slid
 - **Tab/Shift+Tab** — indent/outdent slides (adjusts `level` in frontmatter, max 2 levels)
 - **Arrow Up/Down** — navigate slides from keyboard
 - **Google OAuth** — auth-gated editor access
+
+## Slide Version History
+
+Every mutation to a slide automatically snapshots its current state into `slide_versions` before applying the change. This provides an undo/history trail for all edits.
+
+### How It Works
+
+1. **Before any mutation** (`upsertSlide`, `updateSlideContent`, `updateSlideFrontmatter`, AI prompt edit, revert), `saveVersionSnapshot()` reads the current slide row and inserts it into `slide_versions` with an incremented `version_number`.
+2. **`change_source`** records what triggered the snapshot: `"upsert"`, `"manual"`, `"ai_edit"`, or `"revert"`.
+3. **Reverting** saves the current state first (so reverts are themselves undoable), then applies the target version's `mdx_content` and `frontmatter` back to `deck_slides`.
+
+### Schema (`slide_versions` table)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid (PK) | Auto-generated |
+| `slide_id` | uuid (FK → deck_slides.id) | Which slide this version belongs to |
+| `deck_slug` | text | Denormalized for querying |
+| `slide_order` | integer | Position at time of snapshot |
+| `frontmatter` | jsonb | Frontmatter at time of snapshot |
+| `mdx_content` | text | MDX content at time of snapshot |
+| `version_number` | integer | Monotonically increasing per slide |
+| `change_source` | text | What triggered the snapshot |
+| `created_at` | timestamptz | When the snapshot was taken |
+
+Migration: `supabase/migrations/20260329132315_create_slide_versions.sql`
 
 ## Testing
 
