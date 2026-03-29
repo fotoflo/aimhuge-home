@@ -17,9 +17,26 @@ function fixStringStyles(mdx: string): string {
         const [key, ...val] = s.split(":");
         const camel = key.trim().replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase());
         return `${JSON.stringify(camel)}: ${JSON.stringify(val.join(":").trim())}`;
-      });
+      })
+      // Drop cursor:pointer — inherited from .slide-container CSS;
+      // keeping it inline causes hydration mismatches.
+      .filter((p: string) => !p.includes('"cursor"'));
+    if (pairs.length === 0) return "";
     return `style={{${pairs.join(", ")}}}`;
   });
+}
+
+/** Strip cursor:pointer from JSX-syntax style objects in MDX (e.g. style={{cursor:"pointer"}}) */
+function stripCursorPointer(mdx: string): string {
+  // Remove standalone style={{cursor:"pointer"}} or style={{ cursor: "pointer" }}
+  return mdx
+    .replace(/\bstyle=\{\{\s*cursor\s*:\s*["']pointer["']\s*\}\}/g, "")
+    // Remove cursor:"pointer" entry from multi-property style objects
+    .replace(/,?\s*cursor\s*:\s*["']pointer["']\s*,?/g, (match) => {
+      // If match has commas on both sides, keep one comma
+      if (match.trimStart().startsWith(",") && match.trimEnd().endsWith(",")) return ",";
+      return "";
+    });
 }
 
 /** img tag that works without width/height (uses unoptimized next/image or plain img) */
@@ -69,7 +86,7 @@ export function MDXSlide({ frontmatter: fm, content }: MDXSlideProps) {
     return (
       <div className={`slide slide-${fm.variant}`}>
         <div className="relative z-10">
-                    <MDXRemote source={fixStringStyles(content)} components={mdxComponents} />
+                    <MDXRemote source={stripCursorPointer(fixStringStyles(content))} components={mdxComponents} />
         </div>
       </div>
     );
@@ -86,7 +103,7 @@ export function MDXSlide({ frontmatter: fm, content }: MDXSlideProps) {
       backgroundImage={fm.backgroundImage}
       backgroundOverlay={fm.backgroundOverlay}
     >
-            <MDXRemote source={fixStringStyles(content)} components={mdxComponents} />
+            <MDXRemote source={stripCursorPointer(fixStringStyles(content))} components={mdxComponents} />
     </SlideShell>
   );
 }

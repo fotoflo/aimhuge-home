@@ -17,7 +17,6 @@ src/app/
     page.tsx, about/, blog/, etc.
   (decks)/                # Decks — minimal <html>/<body>, no site chrome
     layout.tsx            # Deck root layout (imports globals.css for Tailwind)
-    SuppressHydrationWarning.tsx  # Filters cursor:pointer hydration mismatch (dev only)
     clients/priyoshop/exec-deck/
     clients/wegro/board-deck/
 ```
@@ -30,7 +29,7 @@ src/app/
 |------|---------|
 | `components/DeckShell.tsx` | Top-level container — renders slides at 1920x1080, scales to viewport via `useSyncExternalStore`, Cmd+scroll zoom |
 | `components/SlideShell.tsx` | Slide chrome wrapper — variant styling, logo, title, subtitle, background image support |
-| `components/MDXSlide.tsx` | Renders MDX content via `next-mdx-remote/rsc`, wraps in SlideShell using frontmatter, handles string→object style conversion |
+| `components/MDXSlide.tsx` | Renders MDX content via `next-mdx-remote/rsc`, wraps in SlideShell using frontmatter, handles string→object style conversion, strips `cursor:pointer` from MDX source to prevent hydration mismatches |
 | `components/SlideImageEditor.tsx` | Modal image editor with corner resize handles and inset-based crop (ported from habitcal) |
 | `components/Card.tsx` | Card, CardTitle, CardText, CardList components available in MDX |
 | `components/Stat.tsx`, `Tag.tsx` | Stat/Tag components available in MDX |
