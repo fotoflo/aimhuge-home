@@ -41,9 +41,9 @@ export function CardTitle({ children, dark }: { children: React.ReactNode; dark?
 
 export function CardText({ children, dark }: { children: React.ReactNode; dark?: boolean }) {
   return (
-    <p className={`text-[15px] leading-relaxed ${dark ? "text-slate-300" : "text-slate-600"}`}>
+    <div className={`text-[15px] leading-relaxed ${dark ? "text-slate-300" : "text-slate-600"}`}>
       {children}
-    </p>
+    </div>
   );
 }
 

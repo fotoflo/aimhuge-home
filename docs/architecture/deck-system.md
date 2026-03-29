@@ -29,9 +29,9 @@ src/app/
 |------|---------|
 | `components/DeckShell.tsx` | Top-level container — renders slides at 1920x1080, scales to viewport via `useSyncExternalStore`, Cmd+scroll zoom |
 | `components/SlideShell.tsx` | Slide chrome wrapper — variant styling, logo, title, subtitle, background image support |
-| `components/MDXSlide.tsx` | Renders MDX content via `next-mdx-remote/rsc`, wraps in SlideShell using frontmatter, handles string→object style conversion, strips `cursor:pointer` from MDX source to prevent hydration mismatches |
+| `components/MDXSlide.tsx` | Renders MDX content via `next-mdx-remote/rsc`, wraps in SlideShell using frontmatter, handles string→object style conversion, strips `cursor:pointer` from MDX source to prevent hydration mismatches. Also remaps `<p>` to `<div {...props}>` to prevent nesting errors. |
 | `components/SlideImageEditor.tsx` | Modal image editor with corner resize handles and inset-based crop (ported from habitcal) |
-| `components/Card.tsx` | Card, CardTitle, CardText, CardList components available in MDX |
+| `components/Card.tsx` | Card, CardTitle, CardText, CardList components available in MDX. (Note: These natively use `<div>` instead of block wrappers like `<p>` to prevent HTML hydration errors from parsed inner markdown). |
 | `components/Stat.tsx`, `Tag.tsx` | Stat/Tag components available in MDX |
 | `lib/useSlideNavigation.ts` | Hook: `useSyncExternalStore`-based slide index + URL hash sync + `postMessage` listener for editor-driven navigation (no useState/useEffect — strict React 19 compliant) |
 | `lib/useSlideControls.ts` | Hook: keyboard (arrows, space) + split-screen click navigation, disabled in `?edit` mode |
