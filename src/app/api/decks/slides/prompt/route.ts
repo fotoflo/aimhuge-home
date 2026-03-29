@@ -117,11 +117,15 @@ export async function POST(req: NextRequest) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let toolCall: any = null;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let toolCallPart: any = null;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let totalUsage: any = null;
 
           for await (const chunk of stream) {
             if (chunk.functionCalls && chunk.functionCalls.length > 0) {
                toolCall = chunk.functionCalls[0];
+               // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               toolCallPart = chunk.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall);
                break; // Stop streaming text if tool is invoked
             }
             if (chunk.usageMetadata) totalUsage = chunk.usageMetadata;
@@ -144,7 +148,8 @@ export async function POST(req: NextRequest) {
                 deckSlug
               });
               
-              messages.push({ role: "model", parts: [{ functionCall: toolCall }] });
+              const modelPart = toolCallPart || { functionCall: toolCall };
+              messages.push({ role: "model", parts: [modelPart] });
               messages.push({ role: "tool", parts: [{ functionResponse: { name: toolCall.name, response: { url } } }] });
               
               const stream2 = await ai.models.generateContentStream({

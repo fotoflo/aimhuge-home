@@ -12,6 +12,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type Modifier,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -220,6 +221,13 @@ function SortableSlide({
   );
 }
 
+const restrictToVerticalAxis: Modifier = ({ transform }) => {
+  return {
+    ...transform,
+    x: 0,
+  };
+};
+
 export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, onGoTo, onReorder, onTitleEdit, onClose, onRegenerateThumbnails, onAddSlide, onDeleteSlides, onToggleSkips }: SlideSidebarProps) {
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
   const [menu, setMenu] = useState<{ x: number; y: number; slide: SlideRow; index: number; isCmdClick?: boolean } | null>(null);
@@ -356,7 +364,7 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
 
   return (
     <>
-      <div className="w-52 border-r border-white/10 overflow-y-auto bg-[#0a0a0e] shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
+      <div className="w-52 border-r border-white/10 overflow-y-auto overflow-x-hidden bg-[#0a0a0e] shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 z-10 p-1 rounded hover:bg-white/10 text-slate-500 hover:text-slate-200 transition-colors"
@@ -364,7 +372,7 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
         >
           <PanelLeftClose className="w-3.5 h-3.5" />
         </button>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
           <SortableContext items={visibleIndices.map((idx) => slides[idx].id)} strategy={verticalListSortingStrategy}>
             {visibleIndices.map((i) => {
               const s = slides[i];
