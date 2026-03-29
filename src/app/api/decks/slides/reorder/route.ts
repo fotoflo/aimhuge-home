@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const { id } = slides[i];
     const { error } = await supabase
       .from("deck_slides")
-      .update({ slide_order: -(i + 1), updated_at: now })
+      .update({ slide_order: -(100000 + i), updated_at: now })
       .eq("id", id);
     if (error) {
       return NextResponse.json({ error: `Failed phase 1 for ${id}: ${error.message}` }, { status: 500 });
