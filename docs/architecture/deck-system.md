@@ -125,7 +125,8 @@ The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slid
 - **Slide preview** — iframe at selectable zoom level (25%–200% or Fit)
 - **Slide thumbnails** — Puppeteer-generated WebP images cached in Supabase Storage
 - **Light table** — 3-column grid of all slide thumbnails, click to jump
-- **AI prompt** — right sidebar, powered by Gemini 2.5 Flash
+- **AI prompt** — right sidebar, powered by Gemini 2.5 Flash. Now passes the active slide thumbnail to the model (`image/webp`) enabling structural/layout/color-aware visual prompting.
+- **Version history UI** — "History" tab inside the prompt sidebar that dynamically fetches prior version thumbnails and permits 1-click reversions without reloading the editor.
 - **Inline text editing** — double-click text in the preview to edit, saves on blur/Enter
 - **Image editor** — click an image to open resize/crop modal
 - **Paste/drag upload** — global image upload to `deck-assets` bucket
@@ -142,8 +143,9 @@ Every mutation to a slide automatically snapshots its current state into `slide_
 ### How It Works
 
 1. **Before any mutation** (`upsertSlide`, `updateSlideContent`, `updateSlideFrontmatter`, AI prompt edit, revert), `saveVersionSnapshot()` reads the current slide row and inserts it into `slide_versions` with an incremented `version_number`.
-2. **`change_source`** records what triggered the snapshot: `"upsert"`, `"manual"`, `"ai_edit"`, or `"revert"`.
-3. **Reverting** saves the current state first (so reverts are themselves undoable), then applies the target version's `mdx_content` and `frontmatter` back to `deck_slides`.
+2. **Thumbnail Snapshots**: Instantly duplicates the currently active WebP thumbnail in Supabase Storage from `thumbnails/{deck}/{slide_id}.webp` to an archive path `thumbnails/versions/{new_version_id}.webp`. This provides visual snapshots without a separate headless browser launch or DB migration.
+3. **`change_source`** records what triggered the snapshot: `"upsert"`, `"manual"`, `"ai_edit"`, or `"revert"`.
+4. **Reverting** saves the current state first (so reverts are themselves undoable), then applies the target version's `mdx_content` and `frontmatter` back to `deck_slides`.
 
 ### Schema (`slide_versions` table)
 

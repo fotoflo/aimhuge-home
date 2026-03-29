@@ -170,6 +170,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
           currentContent: slide.mdx_content,
           currentFrontmatter: slide.frontmatter,
           prompt: prompt.trim(),
+          image: thumbnails[slide.id],
         }),
       });
       const data = await res.json();
@@ -185,6 +186,26 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
       setPrompting(false);
     }
   };
+
+  const handleRevert = useCallback(async (versionId: string) => {
+    try {
+      const res = await fetch("/api/decks/slides/versions/revert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slideId: slide.id, versionId }),
+      });
+      const data = await res.json();
+      if (data.slide) {
+        setSlides((prev) =>
+          prev.map((s) => (s.id === slide.id ? data.slide : s))
+        );
+        setRefreshKey((k) => k + 1);
+        regenerateThumbnails([slide.id]);
+      }
+    } catch (err) {
+      console.error("Revert failed", err);
+    }
+  }, [slide, regenerateThumbnails]);
 
   // ── Assets ──
 
@@ -336,12 +357,15 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
 
         {showRightPanel && (
           <PromptSidebar
+            slideId={slide?.id}
             current={current}
             frontmatter={fm}
             prompt={prompt}
             prompting={prompting}
+            screenshot={thumbnails[slide?.id]}
             onPromptChange={setPrompt}
             onSubmit={handlePrompt}
+            onRevert={handleRevert}
             onClose={() => setShowRightPanel(false)}
           />
         )}

@@ -120,6 +120,7 @@ export interface SlideVersion {
   version_number: number;
   change_source: string | null;
   created_at: string;
+  thumbnail_url?: string;
 }
 
 /** Save a snapshot of the current slide state before mutating it */
@@ -150,15 +151,32 @@ export async function saveVersionSnapshot(
 
   const nextVersion = (maxRow?.version_number ?? 0) + 1;
 
-  await supabase.from("slide_versions").insert({
-    slide_id: slideId,
-    deck_slug: slide.deck_slug,
-    slide_order: slide.slide_order,
-    frontmatter: slide.frontmatter,
-    mdx_content: slide.mdx_content,
-    version_number: nextVersion,
-    change_source: changeSource,
-  });
+  const { data: inserted, error: insertErr } = await supabase
+    .from("slide_versions")
+    .insert({
+      slide_id: slideId,
+      deck_slug: slide.deck_slug,
+      slide_order: slide.slide_order,
+      frontmatter: slide.frontmatter,
+      mdx_content: slide.mdx_content,
+      version_number: nextVersion,
+      change_source: changeSource,
+    })
+    .select("id")
+    .single();
+
+  if (insertErr || !inserted) {
+    console.error("Failed to insert version:", insertErr);
+    return;
+  }
+
+  // Attempt to hard-copy the current thumbnail for this exact version snapshot
+  const sourcePath = `thumbnails/${slide.deck_slug}/${slideId}.webp`;
+  const destPath = `thumbnails/versions/${inserted.id}.webp`;
+  const { error: copyErr } = await supabase.storage.from("deck-assets").copy(sourcePath, destPath);
+  if (copyErr) {
+    console.warn("Could not copy thumbnail for version snapshot (it may not exist):", copyErr);
+  }
 }
 
 /** Get all versions for a slide, newest first */
@@ -176,7 +194,18 @@ export async function getSlideVersions(slideId: string): Promise<SlideVersion[]>
     console.error("Failed to fetch slide versions:", error);
     return [];
   }
-  return data ?? [];
+
+  // Inject thumbnail URL dynamically
+  const versions = data ?? [];
+  return versions.map((v) => {
+    const { data: { publicUrl } } = supabase.storage
+      .from("deck-assets")
+      .getPublicUrl(`thumbnails/versions/${v.id}.webp`);
+    return {
+      ...v,
+      thumbnail_url: `${publicUrl}?t=${Date.now()}`,
+    };
+  });
 }
 
 /** Revert a slide to a previous version (saves current state first) */

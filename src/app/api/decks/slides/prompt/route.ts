@@ -22,21 +22,36 @@ If the user asks to change frontmatter fields (title, subtitle, variant, etc.), 
 Return raw content only, no markdown code fences.`;
 
 export async function POST(req: NextRequest) {
-  const { slideId, currentContent, currentFrontmatter, prompt } = await req.json();
+  const { slideId, currentContent, currentFrontmatter, prompt, image } = await req.json();
 
   if (!prompt) {
     return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
   }
 
   try {
+    const parts: Array<{ text?: string; inlineData?: { data: string; mimeType: string } }> = [{ text: `${SYSTEM_PROMPT}\n\nCurrent frontmatter:\n${JSON.stringify(currentFrontmatter, null, 2)}\n\nCurrent slide content:\n${currentContent}\n\nUser request: ${prompt}` }];
+
+    if (image) {
+      try {
+        const imgRes = await fetch(image);
+        if (imgRes.ok) {
+          const buffer = await imgRes.arrayBuffer();
+          const base64 = Buffer.from(buffer).toString("base64");
+          parts.push({
+            inlineData: {
+              data: base64,
+              mimeType: "image/webp", // Thumbnails are generated as webp
+            },
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to fetch image for Gemini context:", err);
+      }
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: `${SYSTEM_PROMPT}\n\nCurrent frontmatter:\n${JSON.stringify(currentFrontmatter, null, 2)}\n\nCurrent slide content:\n${currentContent}\n\nUser request: ${prompt}` }],
-        },
-      ],
+      contents: [{ role: "user", parts }],
     });
 
     const text = response.text?.trim() ?? "";
