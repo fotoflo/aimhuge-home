@@ -3,6 +3,7 @@ import { SlideShell } from "./SlideShell";
 import { Card, CardTitle, CardText, CardList } from "./Card";
 import { Stat, MetricRow } from "./Stat";
 import { Tag } from "./Tag";
+import { Icon } from "./Icon";
 import Image from "next/image";
 import type { SlideFrontmatter } from "../lib/mdx-types";
 
@@ -54,6 +55,7 @@ const mdxComponents = {
   Stat,
   MetricRow,
   Tag,
+  Icon,
   Image: MdxImage,
   img: MdxImage,
   // Prevent <p> nesting — MDX auto-wraps text in <p>, so use <div> instead

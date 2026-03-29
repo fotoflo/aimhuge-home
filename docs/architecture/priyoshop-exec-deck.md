@@ -2,9 +2,9 @@
 
 ## Overview
 
-A full-day AI productivity workshop deck for Priyoshop's leadership team in Dhaka, Bangladesh. The deck is stored as MDX slides in Supabase (`deck_slug: "priyoshop-exec"`) and rendered via the shared deck system.
+A full-day AI productivity workshop deck for Priyoshop's leadership team in Dhaka, Bangladesh. The deck is stored as MDX slides in Supabase (`deck_slug: "priyoshop-exec"`) and rendered via the shared deck system. The deck includes a full-featured AI Copilot editor with streaming responses, dynamic suggestions, and version history.
 
-## Slide Structure (36 slides)
+## Slide Structure (44 slides)
 
 The deck has two rendering paths:
 1. **Production (DB-backed):** `page.tsx` fetches from Supabase via `getSlides("priyoshop-exec")` → renders as MDX through `MDXSlide`
@@ -27,7 +27,7 @@ The deck has two rendering paths:
 | 26 | Skills | 1 | Reusable saved instructions |
 | 27–33 | Hands-On Exercises | 7 | Writing, Spreadsheets, Documents, Data, Email/Calendar, Interviewing, Presentations |
 | 34 | Claude Code | 1 | Live demo |
-| 35 | Closing | 1 | Thank you / contact |
+| 35+ | Business Value & Security | ~9 | ROI, Risk, Security, Governance |
 
 ### Variant Alternation
 
@@ -39,10 +39,41 @@ Slides alternate between `dark` and `light` variants for visual variety. The pat
 |------|---------|
 | `page.tsx` | Production entry — fetches MDX slides from Supabase |
 | `ExecDeck.tsx` | Legacy React component assembly (not used in production) |
+| `edit/SlideEditor.tsx` | Full-featured slide editor with AI Copilot, zoom, keyboard nav |
+| `edit/components/PromptSidebar.tsx` | AI Copilot sidebar: Editor, Tips, and History tabs |
+| `edit/components/SlideSidebar.tsx` | Left panel: slide navigator with drag-to-reorder + thumbnails |
 | `lib/data.ts` | Workshop config (date, audience, location) |
 | `lib/types.ts` | DeckConfig TypeScript type |
 | `aimhuge.css` | Theme overrides + custom animations (matrixFall, pulse) |
 | `slides/*.tsx` | React slide components (reference implementations) |
+
+## AI Copilot System
+
+The editor includes a streaming AI assistant powered by Gemini:
+
+### Architecture
+
+1. **Streaming Prompt API** (`/api/decks/slides/prompt`):
+   - Uses `generateContentStream` for real-time token delivery
+   - Streams conversational reasoning first, then MDX/JSON code blocks
+   - Supports tool use (image generation via Gemini Imagen)
+   - Saves version snapshots before applying AI changes
+   - `maxDuration = 60` for Vercel serverless compatibility
+
+2. **Dynamic Suggestions API** (`/api/decks/slides/suggestions`):
+   - Gemini Vision analyzes the current slide screenshot
+   - Receives narrative context: TOC, previous/next slide content
+   - Returns 3-5 context-aware, actionable layout suggestions
+   - Results cached per-slide in a `useRef` to avoid redundant API calls
+
+3. **PromptSidebar** (3 tabs):
+   - **Editor**: Chat-style UI with user prompt + AI copilot bubbles, textarea input
+   - **Tips**: Lazy-loaded AI suggestions with skeleton loader; fetched only when tab is opened
+   - **History**: Version timeline with thumbnail previews and one-click revert
+
+### Canvas Constraints
+
+The system prompt enforces strict 1920×1080 canvas bounds. All typography, spacing, and layout suggestions respect these dimensions.
 
 ## Managing Slides
 
@@ -54,9 +85,12 @@ Slides are managed via the Supabase-backed API:
 - **Delete:** `DELETE /api/decks/slides` (soft-delete)
 - **Bulk operations:** Use scripts in `scripts/` (e.g., `upsert-new-slides.ts`)
 - **Thumbnails:** `POST /api/decks/thumbnails?deck=priyoshop-exec` regenerates all
+- **AI Edit:** `POST /api/decks/slides/prompt` with streaming response
+- **AI Suggestions:** `POST /api/decks/slides/suggestions` with slide context + screenshot
 
 ## Dependencies
 
 - `qrcode.react` — QR code SVG generation (used in Agenda slide React component)
 - `next-mdx-remote` — server-side MDX rendering
+- `@google/genai` — Gemini API for streaming AI copilot and suggestions
 - Supabase Storage — background images and thumbnails

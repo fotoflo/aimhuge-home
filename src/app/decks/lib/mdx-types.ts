@@ -22,6 +22,8 @@ export interface SlideFrontmatter {
   logo?: "white" | "color" | false;
   /** Nesting level: 0 = top-level, 1 = subslide (max 2 levels) */
   level?: number;
+  /** If true, the slide is skipped/hidden during presentation */
+  skip?: boolean;
 }
 
 export interface MDXSlideModule {
