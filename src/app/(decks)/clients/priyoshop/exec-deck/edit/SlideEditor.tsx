@@ -37,6 +37,8 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState<number | "fit">("fit");
   const [lightTable, setLightTable] = useState(false);
+  const [copilotText, setCopilotText] = useState("");
+  const [userPrompt, setUserPrompt] = useState("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const editingInline = useRef(false);
@@ -161,6 +163,8 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const handlePrompt = async () => {
     if (!prompt.trim()) return;
     setPrompting(true);
+    setCopilotText("");
+    setUserPrompt(prompt.trim());
     try {
       const res = await fetch("/api/decks/slides/prompt", {
         method: "POST",
@@ -173,15 +177,60 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
           image: thumbnails[slide.id],
         }),
       });
-      const data = await res.json();
-      if (data.content) {
-        setSlides((prev) =>
-          prev.map((s) => s.id === slide.id ? { ...s, mdx_content: data.content, frontmatter: data.frontmatter } : s),
-        );
-        setRefreshKey((k) => k + 1);
-        regenerateThumbnails([slide.id]);
+
+      if (!res.body) throw new Error("No response body");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      
+      let fullText = "";
+      let isCodeMode = false;
+      let streamedMdx = slide.mdx_content;
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        fullText += decoder.decode(value, { stream: true });
+        
+        const mdxStartIdx = fullText.indexOf("```mdx\n");
+        if (mdxStartIdx === -1) {
+          setCopilotText(fullText);
+        } else {
+          if (!isCodeMode) {
+            isCodeMode = true;
+            setCopilotText(fullText.substring(0, mdxStartIdx).trim());
+          }
+          
+          const remainingText = fullText.substring(mdxStartIdx + 7);
+          const mdxEndIdx = remainingText.indexOf("```");
+          
+          if (mdxEndIdx === -1) {
+            streamedMdx = remainingText;
+          } else {
+            streamedMdx = remainingText.substring(0, mdxEndIdx).trim();
+          }
+          
+          // Optimistically update the raw editor
+          setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, mdx_content: streamedMdx } : s));
+        }
       }
+
+      // Final full text parsed for frontmatter
+      let finalFm = slide.frontmatter;
+      const jsonMatch = fullText.match(/```json\n([\s\S]*?)```/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[1]);
+          finalFm = { ...slide.frontmatter, ...parsed };
+        } catch {}
+      }
+      
+      setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, mdx_content: streamedMdx, frontmatter: finalFm } : s));
+      setRefreshKey((k) => k + 1);
+      regenerateThumbnails([slide.id]);
       setPrompt("");
+    } catch (err) {
+      console.error("AI prompt error:", err);
     } finally {
       setPrompting(false);
     }
@@ -362,6 +411,8 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
             frontmatter={fm}
             prompt={prompt}
             prompting={prompting}
+            copilotText={copilotText}
+            userPrompt={userPrompt}
             screenshot={thumbnails[slide?.id]}
             onPromptChange={setPrompt}
             onSubmit={handlePrompt}

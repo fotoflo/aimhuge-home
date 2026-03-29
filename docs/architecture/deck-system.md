@@ -70,7 +70,7 @@ src/app/
 | `PATCH /api/decks/slides` | Update slide content by id |
 | `DELETE /api/decks/slides` | Soft-delete slide by id |
 | `POST /api/decks/slides/reorder` | Reorder slides (two-phase update to avoid unique constraint conflicts) |
-| `POST /api/decks/slides/prompt` | AI-powered slide edit via Gemini 2.5 Flash (snapshots version before edit) |
+| `POST /api/decks/slides/prompt` | AI-powered slide edit via Gemini 2.5 Flash. Returns a **text/plain stream**. Snapshots version before edit. |
 | `GET /api/decks/slides/versions?slideId=<id>` | List version history for a slide, newest first |
 | `POST /api/decks/slides/versions/revert` | Revert a slide to a previous version (snapshots current state first) |
 | `GET /api/decks/thumbnails?deck=<slug>` | Get cached thumbnail URLs from Supabase Storage |
@@ -125,7 +125,8 @@ The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slid
 - **Slide preview** — iframe at selectable zoom level (25%–200% or Fit)
 - **Slide thumbnails** — Puppeteer-generated WebP images cached in Supabase Storage
 - **Light table** — 3-column grid of all slide thumbnails, click to jump
-- **AI prompt** — right sidebar, powered by Gemini 2.5 Flash. Now passes the active slide thumbnail to the model (`image/webp`) enabling structural/layout/color-aware visual prompting.
+- **AI prompt** — right sidebar, powered by Gemini 2.5 Flash. Now utilizes a **streaming response** architecture for real-time conversational feedback and slide updates. Passes the active slide thumbnail to the model (`image/webp`) enabling structural/layout/color-aware visual prompting.
+- **AI Copilot UI** — Dedicated streaming text area in the sidebar that displays the AI's step-by-step reasoning and explanation before and during slide modifications.
 - **Version history UI** — "History" tab inside the prompt sidebar that dynamically fetches prior version thumbnails and permits 1-click reversions without reloading the editor.
 - **Inline text editing** — double-click text in the preview to edit, saves on blur/Enter
 - **Image editor** — click an image to open resize/crop modal
@@ -135,6 +136,31 @@ The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slid
 - **Tab/Shift+Tab** — indent/outdent slides (adjusts `level` in frontmatter, max 2 levels)
 - **Arrow Up/Down** — navigate slides from keyboard
 - **Google OAuth** — auth-gated editor access
+
+## Streaming AI Copilot Architecture
+
+The AI editing experience uses a streaming architecture to provide immediate feedback and handle potentially long-running generation tasks (up to 60s timeout).
+
+### Data Flow
+
+1. **Request**: `SlideEditor` sends the current MDX content, frontmatter, user prompt, and the latest slide thumbnail (data URL) to `/api/decks/slides/prompt`.
+2. **AI Stream**: The API route initiates a streaming request to Gemini 2.5 Flash (`generateContentStream`). It uses a specific system prompt requiring the model to:
+   - Start with a plain-text conversational explanation.
+   - Wrap the updated MDX in a ```mdx code block.
+   - Wrap any frontmatter changes in a ```json code block.
+3. **Frontend Processing**: `SlideEditor` reads the stream. As text arrives, it updates the `copilotText` state.
+4. **Code Mode Flip**: Once the stream encounters the ```mdx marker, the editor automatically flips into **Code Mode** (see below).
+5. **Incremental Update**: The MDX content is optimistically updated in the local slides state as it streams, providing a "typing" effect in the code editor.
+6. **Finalization**: When the stream ends, the API route parses the full response, performs a final database update (`deck_slides`), and the frontend flips back to visual mode after regenerating the slide thumbnail.
+
+### Code Mode Flip Pattern
+
+To prevent React from crashing while rendering partial or invalid MDX during the streaming process, the editor implements a "Code Mode Flip":
+
+- **Trigger**: Detecting the start of an MDX code block (` ```mdx `) in the stream.
+- **Action**: `setShowCode(true)` replaces the iframe visual preview with a raw `textarea` editor.
+- **Benefit**: The `textarea` safely handles incomplete JSX/MDX tags that would otherwise trigger hydration errors or rendering crashes in the visual path.
+- **Reversal**: Once the stream is complete and the MDX is valid, the editor resets `setShowCode(false)` to restore the visual rendering.
 
 ## Slide Version History
 
