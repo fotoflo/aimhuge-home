@@ -3,6 +3,7 @@
 import { useMemo, useSyncExternalStore, type ReactElement } from "react";
 import { useSlideNavigation } from "../lib/useSlideNavigation";
 import { useSlideControls } from "../lib/useSlideControls";
+import { computeSlideScale, applyWheelZoom } from "../lib/viewport";
 
 interface DeckShellProps {
   slides: ReactElement[];
@@ -17,9 +18,7 @@ function createViewportStore() {
 
   function getScale() {
     if (typeof window === "undefined") return 1;
-    const scaleX = window.innerWidth / 1920;
-    const scaleY = window.innerHeight / 1080;
-    return Math.min(scaleX, scaleY) * zoom;
+    return computeSlideScale(window.innerWidth, window.innerHeight, zoom);
   }
 
   function subscribe(cb: () => void) {
@@ -31,7 +30,7 @@ function createViewportStore() {
     const onWheel = (e: WheelEvent) => {
       if (!e.metaKey && !e.ctrlKey) return;
       e.preventDefault();
-      zoom = Math.max(0.25, Math.min(3, zoom - e.deltaY * 0.001));
+      zoom = applyWheelZoom(zoom, e.deltaY);
       listeners.forEach((l) => l());
     };
     window.addEventListener("wheel", onWheel, { passive: false });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useImageDropzone } from "@/lib/hooks/useImageDropzone";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
@@ -12,7 +12,10 @@ import { SlideSidebar } from "./components/SlideSidebar";
 import { PromptSidebar } from "./components/PromptSidebar";
 import { AssetPanel } from "./components/AssetPanel";
 import { LightTable } from "./components/LightTable";
-import { currentAfterReorder, computeIndent, buildImageTag, parseCropFromStyle, parseWidthFromClass, findImageTagInMdx } from "@/app/decks/lib/editor-utils";
+import { currentAfterReorder, buildImageTag } from "@/app/decks/lib/editor-utils";
+import { useThumbnails } from "@/app/decks/lib/hooks/useThumbnails";
+import { useEditorKeyboard } from "@/app/decks/lib/hooks/useEditorKeyboard";
+import { useInlineEditing } from "@/app/decks/lib/hooks/useInlineEditing";
 
 interface SlideEditorProps {
   initialSlides: SlideRow[];
@@ -31,8 +34,6 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showLeftPanel, setShowLeftPanel] = useState(true);
   const [showRightPanel, setShowRightPanel] = useState(true);
-  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
-  const [generatingThumbs, setGeneratingThumbs] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState<number | "fit">("fit");
   const [lightTable, setLightTable] = useState(false);
@@ -52,41 +53,19 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const slide = slides[current];
   const total = slides.length;
 
-  // ── Thumbnails ──
+  // ── Hooks ──
 
-  useEffect(() => {
-    fetch(`/api/decks/thumbnails?deck=${deckSlug}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.thumbnails) {
-          const map: Record<string, string> = {};
-          for (const t of data.thumbnails) map[t.id] = t.thumbnail_url;
-          setThumbnails(map);
-        }
-      })
-      .catch(() => {});
-  }, [deckSlug]);
+  const { thumbnails, generatingThumbs, regenerateThumbnails } = useThumbnails(deckSlug);
 
-  const regenerateThumbnails = useCallback(async (slideIds?: string[]) => {
-    setGeneratingThumbs(true);
-    try {
-      const res = await fetch(`/api/decks/thumbnails?deck=${deckSlug}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(slideIds ? { slideIds } : {}),
-      });
-      const data = await res.json();
-      if (data.thumbnails) {
-        setThumbnails((prev) => {
-          const next = { ...prev };
-          for (const t of data.thumbnails) next[t.id] = t.thumbnail_url + "?t=" + Date.now();
-          return next;
-        });
-      }
-    } finally {
-      setGeneratingThumbs(false);
-    }
-  }, [deckSlug]);
+  useEditorKeyboard({
+    slides, current, total, iframeRef,
+    setCurrent, setShowCode, setSlides,
+  });
+
+  const handleIframeLoad = useInlineEditing({
+    slide, iframeRef, editingInline,
+    setSlides, setImageEditor,
+  });
 
   // ── Upload ──
 
@@ -118,7 +97,6 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const goTo = useCallback((i: number) => {
     setCurrent(i);
     setShowCode(false);
-    // Update iframe hash without remounting — avoids slide-1 flash
     const iframe = iframeRef.current;
     if (iframe?.contentWindow) {
       iframe.contentWindow.location.replace(`#slide-${i + 1}`);
@@ -126,65 +104,6 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   }, []);
   const prev = () => goTo(Math.max(0, current - 1));
   const next = () => goTo(Math.min(total - 1, current + 1));
-
-  // ── Indent / Outdent (Tab / Shift+Tab) ──
-
-  const handleIndent = useCallback(async (direction: "indent" | "outdent") => {
-    const s = slides[current];
-    if (!s) return;
-    const fm = s.frontmatter as SlideFrontmatter;
-    const newLevel = computeIndent(direction, current, fm);
-    if (newLevel === null) return;
-
-    const newFrontmatter = { ...fm, level: newLevel };
-
-    setSlides((prev) =>
-      prev.map((sl) => sl.id === s.id ? { ...sl, frontmatter: newFrontmatter } : sl),
-    );
-
-    await fetch("/api/decks/slides", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: s.id, frontmatter: newFrontmatter }),
-    });
-  }, [slides, current]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't capture Tab when focus is in an input/textarea/contenteditable
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.contentEditable === "true") return;
-
-      if (e.key === "Tab") {
-        e.preventDefault();
-        handleIndent(e.shiftKey ? "outdent" : "indent");
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setCurrent((c) => {
-          const next = Math.max(0, c - 1);
-          if (next !== c) {
-            setShowCode(false);
-            const iframe = iframeRef.current;
-            if (iframe?.contentWindow) iframe.contentWindow.location.replace(`#slide-${next + 1}`);
-          }
-          return next;
-        });
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setCurrent((c) => {
-          const next = Math.min(total - 1, c + 1);
-          if (next !== c) {
-            setShowCode(false);
-            const iframe = iframeRef.current;
-            if (iframe?.contentWindow) iframe.contentWindow.location.replace(`#slide-${next + 1}`);
-          }
-          return next;
-        });
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleIndent, total]);
 
   // ── Reorder ──
 
@@ -198,7 +117,6 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
 
     setRefreshKey((k) => k + 1);
 
-    // Persist new order to backend
     const payload = reordered.map((s, i) => ({ id: s.id, slide_order: i }));
     await fetch("/api/decks/slides/reorder", {
       method: "POST",
@@ -269,89 +187,6 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
     }
     setImageEditor(null);
   };
-
-  // ── Inline Editing (injected into iframe) ──
-
-  const handleIframeLoad = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe?.contentDocument) return;
-    const doc = iframe.contentDocument;
-
-    doc.addEventListener("click", (e) => {
-      if (editingInline.current) e.stopPropagation();
-    }, true);
-
-    const textSelectors = "h1, h2, h3, h4, h5, h6, p, span, div";
-
-    // Image click → open image editor
-    doc.querySelectorAll("img").forEach((img) => {
-      img.style.cursor = "pointer";
-      img.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const src = img.getAttribute("src") ?? "";
-        if (!src) return;
-
-        const crop = parseCropFromStyle(img.getAttribute("style") ?? "");
-        const width = parseWidthFromClass(img.getAttribute("class") ?? img.className ?? "");
-        const originalTag = findImageTagInMdx(slide?.mdx_content ?? "", src);
-
-        setImageEditor({ src, originalTag, width, ...crop });
-      });
-    });
-
-    // Double-click text → inline edit
-    doc.addEventListener("dblclick", (e) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === "IMG") return;
-      if (!target.matches(textSelectors)) return;
-      if (target.children.length > 2) return;
-      if (target.contentEditable === "true") return;
-      const text = target.textContent?.trim();
-      if (!text || text.length < 2) return;
-
-      editingInline.current = true;
-      const originalText = target.textContent ?? "";
-      target.contentEditable = "true";
-      target.style.outline = "2px solid #7c5cfc";
-      target.style.outlineOffset = "2px";
-      target.style.borderRadius = "4px";
-      target.style.cursor = "text";
-      target.focus();
-
-      const range = doc.createRange();
-      range.selectNodeContents(target);
-      const sel = doc.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-
-      const finish = async () => {
-        target.contentEditable = "false";
-        target.style.outline = "";
-        target.style.outlineOffset = "";
-        target.style.cursor = "";
-        editingInline.current = false;
-
-        const newText = target.textContent ?? "";
-        if (newText !== originalText && slide) {
-          const updatedContent = slide.mdx_content.replace(originalText, newText);
-          if (updatedContent !== slide.mdx_content) {
-            await fetch("/api/decks/slides", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: slide.id, mdx_content: updatedContent }),
-            });
-            setSlides((prev) => prev.map((s) => s.id === slide.id ? { ...s, mdx_content: updatedContent } : s));
-          }
-        }
-      };
-
-      target.addEventListener("blur", finish, { once: true });
-      target.addEventListener("keydown", (ke) => {
-        if (ke.key === "Enter" && !ke.shiftKey) { ke.preventDefault(); target.blur(); }
-        if (ke.key === "Escape") { target.textContent = originalText; target.blur(); }
-      });
-    });
-  }, [slide]);
 
   // ── Auth gates ──
 

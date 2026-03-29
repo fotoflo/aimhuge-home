@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { clickNavDirection } from "./viewport";
 
 /**
  * Keyboard and click controls for slide navigation.
@@ -34,7 +35,7 @@ export function useSlideControls(next: () => void, prev: () => void) {
   // Click handler — disabled in edit mode
   const handleClick = (e: React.MouseEvent) => {
     if (isEditMode.current) return;
-    if (e.clientX < window.innerWidth / 2) {
+    if (clickNavDirection(e.clientX, window.innerWidth) === "prev") {
       prev();
     } else {
       next();

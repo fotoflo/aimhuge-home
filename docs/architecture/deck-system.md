@@ -37,7 +37,11 @@ src/app/
 | `lib/useSlideControls.ts` | Hook: keyboard (arrows, space) + split-screen click navigation, disabled in `?edit` mode |
 | `lib/slides-db.ts` | Supabase CRUD for `deck_slides` table (soft-delete via `deleted_at`) |
 | `lib/mdx-types.ts` | TypeScript types for SlideFrontmatter, MDXSlideModule |
-| `lib/editor-utils.ts` | Utility functions for the editor (indent/outdent, width class mapping, image tag building) |
+| `lib/editor-utils.ts` | Pure utility functions: reorder cursor tracking, indent/outdent, width↔class mapping, image tag building/parsing, crop parsing, resize/crop geometry |
+| `lib/viewport.ts` | Pure functions for slide scaling (`computeSlideScale`), wheel zoom clamping, click-half navigation |
+| `lib/hooks/useThumbnails.ts` | Hook: thumbnail fetching + regeneration for a deck |
+| `lib/hooks/useEditorKeyboard.ts` | Hook: Tab indent/outdent + Arrow key slide navigation |
+| `lib/hooks/useInlineEditing.ts` | Hook: iframe image-click + double-click text inline editing |
 | `deck.css` | Base slide CSS — fixed 1920x1080 `.slide` inside `.slide-container`, variant backgrounds, image constraints |
 
 ### Priyoshop Exec Deck (`src/app/(decks)/clients/priyoshop/exec-deck/`)
@@ -48,7 +52,7 @@ src/app/
 | `edit/page.tsx` | Editor page — fetches slides, renders SlideEditor (auth-gated) |
 | `edit/SlideEditor.tsx` | Main editor — iframe preview, thumbnails, AI prompt, inline editing, image editor, light table |
 | `edit/components/EditorTopBar.tsx` | Top bar — nav arrows, zoom dropdown, light table toggle, assets, present, fullscreen |
-| `edit/components/SlideSidebar.tsx` | Left sidebar — cached thumbnail previews, click to navigate |
+| `edit/components/SlideSidebar.tsx` | Left sidebar — cached thumbnail previews, drag-and-drop reorder (`@dnd-kit`), click to navigate, indentation display |
 | `edit/components/PromptSidebar.tsx` | Right sidebar — slide info, example prompts, AI prompt textarea |
 | `edit/components/AssetPanel.tsx` | Asset browser — grid of uploaded images, click to copy URL |
 | `edit/components/LightTable.tsx` | Grid view of all slides with cached thumbnails |
@@ -97,7 +101,7 @@ Slides are fixed at 1920x1080px and scaled to fit the viewport:
 - `autoScale` = `min(viewportWidth/1920, viewportHeight/1080)`
 - Cmd+scroll wheel adjusts `userZoom` (0.25x–3x)
 - Content never overflows — `overflow: hidden` on `.slide`
-- Images constrained to `max-height: 900px`
+- Inline images constrained to `max-height: 900px` (background `fill` images excluded via `:not([data-nimg="fill"])` selector)
 
 ## Editor Features
 
@@ -109,9 +113,20 @@ Slides are fixed at 1920x1080px and scaled to fit the viewport:
 - **Image editor** — click an image to open resize/crop modal
 - **Paste/drag upload** — global image upload to `deck-assets` bucket
 - **Fullscreen** — browser fullscreen toggle
-- **Tab/Shift+Tab** — indent/outdent slides (adjusts `level` in frontmatter)
+- **Drag-and-drop reorder** — `@dnd-kit/sortable` in sidebar, persists via `/api/decks/slides/reorder`
+- **Tab/Shift+Tab** — indent/outdent slides (adjusts `level` in frontmatter, max 2 levels)
 - **Arrow Up/Down** — navigate slides from keyboard
 - **Google OAuth** — auth-gated editor access
+
+## Testing
+
+Tests use **Vitest** + jsdom + React Testing Library. Run with `pnpm test` (or `pnpm test:watch`).
+
+| Test file | Tests | Covers |
+|-----------|-------|--------|
+| `lib/__tests__/useSlideNavigation.test.ts` | 11 | Hash navigation, wrap-around, external hash changes |
+| `lib/__tests__/editor-utils.test.ts` | 75 | Reorder cursor, indent/outdent, width mapping, image tags, crop/resize geometry |
+| `lib/__tests__/viewport.test.ts` | 19 | Slide scaling, wheel zoom, click direction |
 
 ## Deployment
 
