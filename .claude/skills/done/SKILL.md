@@ -100,6 +100,8 @@ To count user prompts: count the number of distinct user messages in the current
 
 ### Phase 3: File Sizes
 
+**Skip this phase if 2 or fewer files were modified this session.** Only run when 3+ files were changed.
+
 7. Scan all source files in the repo (excluding `node_modules`, `.next`, `obsidian`, `blog/`) and count lines per file:
    ```
    find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | grep -v '/blog/' | xargs wc -l | sort -rn

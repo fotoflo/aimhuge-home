@@ -17,11 +17,12 @@ The `.claude/` directory contains reusable Claude Code skills, hooks, and status
 
 ## Statusline
 
-The statusline displays: `task label | branch | ctx: X%`
+The statusline displays: `task label | branch | Model [style]`
 
 - Task label is extracted from the last assistant message by the Stop hook
 - Written to `/tmp/claude-task-label.txt` and read by the statusline script
-- Git branch and context window percentage come from Claude Code's JSON input
+- Model shows short name only (e.g. "Opus", "Sonnet") — version numbers stripped
+- Output style (e.g. "Extended Thinking") shown in brackets only when non-default
 
 ## Hooks
 
