@@ -9,6 +9,16 @@ const points = [
   { title: "Think: Phones", text: "Today's budget phone is better than last year's flagship. AI is on the same trajectory, but faster." },
 ];
 
+// Pre-compute random values at module load time (stable across renders)
+const matrixColumns = Array.from({ length: 20 }, (_, col) => ({
+  left: `${col * 5}%`,
+  duration: `${8 + (col * 0.6)}s`,
+  delay: `${-(col * 0.5)}s`,
+  chars: Array.from({ length: 40 }, (_, i) =>
+    String.fromCharCode(0x30A0 + ((col * 40 + i * 7) % 96))
+  ).join("\n"),
+}));
+
 export function WhatIsAISlide() {
   return (
     <SlideShell
@@ -20,19 +30,17 @@ export function WhatIsAISlide() {
     >
       {/* Matrix rain background — CSS animated */}
       <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none opacity-[0.07]">
-        {[...Array(20)].map((_, col) => (
+        {matrixColumns.map((col, i) => (
           <div
-            key={col}
+            key={i}
             className="absolute top-0 text-[14px] font-mono leading-[1.2] text-[#9b82fd] whitespace-pre"
             style={{
-              left: `${col * 5}%`,
-              animation: `matrixFall ${8 + Math.random() * 12}s linear infinite`,
-              animationDelay: `${-Math.random() * 10}s`,
+              left: col.left,
+              animation: `matrixFall ${col.duration} linear infinite`,
+              animationDelay: col.delay,
             }}
           >
-            {Array.from({ length: 40 }, () =>
-              String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96))
-            ).join("\n")}
+            {col.chars}
           </div>
         ))}
       </div>

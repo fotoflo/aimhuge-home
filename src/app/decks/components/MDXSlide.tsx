@@ -25,7 +25,7 @@ function fixStringStyles(mdx: string): string {
 /** img tag that works without width/height (uses unoptimized next/image or plain img) */
 function MdxImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
   // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-  return <img {...props} />;
+  return <img suppressHydrationWarning {...props} />;
 }
 
 /** Components available inside MDX without explicit imports */

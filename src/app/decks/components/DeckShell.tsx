@@ -60,7 +60,7 @@ export function DeckShell({ slides, startAt = 0 }: DeckShellProps) {
     <div
       className="slide-container"
       onClick={handleClick}
-      style={{ visibility: ready ? "visible" : "hidden", cursor: "pointer" }}
+      style={{ visibility: ready ? "visible" : "hidden" }}
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}>
         {slides[current]}

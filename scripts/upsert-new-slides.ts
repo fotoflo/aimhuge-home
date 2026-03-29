@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * Upsert new "Interacting with AI" slides + hands-on expansion
  * into the priyoshop-exec deck via the local API.
