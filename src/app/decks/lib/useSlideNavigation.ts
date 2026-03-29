@@ -21,9 +21,23 @@ function createSlideStore(total: number, startAt: number) {
       callback();
     };
     window.addEventListener("hashchange", onHashChange);
+
+    // Listen for parent editor telling us which slide to show
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === "goToSlide" && typeof e.data.index === "number") {
+        const idx = e.data.index;
+        if (idx >= 0 && idx < total) {
+          override = idx;
+          notify();
+        }
+      }
+    };
+    window.addEventListener("message", onMessage);
+
     return () => {
       listeners.delete(callback);
       window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("message", onMessage);
     };
   }
 
