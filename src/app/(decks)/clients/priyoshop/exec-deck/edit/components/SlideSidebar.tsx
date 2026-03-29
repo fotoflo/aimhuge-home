@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { PanelLeftClose } from "lucide-react";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
@@ -27,6 +28,7 @@ interface SlideSidebarProps {
   generatingThumbs: boolean;
   onGoTo: (i: number) => void;
   onReorder: (oldIndex: number, newIndex: number) => void;
+  onTitleEdit: (slideId: string, newTitle: string) => void;
   onClose: () => void;
 }
 
@@ -37,6 +39,7 @@ function SortableSlide({
   thumbnail,
   generatingThumbs,
   onGoTo,
+  onTitleEdit,
 }: {
   slide: SlideRow;
   index: number;
@@ -44,6 +47,7 @@ function SortableSlide({
   thumbnail?: string;
   generatingThumbs: boolean;
   onGoTo: (i: number) => void;
+  onTitleEdit: (slideId: string, newTitle: string) => void;
 }) {
   const {
     attributes,
@@ -56,6 +60,32 @@ function SortableSlide({
 
   const sfm = slide.frontmatter as SlideFrontmatter;
   const level = sfm.level ?? 0;
+
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  const startEditing = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditValue(sfm.title ?? "");
+    setEditing(true);
+  };
+
+  const commitEdit = () => {
+    setEditing(false);
+    const trimmed = editValue.trim();
+    if (trimmed !== (sfm.title ?? "")) {
+      onTitleEdit(slide.id, trimmed);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -94,15 +124,36 @@ function SortableSlide({
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-[10px] text-slate-600">{index + 1}</span>
-        <span className={`text-xs font-medium truncate ${level > 0 ? "text-slate-400" : "text-slate-300"}`}>
-          {sfm.title ?? sfm.sectionLabel ?? "Untitled"}
-        </span>
+        {editing ? (
+          <input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); commitEdit(); }
+              if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="text-xs font-medium bg-white/10 text-slate-200 rounded px-1 py-0.5 outline-none border border-[#7c5cfc]/50 w-full min-w-0"
+          />
+        ) : (
+          <span
+            className={`text-xs font-medium truncate cursor-text ${level > 0 ? "text-slate-400" : "text-slate-300"}`}
+            onClick={startEditing}
+            onPointerDown={(e) => e.stopPropagation()}
+            title="Click to edit title"
+          >
+            {sfm.title ?? sfm.sectionLabel ?? "Untitled"}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, onGoTo, onReorder, onClose }: SlideSidebarProps) {
+export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, onGoTo, onReorder, onTitleEdit, onClose }: SlideSidebarProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -139,6 +190,7 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
               thumbnail={thumbnails[s.id]}
               generatingThumbs={generatingThumbs}
               onGoTo={onGoTo}
+              onTitleEdit={onTitleEdit}
             />
           ))}
         </SortableContext>

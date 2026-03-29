@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { getSupabase } from "@/lib/supabase";
+import { saveVersionSnapshot } from "@/app/decks/lib/slides-db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
 
     // Save to Supabase if slideId provided
     if (slideId) {
+      await saveVersionSnapshot(slideId, "ai_prompt");
       const supabase = getSupabase();
       if (supabase) {
         await supabase

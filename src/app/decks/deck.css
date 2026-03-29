@@ -97,6 +97,38 @@
   z-index: 0;
 }
 
+/* ── Presentation text sizes ─────────────────────────────── */
+/* Pre-generated so dynamic MDX from the database can use them.
+   Tailwind only scans source files, not DB content.            */
+
+.deck-text-xs   { font-size: 14px; }
+.deck-text-sm   { font-size: 18px; }
+.deck-text-base { font-size: 22px; }
+.deck-text-lg   { font-size: 28px; }
+.deck-text-xl   { font-size: 32px; }
+.deck-text-2xl  { font-size: 40px; }
+.deck-text-3xl  { font-size: 48px; }
+.deck-text-4xl  { font-size: 56px; }
+.deck-text-5xl  { font-size: 64px; }
+.deck-text-6xl  { font-size: 80px; }
+.deck-text-7xl  { font-size: 96px; }
+.deck-text-8xl  { font-size: 120px; }
+.deck-text-9xl  { font-size: 144px; }
+.deck-text-10xl { font-size: 168px; }
+.deck-text-11xl { font-size: 192px; }
+.deck-text-12xl { font-size: 224px; }
+.deck-text-13xl { font-size: 256px; }
+.deck-text-14xl { font-size: 320px; }
+.deck-text-15xl { font-size: 384px; }
+.deck-text-16xl { font-size: 448px; }
+.deck-text-17xl { font-size: 512px; }
+
+/* ── Logo sizes ──────────────────────────────────────────── */
+.deck-logo-sm  { width: 120px; height: auto; }
+.deck-logo-md  { width: 200px; height: auto; }
+.deck-logo-lg  { width: 320px; height: auto; }
+.deck-logo-xl  { width: 480px; height: auto; }
+
 /* ── Slide content constraints ────────────────────────────── */
 
 .slide img:not([data-nimg="fill"]) {

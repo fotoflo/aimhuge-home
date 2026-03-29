@@ -136,6 +136,26 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
     });
   }, [slides, current]);
 
+  // ── Title Edit ──
+
+  const handleTitleEdit = useCallback(async (slideId: string, newTitle: string) => {
+    const target = slides.find((s) => s.id === slideId);
+    if (!target) return;
+
+    const updatedFrontmatter = { ...(target.frontmatter as SlideFrontmatter), title: newTitle || undefined };
+
+    // Optimistic local update
+    setSlides((prev) =>
+      prev.map((s) => s.id === slideId ? { ...s, frontmatter: updatedFrontmatter } : s),
+    );
+
+    await fetch("/api/decks/slides", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: slideId, frontmatter: updatedFrontmatter }),
+    });
+  }, [slides]);
+
   // ── AI Prompt ──
 
   const handlePrompt = async () => {
@@ -268,6 +288,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
             generatingThumbs={generatingThumbs}
             onGoTo={goTo}
             onReorder={handleReorder}
+            onTitleEdit={handleTitleEdit}
             onClose={() => setShowLeftPanel(false)}
           />
         )}

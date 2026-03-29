@@ -40,6 +40,18 @@ export async function upsertSlide(
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase not configured");
 
+  // Snapshot existing slide before overwriting
+  const { data: existing } = await supabase
+    .from("deck_slides")
+    .select("id")
+    .eq("deck_slug", deckSlug)
+    .eq("slide_order", slideOrder)
+    .single();
+
+  if (existing) {
+    await saveVersionSnapshot(existing.id, "upsert");
+  }
+
   const { data, error } = await supabase
     .from("deck_slides")
     .upsert(
@@ -68,6 +80,8 @@ export async function updateSlideContent(
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase not configured");
 
+  await saveVersionSnapshot(id, "manual");
+
   const { error } = await supabase
     .from("deck_slides")
     .update({ mdx_content: mdxContent, updated_at: new Date().toISOString() })
@@ -84,12 +98,121 @@ export async function updateSlideFrontmatter(
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase not configured");
 
+  await saveVersionSnapshot(id, "manual");
+
   const { error } = await supabase
     .from("deck_slides")
     .update({ frontmatter, updated_at: new Date().toISOString() })
     .eq("id", id);
 
   if (error) throw error;
+}
+
+// ── Version history ──
+
+export interface SlideVersion {
+  id: string;
+  slide_id: string;
+  deck_slug: string;
+  slide_order: number;
+  frontmatter: SlideFrontmatter;
+  mdx_content: string;
+  version_number: number;
+  change_source: string | null;
+  created_at: string;
+}
+
+/** Save a snapshot of the current slide state before mutating it */
+export async function saveVersionSnapshot(
+  slideId: string,
+  changeSource: string,
+): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
+  // Fetch current state
+  const { data: slide, error: fetchErr } = await supabase
+    .from("deck_slides")
+    .select("*")
+    .eq("id", slideId)
+    .single();
+
+  if (fetchErr || !slide) return;
+
+  // Compute next version number in a single insert+select
+  const { data: maxRow } = await supabase
+    .from("slide_versions")
+    .select("version_number")
+    .eq("slide_id", slideId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .single();
+
+  const nextVersion = (maxRow?.version_number ?? 0) + 1;
+
+  await supabase.from("slide_versions").insert({
+    slide_id: slideId,
+    deck_slug: slide.deck_slug,
+    slide_order: slide.slide_order,
+    frontmatter: slide.frontmatter,
+    mdx_content: slide.mdx_content,
+    version_number: nextVersion,
+    change_source: changeSource,
+  });
+}
+
+/** Get all versions for a slide, newest first */
+export async function getSlideVersions(slideId: string): Promise<SlideVersion[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("slide_versions")
+    .select("*")
+    .eq("slide_id", slideId)
+    .order("version_number", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch slide versions:", error);
+    return [];
+  }
+  return data ?? [];
+}
+
+/** Revert a slide to a previous version (saves current state first) */
+export async function revertToVersion(
+  slideId: string,
+  versionId: string,
+): Promise<SlideRow> {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  // Save current state before reverting
+  await saveVersionSnapshot(slideId, "revert");
+
+  // Fetch the target version
+  const { data: version, error: vErr } = await supabase
+    .from("slide_versions")
+    .select("*")
+    .eq("id", versionId)
+    .single();
+
+  if (vErr || !version) throw new Error("Version not found");
+
+  // Apply the old state
+  const { data, error } = await supabase
+    .from("deck_slides")
+    .update({
+      mdx_content: version.mdx_content,
+      frontmatter: version.frontmatter,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", slideId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as SlideRow;
 }
 
 /** Soft-delete a slide by setting deleted_at */
