@@ -63,7 +63,7 @@ The editor includes a streaming AI assistant powered by Gemini:
 2. **Dynamic Suggestions API** (`/api/decks/slides/suggestions`):
    - Gemini Vision analyzes the current slide screenshot
    - Receives narrative context: TOC, previous/next slide content
-   - Returns 3-5 context-aware, actionable layout suggestions (a balanced mix of edgy/bold and conservative/polished formats)
+   - Returns 3-5 context-aware, actionable layout suggestions (focuses on clean, polished, and premium corporate formats)
    - Results cached per-slide in a `useRef` to avoid redundant API calls
 
 3. **PromptSidebar** (3 tabs):
