@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const browser = await puppeteer.launch({
     args,
-    defaultViewport: { width: 960, height: 540, deviceScaleFactor: 1 },
+    defaultViewport: { width: 1920, height: 1080, deviceScaleFactor: 1 },
     executablePath,
     headless: true,
   });
@@ -49,6 +49,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const page = await browser.newPage();
+    await page.setExtraHTTPHeaders({
+      "x-puppeteer-auth": process.env.SUPABASE_SERVICE_ROLE_KEY || "local-dev-secret",
+    });
 
     for (const slide of slides) {
       const slideIndex = allSlides.findIndex((s) => s.id === slide.id) + 1;
