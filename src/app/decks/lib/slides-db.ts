@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { generateSlideEmbedding } from "@/lib/gemini";
 import type { SlideFrontmatter } from "./mdx-types";
 
 export interface SlideRow {
@@ -274,4 +275,57 @@ export async function softDeleteSlide(id: string): Promise<void> {
     .eq("id", id);
 
   if (error) throw error;
+}
+
+/** Generate and save an embedding for a slide. Safely ignores errors if AI fails. */
+export async function updateEmbeddingForSlide(id: string): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
+  const { data: slide } = await supabase
+    .from("deck_slides")
+    .select("frontmatter, mdx_content")
+    .eq("id", id)
+    .single();
+
+  if (!slide || !slide.mdx_content) return;
+
+  const fm = slide.frontmatter as SlideFrontmatter | null;
+  const title = fm?.title || "Untitled";
+  const subtitle = fm?.subtitle || "";
+  const textToEmbed = `Title: ${title}\nSubtitle: ${subtitle}\nContent:\n${slide.mdx_content}`;
+  
+  try {
+    const embedding = await generateSlideEmbedding(textToEmbed);
+    await supabase.from("deck_slides").update({ embedding }).eq("id", id);
+  } catch (err) {
+    console.error(`Failed to generate embedding for slide ${id}:`, err);
+  }
+}
+
+/** Vector search to find highly related slides based on an embedding query. */
+export async function getSimilarSlides(
+  queryEmbedding: number[],
+  deckSlug: string,
+  excludeSlideId: string | null = null,
+  matchThreshold: number = 0.75,
+  matchCount: number = 2
+): Promise<(SlideRow & { similarity: number })[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.rpc("match_slides", {
+    query_embedding: queryEmbedding,
+    match_threshold: matchThreshold,
+    match_count: matchCount,
+    p_deck_slug: deckSlug,
+    p_exclude_slide_id: excludeSlideId,
+  });
+
+  if (error) {
+    console.error("Failed to fetch similar slides:", error);
+    return [];
+  }
+  
+  return data || [];
 }

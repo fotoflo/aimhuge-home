@@ -1,4 +1,6 @@
-export type AIModelType = 'text' | 'image' | 'multimodal';
+import { GoogleGenAI } from "@google/genai";
+
+export type AIModelType = 'text' | 'image' | 'multimodal' | 'embedding';
 
 export interface AIModelConfig {
   id: string;
@@ -48,9 +50,32 @@ export const AI_MODELS: Record<string, AIModelConfig> = {
     name: "Gemini 2.5 Flash Image",
     type: "image",
     costPerImage: 0.03,
+  },
+  "gemini-embedding-001": {
+    id: "gemini-embedding-001",
+    name: "Gemini Text Embedding",
+    type: "embedding",
+    costPer1mInputTokens: 0.02,
   }
 };
 
 // Global default models used across the application
 export const DEFAULT_MODEL = "gemini-3-flash-preview";
 export const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+export const EMBEDDING_MODEL = "gemini-embedding-001";
+
+// Embedding utility
+export async function generateSlideEmbedding(text: string): Promise<number[]> {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  const result = await ai.models.embedContent({
+    model: EMBEDDING_MODEL,
+    contents: text,
+  });
+  
+  const embedding = result.embeddings?.[0]?.values;
+  if (!embedding) {
+    throw new Error("Failed to generate embedding: no values returned");
+  }
+  
+  return embedding;
+}

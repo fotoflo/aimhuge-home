@@ -30,7 +30,7 @@ export async function logAiUsage({
 
   const modelConfig = AI_MODELS[model];
   if (modelConfig) {
-    if (modelConfig.type === 'multimodal' || modelConfig.type === 'text') {
+    if (modelConfig.type === 'multimodal' || modelConfig.type === 'text' || modelConfig.type === 'embedding') {
       const costIn = (promptTokens || 0) * ((modelConfig.costPer1mInputTokens || 0) / 1000000);
       const costOut = (completionTokens || 0) * ((modelConfig.costPer1mOutputTokens || 0) / 1000000);
       estimatedCostUsd = costIn + costOut;

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { DEFAULT_MODEL } from "@/lib/gemini";
+import { DEFAULT_MODEL, generateSlideEmbedding } from "@/lib/gemini";
 import { logAiUsage } from "@/lib/ai-telemetry";
+import { getSimilarSlides } from "@/app/decks/lib/slides-db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -11,7 +12,7 @@ If the slide is dense or tries to cover too many points, you MUST forcefully sug
 
 Important Capabilities & Constraints:
 - The slide canvas is fixed at 1920x1080.
-- Leverage the narrative context (TOC, Before/After slides) to ensure this slide doesn't repeat points made earlier.
+- Leverage the narrative context (TOC, Before/After slides) AND the Semantically Related Slides (if provided) to ensure this slide doesn't repeat points made earlier. If this slide is highly similar to a related slide, suggest maintaining visual consistency with its layout or strongly differentiating the narrative focus.
 - Suggest high-end architectural treatments using components like <Card>, <Stat>, <Tag>, and <Icon name="IconName" /> (\`lucide-react\`).
 - Explicitly suggest using the \`generate_image\` AI tool for specific, atmospheric, or photorealistic background imagery or side-column accents (e.g. "Generate a moody, neon-lit server room for the left column...").
 - The editor features a built-in AI image generator. You can suggest adding realistic, generated photos to illustrate points.
@@ -22,6 +23,29 @@ Return your suggestions as a strict JSON array of strings, with NO markdown form
 export async function POST(req: NextRequest) {
   try {
     const { deckSlug, slideId, image, currentSlide, previousSlide, nextSlide, toc } = await req.json();
+
+    let similarSlidesContext = "";
+    try {
+      if (currentSlide?.content && deckSlug) {
+        const title = currentSlide.frontmatter?.title || "Untitled";
+        const subtitle = currentSlide.frontmatter?.subtitle || "";
+        const textToEmbed = `Title: ${title}\nSubtitle: ${subtitle}\nContent:\n${currentSlide.content}`;
+        const queryEmbedding = await generateSlideEmbedding(textToEmbed);
+        
+        // Fetch up to 2 related slides, excluding the current one, similarity > 0.75
+        const similarSlides = await getSimilarSlides(queryEmbedding, deckSlug, slideId, 0.75, 2);
+        if (similarSlides.length > 0) {
+          similarSlidesContext = `\n--- SEMANTICALLY RELATED SLIDES ---\nThese structurally/thematically related slides exist elsewhere in the deck:\n`;
+          similarSlides.forEach((s) => {
+            similarSlidesContext += `\n[Related Slide: ${s.frontmatter?.title || 'Untitled'} (Similarity: ${Math.round(s.similarity * 100)}%)]:\n`;
+            similarSlidesContext += `Frontmatter: ${JSON.stringify(s.frontmatter)}\n`;
+            similarSlidesContext += `Content:\n${s.mdx_content}\n`;
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch similar slides for suggestions context", e);
+    }
 
     const contextText = `
 ${SYSTEM_PROMPT_PREFIX}
@@ -39,7 +63,7 @@ ${nextSlide ? `[Next Slide]:
 Frontmatter: ${JSON.stringify(nextSlide.frontmatter)}
 Content:
 ${nextSlide.content}` : "[Next Slide]: None (This is the last slide)"}
-
+${similarSlidesContext}
 --- CURRENT SLIDE ---
 Frontmatter: ${JSON.stringify(currentSlide.frontmatter)}
 Content:

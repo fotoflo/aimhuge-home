@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { QRCodeSVG } from "qrcode.react";
 
 const prompts = [
   "What did you learn in the last 2 days?",
@@ -39,15 +40,31 @@ export function SilentMeetingSlide() {
           Everyone writes simultaneously in a shared doc — then we read and discuss.
         </p>
 
-        <div className="flex flex-col gap-6 mt-8 max-w-2xl">
-          {prompts.map((p, i) => (
-            <div key={i} className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#7c5cfc]/15 flex items-center justify-center shrink-0">
-                <span className="text-[#9b82fd] font-bold text-lg">{i + 1}</span>
+        <div className="flex justify-between items-start mt-8">
+          <div className="flex flex-col gap-6 max-w-2xl">
+            {prompts.map((p, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#7c5cfc]/15 flex items-center justify-center shrink-0">
+                  <span className="text-[#9b82fd] font-bold text-lg">{i + 1}</span>
+                </div>
+                <p className="text-[28px] font-light text-white leading-snug">{p}</p>
               </div>
-              <p className="text-[28px] font-light text-white leading-snug">{p}</p>
+            ))}
+          </div>
+
+          <div className="flex flex-col items-center gap-3 mr-12 mt-4">
+            <div className="p-3 bg-white rounded-xl shadow-xl">
+              <QRCodeSVG
+                value="https://docs.google.com/document/d/19LdC0nIjHmeST6s2b8Ao9WgItS_sAC92mIs2huLxpZc/edit?usp=sharing"
+                size={160}
+                level="L"
+                includeMargin={false}
+              />
             </div>
-          ))}
+            <span className="text-white/80 text-sm font-medium px-4 py-1.5 bg-black/40 rounded-full backdrop-blur-md">
+              Scan to join doc
+            </span>
+          </div>
         </div>
       </div>
     </div>

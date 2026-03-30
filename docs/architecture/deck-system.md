@@ -208,3 +208,7 @@ Tests use **Vitest** + jsdom + React Testing Library. Run with `pnpm test` (or `
 - Auth redirect URLs configured for localhost:4000 and www.aimhuge.com
 - Slides fetched at request time (`force-dynamic`) — edits are live immediately
 - Images served from Supabase Storage (deck content) or `/images/` (main site)
+
+## AI Integration
+
+For details on how slides are embedded using the `gemini-embedding-001` model for semantic search and AI context retrieval, see the [Slide Embeddings](slide-embeddings.md) documentation.

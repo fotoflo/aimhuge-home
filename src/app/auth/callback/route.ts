@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  let next = searchParams.get("next") ?? "/";
 
   if (code) {
     const cookieStore = await cookies();
@@ -25,7 +25,15 @@ export async function GET(req: NextRequest) {
         },
       },
     );
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data: { session } } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (session?.user && next === "/") {
+      if (session.user.email?.toLowerCase() === 'fotoflo@gmail.com') {
+        next = "/dashboard";
+      } else if (session.user.email?.endsWith('@priyoshop.com')) {
+        next = "/clients/priyoshop/exec-deck/edit";
+      }
+    }
   }
 
   return NextResponse.redirect(new URL(next, req.url));

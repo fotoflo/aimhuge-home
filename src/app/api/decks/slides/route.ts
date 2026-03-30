@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSlides, upsertSlide, updateSlideContent, updateSlideFrontmatter, softDeleteSlide, getSlideById } from "@/app/decks/lib/slides-db";
+import { getSlides, upsertSlide, updateSlideContent, updateSlideFrontmatter, softDeleteSlide, getSlideById, updateEmbeddingForSlide } from "@/app/decks/lib/slides-db";
 
 /** GET /api/decks/slides?deck=priyoshop-exec OR ?id=slide-uuid */
 export async function GET(req: NextRequest) {
@@ -28,6 +28,8 @@ export async function PUT(req: NextRequest) {
   }
 
   const slide = await upsertSlide(deck_slug, slide_order, frontmatter, mdx_content);
+  // Fire and forget the embedding generation
+  updateEmbeddingForSlide(slide.id).catch(console.error);
   return NextResponse.json({ ok: true, slide });
 }
 
@@ -42,6 +44,10 @@ export async function PATCH(req: NextRequest) {
 
   if (mdx_content != null) await updateSlideContent(id, mdx_content);
   if (frontmatter != null) await updateSlideFrontmatter(id, frontmatter);
+  
+  // Fire and forget the embedding generation
+  updateEmbeddingForSlide(id).catch(console.error);
+  
   return NextResponse.json({ ok: true });
 }
 
