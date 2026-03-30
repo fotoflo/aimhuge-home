@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { DEFAULT_MODEL, generateSlideEmbedding } from "@/lib/gemini";
 import { logAiUsage } from "@/lib/ai-telemetry";
-import { getSimilarSlides } from "@/app/decks/lib/slides-db";
+import { getSimilarSlides, updateSlideTips } from "@/app/decks/lib/slides-db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -119,6 +119,13 @@ ${currentSlide.content}
       if (!Array.isArray(suggestions)) suggestions = [];
     } catch {
       console.warn("Invalid suggestion JSON:", text);
+    }
+
+    if (suggestions.length > 0) {
+      // Fire and forget updating the tips in DB
+      updateSlideTips(slideId, suggestions).catch((err) => 
+        console.error("Failed to save suggestions to DB:", err)
+      );
     }
 
     return NextResponse.json({ suggestions });

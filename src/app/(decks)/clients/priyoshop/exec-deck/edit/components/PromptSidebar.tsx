@@ -61,31 +61,33 @@ export function PromptSidebar({
 
   useEffect(() => {
     setMode("editor");
-    const loadCached = () => {
-      if (slideId && deckSlug) {
-        const cached = localStorage.getItem(`tips_${deckSlug}_${slideId}`);
-        if (cached) {
-          try { setSuggestions(JSON.parse(cached)); } catch { setSuggestions([]); }
-        } else {
-          setSuggestions([]);
-        }
-      } else {
-        setSuggestions([]);
-      }
-    };
-    
-    loadCached();
+  }, [slideId]);
 
+  useEffect(() => {
+    const currentSlide = slides.find(s => s.id === slideId);
+    if (!currentSlide) {
+      setSuggestions([]);
+      return;
+    }
+    
+    if (currentSlide.ai_tips && currentSlide.ai_tips.length > 0) {
+      setSuggestions(currentSlide.ai_tips);
+    } else {
+      setSuggestions([]);
+    }
+  }, [slideId, slides]);
+
+  useEffect(() => {
     const handleTipsGenerated = (e: Event) => {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail?.slideId === slideId) {
-        loadCached();
+      if (customEvent.detail?.slideId === slideId && customEvent.detail?.suggestions) {
+        setSuggestions(customEvent.detail.suggestions);
       }
     };
     
     window.addEventListener("tipsGenerated", handleTipsGenerated);
     return () => window.removeEventListener("tipsGenerated", handleTipsGenerated);
-  }, [slideId, deckSlug]);
+  }, [slideId]);
 
   // Background tips generator for the entire deck
   useEffect(() => {
@@ -100,7 +102,8 @@ export function PromptSidebar({
         const s = slides[i];
         const cacheKey = `tips_${deckSlug}_${s.id}`;
         
-        if (!localStorage.getItem(cacheKey) && !backgroundInProgress.has(cacheKey)) {
+        // Skip if DB already has tips
+        if ((!s.ai_tips || s.ai_tips.length === 0) && !backgroundInProgress.has(cacheKey)) {
           backgroundInProgress.add(cacheKey);
           
           const previousSlide = i > 0 ? slides[i - 1] : null;
@@ -124,8 +127,7 @@ export function PromptSidebar({
             });
             const data = await res.json();
             if (active && data.suggestions && data.suggestions.length > 0) {
-              localStorage.setItem(cacheKey, JSON.stringify(data.suggestions));
-              window.dispatchEvent(new CustomEvent('tipsGenerated', { detail: { slideId: s.id } }));
+              window.dispatchEvent(new CustomEvent('tipsGenerated', { detail: { slideId: s.id, suggestions: data.suggestions } }));
             }
           } catch (e) {
             console.error("Background tips generation error:", e);
@@ -181,7 +183,6 @@ export function PromptSidebar({
       });
       const data = await res.json();
       if (data.suggestions) {
-        localStorage.setItem(`tips_${deckSlug}_${slideId}`, JSON.stringify(data.suggestions));
         setSuggestions(data.suggestions);
       }
     } finally {

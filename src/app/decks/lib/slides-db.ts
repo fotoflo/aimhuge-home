@@ -11,6 +11,7 @@ export interface SlideRow {
   updated_at: string;
   deleted_at: string | null;
   embedding?: number[] | null;
+  ai_tips?: string[] | null;
 }
 
 /** Fetch all slides for a deck, ordered by slide_order */
@@ -127,6 +128,22 @@ export async function updateSlideFrontmatter(
     .eq("id", id);
 
   if (error) throw error;
+}
+
+/** Save AI generated tips for a slide */
+export async function updateSlideTips(
+  id: string,
+  tips: string[],
+): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { error } = await supabase
+    .from("deck_slides")
+    .update({ ai_tips: tips })
+    .eq("id", id);
+
+  if (error) console.error("Failed to update AI tips:", error);
 }
 
 // ── Version history ──
