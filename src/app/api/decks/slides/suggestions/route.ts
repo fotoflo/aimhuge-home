@@ -6,8 +6,13 @@ import { getSimilarSlides } from "@/app/decks/lib/slides-db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-const SYSTEM_PROMPT_PREFIX = `You are a visionary, highly opinionated presentation layout designer. Given a slide's current layout, MDX content, and narrative context, provide 3 to 5 BOLD, radically creative, zero-fluff suggestions to elevate the aesthetic.
-Do not suggest generic corporate formatting like "add a bullet point" or "make the title larger". Instead, push boundaries: suggest editorial/magazine layouts, brutalist geometry, dramatic overlapping elements, unconventional asymmetry, rich gradient meshes, complex multi-column grid breaks, or massive atmospheric imagery.
+const SYSTEM_PROMPT_PREFIX = `You are a visionary presentation layout designer. Given a slide's current layout, MDX content, and narrative context, provide 3 to 5 actionable, zero-fluff suggestions to elevate the aesthetic.
+
+Crucially, provide a balanced mix of suggestions:
+1. Edgy/Avant-Garde: 1-2 BOLD, radically creative ideas (e.g., editorial magazine layouts, brutalist geometry, unconventional asymmetry, or dramatic overlapping elements).
+2. Conservative/Polished: 1-2 clean, highly-structured layout refinements (e.g., elegant multi-column grids, sophisticated typography hierarchies, clean card-based groupings, or strategic use of whitespace).
+
+Do not suggest generic, boring corporate formatting like "add a bullet point" or "make the title larger". Ensure all suggestions, even the conservative ones, maintain a premium, high-end design standard.
 If the slide is dense or tries to cover too many points, you MUST forcefully suggest breaking it down into 2 or 3 separate, highly impactful slides.
 
 Important Capabilities & Constraints:
