@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
-import { PanelLeftClose, ChevronRight, ChevronDown, Plus, SplitSquareHorizontal, Eye, EyeOff, Trash2, RefreshCw } from "lucide-react";
+import { PanelLeftClose, ChevronRight, ChevronDown, Plus, SplitSquareHorizontal, Eye, EyeOff, Trash2, RefreshCw, Search, X, Sparkles } from "lucide-react";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 import type { SlideFrontmatter } from "@/app/decks/lib/mdx-types";
 import {
@@ -47,6 +47,8 @@ function SortableSlide({
   isCollapsed,
   isMenuOpen,
   isSelected,
+  isDimmed,
+  isRegenerating,
   onToggleCollapse,
   onContextMenu,
   onClick,
@@ -62,6 +64,8 @@ function SortableSlide({
   isCollapsed: boolean;
   isMenuOpen: boolean;
   isSelected: boolean;
+  isDimmed: boolean;
+  isRegenerating: boolean;
   onToggleCollapse: (e: React.MouseEvent, id: string) => void;
   onContextMenu: (e: React.MouseEvent, slide: SlideRow, index: number) => void;
   onClick: (e: React.MouseEvent, id: string, index: number) => void;
@@ -128,7 +132,8 @@ function SortableSlide({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : (skip ? 0.4 : 1),
+    opacity: isDimmed ? 0.15 : (isDragging ? 0.5 : (skip ? 0.4 : 1)),
+    filter: isDimmed ? "grayscale(100%) blur(1px)" : undefined,
     zIndex: isDragging ? 10 : undefined,
     paddingLeft: `${8 + level * 16}px`,
     paddingRight: "8px",
@@ -162,7 +167,7 @@ function SortableSlide({
           <img
             src={thumbnail}
             alt={sfm.title ?? `Slide ${index + 1}`}
-            className={`w-full h-full object-cover ${skip ? "grayscale" : ""}`}
+            className={`w-full h-full object-cover transition-all duration-300 ${skip ? "grayscale" : ""} ${isRegenerating ? "opacity-20 blur-sm brightness-50" : ""}`}
             loading="lazy"
             onError={() => {
               if (imgState === "idle") {
@@ -181,10 +186,25 @@ function SortableSlide({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-600">
-            {imgState === "fixing" ? "Regenerating..." : imgState === "failed" ? "Preview failed" : (generatingThumbs ? "..." : "No preview")}
+            {imgState === "fixing" || isRegenerating ? (
+               <div className="flex flex-col items-center gap-1.5">
+                 <RefreshCw className="w-3.5 h-3.5 text-[#7c5cfc] animate-spin" />
+                 <span className="text-[#7c5cfc] uppercase tracking-wider text-[9px] font-bold">Regenerating</span>
+               </div>
+            ) : imgState === "failed" ? "Preview failed" : (generatingThumbs ? "..." : "No preview")}
           </div>
         )}
-        {skip && (
+        
+        {(isRegenerating && thumbnail && imgState === "idle") && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <div className="flex flex-col items-center gap-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <RefreshCw className="w-4 h-4 text-[#7c5cfc] animate-spin" />
+              <span className="text-[9px] uppercase tracking-wider font-bold text-[#7c5cfc]">Regenerating</span>
+            </div>
+          </div>
+        )}
+
+        {skip && !isRegenerating && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase backdrop-blur-sm">Skipped</span>
           </div>
@@ -233,6 +253,10 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
   const [menu, setMenu] = useState<{ x: number; y: number; slide: SlideRow; index: number; isCmdClick?: boolean } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [matchedIds, setMatchedIds] = useState<Set<string> | null>(null);
+  const [regeneratingIds, setRegeneratingIds] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -258,6 +282,58 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
       window.removeEventListener("scroll", handleScroll, true);
     };
   }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setMatchedIds(null);
+      setIsSearching(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    let isCancelled = false;
+
+    const delayDebounceFn = setTimeout(() => {
+      if (isCancelled) return;
+
+      const q = searchQuery.toLowerCase();
+      // 1. Instant local string match
+      const matched = slides.filter(s => {
+        const sfm = s.frontmatter as SlideFrontmatter;
+        const titleString = (sfm.title || "").toLowerCase();
+        const contentString = (s.mdx_content || "").toLowerCase();
+        return titleString.includes(q) || contentString.includes(q);
+      }).map(s => s.id);
+      
+      setMatchedIds(new Set(matched));
+
+      // 2. Progressive enhancement: Fire backend semantic search in the background
+      const currentDeckSlug = slides[0]?.deck_slug || "priyoshop-exec";
+      fetch(`/api/decks/search?q=${encodeURIComponent(searchQuery)}&deck=${currentDeckSlug}`)
+        .then(res => res.json())
+        .then(json => {
+          if (isCancelled) return;
+          if (json.results && json.results.length > 0) {
+            setMatchedIds(prev => {
+              if (!prev) return prev; // Should not happen given search state
+              const next = new Set(prev);
+              json.results.forEach((r: { id: string }) => next.add(r.id));
+              return next;
+            });
+          }
+        })
+        .catch(console.error)
+        .finally(() => {
+          if (!isCancelled) setIsSearching(false);
+        });
+
+    }, 150); // Snappy local search trigger
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(delayDebounceFn);
+    };
+  }, [searchQuery, slides]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -301,25 +377,32 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
     });
   };
 
-  // Compute visible slides (accordion logic)
+  // Compute visible slides (accordion & search logic)
   const visibleIndices: number[] = [];
-  let collapseLevel: number | null = null;
-  
-  slides.forEach((s, idx) => {
-    const lvl = (s.frontmatter as SlideFrontmatter).level ?? 0;
-    
-    if (collapseLevel !== null && lvl <= collapseLevel) {
-      collapseLevel = null;
-    }
-    
-    if (collapseLevel === null) {
-      visibleIndices.push(idx);
-    }
-    
-    if (collapsedIds.has(s.id) && collapseLevel === null) {
-      collapseLevel = lvl;
-    }
-  });
+  if (matchedIds !== null && searchQuery.trim() !== "") {
+    slides.forEach((s, idx) => {
+      if (matchedIds.has(s.id)) {
+        visibleIndices.push(idx);
+      }
+    });
+  } else {
+    let collapseLevel: number | null = null;
+    slides.forEach((s, idx) => {
+      const lvl = (s.frontmatter as SlideFrontmatter).level ?? 0;
+      
+      if (collapseLevel !== null && lvl <= collapseLevel) {
+        collapseLevel = null;
+      }
+      
+      if (collapseLevel === null) {
+        visibleIndices.push(idx);
+      }
+      
+      if (collapsedIds.has(s.id) && collapseLevel === null) {
+        collapseLevel = lvl;
+      }
+    });
+  }
 
   const handleSlideClick = (e: React.MouseEvent, id: string, index: number) => {
     if (e.shiftKey && lastSelectedIndex !== null) {
@@ -364,16 +447,50 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
 
   return (
     <>
-      <div className="w-52 border-r border-white/10 overflow-y-auto overflow-x-hidden bg-[#0a0a0e] shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 z-10 p-1 rounded hover:bg-white/10 text-slate-500 hover:text-slate-200 transition-colors"
-          title="Hide slides"
-        >
-          <PanelLeftClose className="w-3.5 h-3.5" />
-        </button>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
-          <SortableContext items={visibleIndices.map((idx) => slides[idx].id)} strategy={verticalListSortingStrategy}>
+      <div className="w-52 border-r border-white/10 bg-[#0a0a0e] shrink-0 flex flex-col relative h-full max-h-screen">
+        
+        {/* Aesthetic Search & Top Bar */}
+        <div className="flex flex-col gap-2 p-3 border-b border-white/5 shrink-0 relative bg-[#0a0a0e] z-20">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[10px] font-mono tracking-widest text-[#7c5cfc] uppercase font-bold flex items-center gap-1.5 opacity-80">
+              <Sparkles className="w-3 h-3" />
+              Intelligence
+            </h3>
+            <button
+              onClick={onClose}
+              className="p-1 rounded hover:bg-white/10 text-slate-500 hover:text-slate-200 transition-colors"
+              title="Hide slides"
+            >
+              <PanelLeftClose className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          
+          <div className="relative group">
+            <div className={`absolute inset-0 bg-[#7c5cfc]/20 blur-md rounded-full transition-opacity duration-500 ${searchQuery ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`} />
+            <div className="relative flex items-center bg-[#15151a] border border-white/10 focus-within:border-[#7c5cfc]/50 rounded text-xs overflow-hidden transition-colors">
+              <Search className={`w-3.5 h-3.5 ml-2 mr-1 transition-colors ${searchQuery ? "text-[#7c5cfc]" : "text-slate-500"}`} />
+              <input 
+                type="text" 
+                placeholder="Semantic search..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent px-1 py-1.5 outline-none text-slate-200 placeholder:text-slate-600 font-medium"
+              />
+              {isSearching ? (
+                <div className="pr-2 pl-1"><RefreshCw className="w-3 h-3 text-[#7c5cfc] animate-spin" /></div>
+              ) : searchQuery ? (
+                <button onClick={() => setSearchQuery("")} className="pr-2 pl-1 hover:text-white text-slate-400">
+                  <X className="w-3 h-3" />
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* Scrollable Thumbnails List */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
+            <SortableContext items={visibleIndices.map((idx) => slides[idx].id)} strategy={verticalListSortingStrategy}>
             {visibleIndices.map((i) => {
               const s = slides[i];
               const sLevel = (s.frontmatter as SlideFrontmatter).level ?? 0;
@@ -393,6 +510,8 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
                   isCollapsed={isCollapsed}
                   isMenuOpen={menu?.slide.id === s.id}
                   isSelected={selectedIds.has(s.id)}
+                  isDimmed={matchedIds !== null && !matchedIds.has(s.id)}
+                  isRegenerating={regeneratingIds.has(s.id)}
                   onToggleCollapse={toggleCollapse}
                   onContextMenu={handleContextMenu}
                   onClick={handleSlideClick}
@@ -403,6 +522,7 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
             })}
           </SortableContext>
         </DndContext>
+        </div>
       </div>
 
       {menu && (
@@ -459,7 +579,22 @@ export function SlideSidebar({ slides, current, thumbnails, generatingThumbs, on
             <>
               <button
                 className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-slate-300 hover:bg-[#7c5cfc]/20 hover:text-[#7c5cfc] transition-colors focus:outline-none group"
-                onClick={() => { Promise.resolve(onRegenerateThumbnails(targetIds)); setMenu(null); }}
+                onClick={() => { 
+                  const targetIdsArray = [...targetIds];
+                  setRegeneratingIds(prev => {
+                    const next = new Set(prev);
+                    targetIdsArray.forEach(id => next.add(id));
+                    return next;
+                  });
+                  Promise.resolve(onRegenerateThumbnails(targetIdsArray)).finally(() => {
+                    setRegeneratingIds(prev => {
+                      const next = new Set(prev);
+                      targetIdsArray.forEach(id => next.delete(id));
+                      return next;
+                    });
+                  });
+                  setMenu(null); 
+                }}
               >
                 <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
                 <span className="font-medium">{multipleSelected ? `Regenerate ${targetIds.length} Thumbnails` : "Regenerate Thumbnail"}</span>

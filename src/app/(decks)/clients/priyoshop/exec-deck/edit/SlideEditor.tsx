@@ -12,6 +12,7 @@ import { SlideSidebar } from "./components/SlideSidebar";
 import { PromptSidebar } from "./components/PromptSidebar";
 import { AssetPanel } from "./components/AssetPanel";
 import { LightTable } from "./components/LightTable";
+import { DeckCopilotSidebar } from "./components/DeckCopilotSidebar";
 import { currentAfterReorder, buildImageTag } from "@/app/decks/lib/editor-utils";
 import { useThumbnails } from "@/app/decks/lib/hooks/useThumbnails";
 import { useEditorKeyboard } from "@/app/decks/lib/hooks/useEditorKeyboard";
@@ -397,6 +398,20 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
     }
   }, [slide, regenerateThumbnails]);
 
+  // ── Global Deck Copilot Refresh ──
+  const refreshSlides = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/decks/slides?deck=${deckSlug}`);
+      if (res.ok) {
+        const newSlides = await res.json();
+        setSlides(newSlides);
+        setRefreshKey(k => k + 1);
+      }
+    } catch (err) {
+      console.error("Failed to refresh slides:", err);
+    }
+  }, [deckSlug]);
+
   // ── Assets ──
 
   const toggleAssets = async () => {
@@ -611,24 +626,33 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
         )}
 
         {showRightPanel && (
-          <PromptSidebar
-            slides={slides}
-            slideId={slide?.id}
-            deckSlug={deckSlug}
-            current={current}
-            frontmatter={fm}
-            prompt={slide?.id ? prompts[slide.id] || "" : ""}
-            prompting={slide?.id ? promptingSlides.has(slide.id) : false}
-            copilotText={slide?.id ? copilotTexts[slide.id] || "" : ""}
-            userPrompt={slide?.id ? userPrompts[slide.id] || "" : ""}
-            screenshot={thumbnails[slide?.id]}
-            onPromptChange={(val) => {
-              if (slide?.id) setPrompts(prev => ({ ...prev, [slide.id]: val }));
-            }}
-            onSubmit={handlePrompt}
-            onRevert={handleRevert}
-            onClose={() => setShowRightPanel(false)}
-          />
+          lightTable ? (
+            <DeckCopilotSidebar
+              deckSlug={deckSlug}
+              slides={slides}
+              onRefreshDeck={refreshSlides}
+              onClose={() => setShowRightPanel(false)}
+            />
+          ) : (
+            <PromptSidebar
+              slides={slides}
+              slideId={slide?.id}
+              deckSlug={deckSlug}
+              current={current}
+              frontmatter={fm}
+              prompt={slide?.id ? prompts[slide.id] || "" : ""}
+              prompting={slide?.id ? promptingSlides.has(slide.id) : false}
+              copilotText={slide?.id ? copilotTexts[slide.id] || "" : ""}
+              userPrompt={slide?.id ? userPrompts[slide.id] || "" : ""}
+              screenshot={thumbnails[slide?.id]}
+              onPromptChange={(val) => {
+                if (slide?.id) setPrompts(prev => ({ ...prev, [slide.id]: val }));
+              }}
+              onSubmit={handlePrompt}
+              onRevert={handleRevert}
+              onClose={() => setShowRightPanel(false)}
+            />
+          )
         )}
 
         {showAssets && (
