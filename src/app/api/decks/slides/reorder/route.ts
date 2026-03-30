@@ -38,26 +38,23 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
 
   // Phase 1: set all to negative temporaries
-  for (let i = 0; i < slides.length; i++) {
-    const { id } = slides[i];
-    const { error } = await supabase
-      .from("deck_slides")
-      .update({ slide_order: -(100000 + i), updated_at: now })
-      .eq("id", id);
-    if (error) {
-      return NextResponse.json({ error: `Failed phase 1 for ${id}: ${error.message}` }, { status: 500 });
-    }
+  const phase1Promises = slides.map((slide: { id: string, slide_order: number }, i: number) => 
+    supabase.from("deck_slides").update({ slide_order: -(100000 + i), updated_at: now }).eq("id", slide.id)
+  );
+  const results1 = await Promise.all(phase1Promises);
+  const error1 = results1.find(r => r.error)?.error;
+  if (error1) {
+    return NextResponse.json({ error: `Failed phase 1: ${error1.message}` }, { status: 500 });
   }
 
   // Phase 2: set final values
-  for (const { id, slide_order } of slides) {
-    const { error } = await supabase
-      .from("deck_slides")
-      .update({ slide_order, updated_at: now })
-      .eq("id", id);
-    if (error) {
-      return NextResponse.json({ error: `Failed phase 2 for ${id}: ${error.message}` }, { status: 500 });
-    }
+  const phase2Promises = slides.map((slide: { id: string, slide_order: number }) => 
+    supabase.from("deck_slides").update({ slide_order: slide.slide_order, updated_at: now }).eq("id", slide.id)
+  );
+  const results2 = await Promise.all(phase2Promises);
+  const error2 = results2.find(r => r.error)?.error;
+  if (error2) {
+    return NextResponse.json({ error: `Failed phase 2: ${error2.message}` }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, updated: slides.length });
