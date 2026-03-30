@@ -1,6 +1,6 @@
 ---
 name: watch-dev
-description: Start the dev server and watch logs for errors/warnings. Beeps and summarizes issues. Use when the user says "watch dev", "monitor dev", or "start dev and watch".
+description: "Start the Next.js dev server and launch a background bash watcher to monitor logs for errors/warnings. Plugs into a cheap polling loop to detect issues, beeping and providing a terse, copyable bug summary when an error occurs. Use when the user says \"watch dev\", \"monitor dev\", or \"start dev and watch\"."
 model: haiku
 allowed-tools: Bash, Read, AskUserQuestion
 ---

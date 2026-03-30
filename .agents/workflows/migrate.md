@@ -1,6 +1,6 @@
 ---
 name: migrate
-description: Create and run a Supabase SQL migration. Use when the user says "migrate", "migration", "run migration", or needs schema changes.
+description: "Create and run a Supabase SQL migration against the remote database. Uses the Supabase CLI to create a local migration file, write idempotent SQL schema changes, and push them to the linked remote project. Use when the user says \"migrate\", \"migration\", \"run migration\", or needs schema changes."
 argument-hint: "<migration_name> <description of schema changes>"
 ---
 

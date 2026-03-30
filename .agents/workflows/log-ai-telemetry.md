@@ -1,5 +1,5 @@
 ---
-description: How to log AI token usage and costs into the telemetry database when building AI agents or features.
+description: "Instructions on how to log AI token usage and costs into the ai_usage_logs database when building AI agents or features. Covers importing logAiUsage, extracting deckSlug/slideId, and properly formatting usageMetadata from the Gemini API to track project API costs."
 ---
 
 # Logging AI Telemetry

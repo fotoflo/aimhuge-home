@@ -1,6 +1,6 @@
 ---
 name: done
-description: Wrap up a coding session — update docs, lint, then commit. Use when the user says "done", "wrap up", or "finish".
+description: "Wrap up a coding session — generates a productivity summary, updates architecture and bug-fix docs, lints session files, checks file size changes, runs tests, and creates a conventional commit with the session stats. Use when the user says \"done\", \"wrap up\", or \"finish\"."
 argument-hint: "[optional commit message]"
 ---
 

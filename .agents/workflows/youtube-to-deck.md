@@ -1,6 +1,6 @@
 ---
 name: youtube-to-deck
-description: Fetch a YouTube video transcript and automatically generate slides for it using Gemini.
+description: "Execute the local youtube-to-deck.ts script to automatically generate a slide deck from a YouTube video URL or ID using the Gemini API. Script downloads video, extracts transcript, processes via multimodal File API, and appends the new MDX slides to a specified deck presentation."
 argument-hint: "<YOUTUBE_URL_OR_ID> [DECK_SLUG]"
 ---
 
