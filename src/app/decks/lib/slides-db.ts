@@ -10,6 +10,7 @@ export interface SlideRow {
   mdx_content: string;
   updated_at: string;
   deleted_at: string | null;
+  embedding?: number[] | null;
 }
 
 /** Fetch all slides for a deck, ordered by slide_order */
@@ -223,7 +224,7 @@ export async function getSlideVersions(slideId: string): Promise<SlideVersion[]>
       .getPublicUrl(`thumbnails/versions/${v.id}.webp`);
     return {
       ...v,
-      thumbnail_url: `${publicUrl}?t=${Date.now()}`,
+      thumbnail_url: `${publicUrl}?t=${new Date(v.created_at).getTime()}`,
     };
   });
 }

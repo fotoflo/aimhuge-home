@@ -125,7 +125,7 @@ The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slid
 ## Editor Features
 
 - **Slide preview** — iframe at selectable zoom level (25%–200% or Fit)
-- **Slide thumbnails** — Puppeteer-generated WebP images cached in Supabase Storage
+- **Slide thumbnails** — Puppeteer-generated WebP images cached in Supabase Storage. URL cache-busting uses the slide's `updated_at` (or `created_at` for versions) timestamp to enable efficient long-term browser caching.
 - **Light table** — 3-column grid of all slide thumbnails, click to jump
 - **AI prompt** — right sidebar, powered by Gemini 2.5 Flash. Now utilizes a **streaming response** architecture for real-time conversational feedback and slide updates. Passes the active slide thumbnail to the model (`image/webp`) enabling structural/layout/color-aware visual prompting.
 - **AI Copilot UI** — Dedicated streaming text area in the sidebar that displays the AI's step-by-step reasoning and explanation before and during slide modifications.
