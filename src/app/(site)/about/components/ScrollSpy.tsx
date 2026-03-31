@@ -206,11 +206,11 @@ export function ScrollSpy() {
   };
 
   return (
-    <div className="hidden md:flex fixed bottom-6 right-6 lg:bottom-8 lg:right-8 flex-row items-end gap-4 lg:gap-6 z-40 pointer-events-none">
+    <div className="flex fixed bottom-4 right-4 md:bottom-6 md:right-6 lg:bottom-8 lg:right-8 flex-row items-end gap-3 sm:gap-4 lg:gap-6 z-40 pointer-events-none">
       
       {/* The Dynamic Context / Telemetry Card */}
       <div 
-        className={`relative w-[160px] h-[160px] lg:w-[240px] lg:h-[240px] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-auto border border-white/10 bg-[#0d0d0d] backdrop-blur-3xl transform origin-bottom-right ${
+        className={`relative w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] md:w-[160px] md:h-[160px] lg:w-[240px] lg:h-[240px] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-auto border border-white/10 bg-[#0d0d0d] backdrop-blur-3xl transform origin-bottom-right ${
           activeConfig.type === "text" ? "opacity-0 scale-90 translate-y-12" : "opacity-100 scale-100 translate-y-0"
         }`}
       >
@@ -263,18 +263,18 @@ export function ScrollSpy() {
       </div>
 
       {/* The Navigation Edge Rail */}
-      <div className="flex flex-col gap-[12px] pointer-events-auto items-end py-2">
+      <div className="flex flex-col gap-[8px] sm:gap-[12px] pointer-events-auto items-end py-2">
         {sectionsConfig.map(({ id, label }) => {
           const isActive = activeId === id;
           return (
             <button
               key={id}
               onClick={() => scrollTo(id)}
-              className="group relative flex items-center justify-end w-40"
+              className="group relative flex items-center justify-end w-32 sm:w-40"
               aria-label={label}
             >
               <span
-                className={`absolute right-4 lg:right-5 text-[10px] lg:text-[11px] font-medium tracking-wide transition-all duration-300 pointer-events-none text-right whitespace-nowrap ${
+                className={`absolute right-4 lg:right-5 text-[9px] sm:text-[10px] lg:text-[11px] font-medium tracking-wide transition-all duration-300 pointer-events-none text-right whitespace-nowrap hidden sm:block ${
                   isActive
                     ? "opacity-100 translate-x-0 text-white"
                     : "opacity-0 translate-x-1 text-muted group-hover:opacity-100 group-hover:translate-x-0"

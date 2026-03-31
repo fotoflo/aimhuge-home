@@ -18,18 +18,14 @@ export async function GET() {
     return NextResponse.json({ error: dErr.message }, { status: 500 });
   }
 
-  // Fetch all slide rows to count them (only for valid decks to speed up)
-  const activeDeckSlugs = (decksData || []).map(d => d.deck_slug);
-  
-  let slidesData: any[] = [];
-  if (activeDeckSlugs.length > 0) {
-    const { data: slides } = await supabase
-      .from("deck_slides")
-      .select("deck_slug")
-      .in("deck_slug", activeDeckSlugs)
-      .is("deleted_at", null);
-    if (slides) slidesData = slides;
-  }
+  // Fetch all slide rows to count them and discover legacy unmigrated decks.
+  // We cannot restrict strictly to activeDeckSlugs because legacy decks are not in the decks table yet.
+  const { data: slides } = await supabase
+    .from("deck_slides")
+    .select("deck_slug")
+    .is("deleted_at", null);
+
+  const slidesData = slides || [];
 
   const slideCounts = new Map<string, number>();
   for (const row of slidesData) {
