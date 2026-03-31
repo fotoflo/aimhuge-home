@@ -19,9 +19,9 @@ const sectionsConfig: SectionConfig[] = [
     id: "new-york",
     label: "New York Roots",
     type: "map",
-    zoom: 12,
-    center: [40.7308, -73.9973], // Washington Square Park
-    pins: [{ lat: 40.7308, lng: -73.9973, label: "Manhattan", primary: true }],
+    zoom: 14,
+    center: [40.7285, -73.9950], // W 4th & Mercer
+    pins: [{ lat: 40.7285, lng: -73.9950, label: "Manhattan", primary: true }],
   },
   {
     id: "first-exit",
@@ -123,11 +123,11 @@ function Globe() {
       markerColor: [0.486, 0.361, 0.988], // Accent #7c5cfc
       glowColor: [0.1, 0.1, 0.1], // Soft dark halo
       markers: [],
-      onRender: (state) => {
+      onRender: (state: Record<string, any>) => {
         state.phi = phi;
         phi += 0.005;
       },
-    });
+    } as any);
 
     return () => globe.destroy();
   }, []);
@@ -186,12 +186,12 @@ export function ScrollSpy() {
   };
 
   return (
-    <div className="hidden xl:flex fixed right-8 top-1/2 -translate-y-[45%] flex-row items-center gap-6 z-40 pointer-events-none">
+    <div className="hidden xl:flex fixed bottom-8 right-8 flex-row items-end gap-6 z-40 pointer-events-none">
       
       {/* The Dynamic Context / Telemetry Card */}
       <div 
-        className={`relative w-[320px] h-[320px] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-auto border border-white/10 bg-[#0d0d0d] backdrop-blur-3xl transform ${
-          activeConfig.type === "text" ? "opacity-0 scale-90 translate-x-12" : "opacity-100 scale-100 translate-x-0"
+        className={`relative w-[240px] h-[240px] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-auto border border-white/10 bg-[#0d0d0d] backdrop-blur-3xl transform origin-bottom-right ${
+          activeConfig.type === "text" ? "opacity-0 scale-90 translate-y-12" : "opacity-100 scale-100 translate-y-0"
         }`}
       >
         {activeConfig.type === "globe" && <Globe />}
@@ -239,7 +239,7 @@ export function ScrollSpy() {
       </div>
 
       {/* The Navigation Edge Rail */}
-      <div className="flex flex-col gap-[14px] pointer-events-auto items-end py-6">
+      <div className="flex flex-col gap-[12px] pointer-events-auto items-end py-2">
         {sectionsConfig.map(({ id, label }) => {
           const isActive = activeId === id;
           return (
