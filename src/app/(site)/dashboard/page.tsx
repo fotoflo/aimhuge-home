@@ -187,26 +187,17 @@ export default function DashboardPage() {
             
             <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-auto p-6 gap-5">
               
-              <div className="grid grid-cols-2 gap-5">
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-slate-300">Internal Slug *</span>
-                  <input required disabled={creating} type="text" value={form.slug} onChange={e => {
-                    setSlugTouched(true);
-                    setForm({...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-')});
-                  }} placeholder="e.g. pulsetech-training" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-slate-300">Presentation Title *</span>
-                  <input required disabled={creating} type="text" value={form.title} onChange={e => {
-                    const newTitle = e.target.value;
-                    setForm(prev => ({
-                      ...prev,
-                      title: newTitle,
-                      slug: slugTouched ? prev.slug : newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-                    }));
-                  }} placeholder="e.g. Pulsetech Engineering Q3" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
-                </label>
-              </div>
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-slate-300">Presentation Title *</span>
+                <input required disabled={creating} type="text" value={form.title} onChange={e => {
+                  const newTitle = e.target.value;
+                  setForm(prev => ({
+                    ...prev,
+                    title: newTitle,
+                    slug: newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+                  }));
+                }} placeholder="e.g. Pulsetech Engineering Q3" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
+              </label>
 
               <label className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-slate-300">Aimed Audience (Optional)</span>

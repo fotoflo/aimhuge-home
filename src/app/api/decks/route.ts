@@ -62,12 +62,13 @@ export async function POST(req: NextRequest) {
   if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   
   try {
-    const { slug, title, description, audience, wallOfText } = await req.json();
-    if (!slug || !title) return NextResponse.json({ error: "Slug and Title are required" }, { status: 400 });
+    const { slug, title, description, audience, wallOfText, brand } = await req.json();
+    if (!slug || !title || !brand) return NextResponse.json({ error: "Slug, Title, and Brand are required" }, { status: 400 });
 
     // 1. Metadata
     const { error: dErr } = await supabase.from("decks").insert({
       deck_slug: slug,
+      brand_slug: brand,
       title,
       description: description || null,
       target_audience: audience || null
