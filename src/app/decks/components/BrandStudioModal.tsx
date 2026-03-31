@@ -3,6 +3,15 @@
 import { useState, useEffect } from "react";
 import { X, Loader2, Sparkles, Upload, Plus } from "lucide-react";
 
+const STATUS_MESSAGES = [
+  "Spinning up scraper payload...",
+  "Crawling top-level navigation...",
+  "Extracting source code hex profiles...",
+  "Harvesting marketing media gallery...",
+  "Feeding raw DOM to Gemini 3 Flash...",
+  "Synthesizing corporate identity rules..."
+];
+
 interface BrandStudioModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,14 +37,6 @@ export default function BrandStudioModal({ isOpen, onClose, onSaved, initialSlug
   const [logoUrl, setLogoUrl] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
 
-  const statusMessages = [
-    "Spinning up scraper payload...",
-    "Crawling top-level navigation...",
-    "Extracting source code hex profiles...",
-    "Harvesting marketing media gallery...",
-    "Feeding raw DOM to Gemini 3 Flash...",
-    "Synthesizing corporate identity rules..."
-  ];
   const [statusIndex, setStatusIndex] = useState(0);
 
   // Rotate status message every 1.8s
@@ -45,7 +46,7 @@ export default function BrandStudioModal({ isOpen, onClose, onSaved, initialSlug
       return;
     }
     const interval = setInterval(() => {
-      setStatusIndex((prev) => (prev < statusMessages.length - 1 ? prev + 1 : prev));
+      setStatusIndex((prev) => (prev < STATUS_MESSAGES.length - 1 ? prev + 1 : prev));
     }, 1800);
     return () => clearInterval(interval);
   }, [scraping]);
@@ -166,7 +167,7 @@ export default function BrandStudioModal({ isOpen, onClose, onSaved, initialSlug
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
                   </span>
-                  <span className="font-mono tracking-tight">{statusMessages[statusIndex]}</span>
+                  <span className="font-mono tracking-tight">{STATUS_MESSAGES[statusIndex]}</span>
                 </div>
               ) : !unlocked ? (
                 <button type="button" onClick={() => setUnlocked(true)} className="text-xs text-slate-500 hover:text-white underline decoration-white/20 underline-offset-4 transition-colors">

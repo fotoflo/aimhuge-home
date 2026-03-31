@@ -79,6 +79,8 @@ src/app/
 | `POST /api/decks/thumbnails?deck=<slug>` | Generate thumbnails via Puppeteer + sharp, upload to Supabase Storage |
 | `POST /api/assets` | Upload image to Supabase Storage |
 | `GET /api/assets` | List uploaded assets |
+| `GET /api/brands/scrape` | Uses Cheerio to crawl top-level nav pages of a URL, extracts hex colors and images, and feeds to Gemini 3.0 Flash to rapidly build a structured JSON brand identity. |
+| `GET /api/brands` | Fetch saved client brand guidelines and design systems |
 
 ### Deck Listing (`src/app/(site)/decks/`)
 
@@ -137,6 +139,7 @@ The iframe uses a **static `src`** (`/clients/priyoshop/exec-deck?edit=true#slid
 - **Drag-and-drop reorder** — `@dnd-kit/sortable` in sidebar, persists via `/api/decks/slides/reorder`
 - **Tab/Shift+Tab** — indent/outdent slides (adjusts `level` in frontmatter, max 2 levels)
 - **Arrow Up/Down** — navigate slides from keyboard
+- **Brand Studio** — Allows attaching a consistent `brand_id` to a deck to govern AI copilot aesthetic generation. Features a multi-page web scraper (`/api/brands/scrape`) that extracts source code HEX tokens and marketing imagery to build an automated, strict Client Brand Design System.
 - **Google OAuth** — auth-gated editor access
 
 ## Streaming AI Copilot Architecture

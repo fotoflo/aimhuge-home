@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2, Mic, Square, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, X, Loader2, Mic, Square, Trash2, Archive, ArchiveRestore, ArrowUp, ArrowDown } from "lucide-react";
 import BrandStudioModal from "@/app/decks/components/BrandStudioModal";
 import { useDictation } from "@/lib/hooks/useDictation";
 
@@ -41,8 +41,10 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [brands, setBrands] = useState<{ slug: string; name: string }[]>([]);
-  const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "" });
+  const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "", slideCount: 10 });
   const [creating, setCreating] = useState(false);
+  const [outline, setOutline] = useState<any[] | null>(null);
+  const [generatingOutline, setGeneratingOutline] = useState(false);
 
   const { isRecording, toggleRecording, volume, interimTranscript } = useDictation({
     onResult: (text) => setForm(prev => ({ ...prev, wallOfText: prev.wallOfText + (prev.wallOfText ? " " : "") + text })),
@@ -59,7 +61,8 @@ export default function DashboardPage() {
   };
 
   const handleOpenModal = () => {
-    setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "" });
+    setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "", slideCount: 10 });
+    setOutline(null);
     setShowModal(true);
     fetchBrands();
   };
@@ -88,23 +91,67 @@ export default function DashboardPage() {
       .finally(() => setFetching(false));
   };
 
+  const generateOutline = async () => {
+    setGeneratingOutline(true);
+    try {
+      const res = await fetch("/api/decks/generate/outline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          context: form.wallOfText, 
+          slideCount: form.slideCount, 
+          brandSlug: form.brand 
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setOutline(data.outline);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setGeneratingOutline(false);
+    }
+  };
+
+  const moveSlide = (index: number, direction: number) => {
+    if (!outline) return;
+    const newIdx = index + direction;
+    if (newIdx < 0 || newIdx >= outline.length) return;
+    const newOutline = [...outline];
+    const [moved] = newOutline.splice(index, 1);
+    newOutline.splice(newIdx, 0, moved);
+    setOutline(newOutline);
+  };
+
+  const editSlide = (index: number, field: string, value: string) => {
+    if (!outline) return;
+    const newOutline = [...outline];
+    newOutline[index] = { ...newOutline[index], [field]: value };
+    setOutline(newOutline);
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.wallOfText && !outline) {
+       await generateOutline();
+       return;
+    }
+
     setCreating(true);
     try {
       const res = await fetch("/api/decks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify({ ...form, wallOfText: outline ? "" : form.wallOfText })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      if (form.wallOfText) {
-        await fetch("/api/decks/generate/text", {
+      if (outline) {
+        await fetch("/api/decks/generate/from-outline", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deckSlug: data.deckSlug, context: form.wallOfText })
+          body: JSON.stringify({ deckSlug: data.deckSlug, outline })
         });
       }
 
@@ -247,6 +294,41 @@ export default function DashboardPage() {
               </button>
             </div>
             
+            {outline ? (
+              <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-4 scrollbar-hide">
+                <div className="flex flex-col gap-1 mb-2">
+                  <h3 className="text-lg font-bold text-white">Review Slide Plan</h3>
+                  <p className="text-sm text-slate-400">Edit content or reorder. When ready, approve to generate MDX.</p>
+                </div>
+                
+                {outline.map((slide, index) => (
+                  <div key={slide.id} className="flex gap-4 p-4 border border-white/10 rounded-xl bg-white/5 relative group">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <button type="button" onClick={() => moveSlide(index, -1)} disabled={index === 0} className="p-1 text-slate-500 hover:text-white disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
+                      <span className="text-xs font-bold text-slate-500 w-6 text-center">{index + 1}</span>
+                      <button type="button" onClick={() => moveSlide(index, 1)} disabled={index === outline.length - 1} className="p-1 text-slate-500 hover:text-white disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
+                    </div>
+                    <div className="flex-1 flex flex-col gap-3 min-w-0">
+                      <input type="text" value={slide.title} onChange={e => editSlide(index, 'title', e.target.value)} className="bg-transparent text-white font-bold text-lg outline-none border-b border-transparent hover:border-white/20 focus:border-accent w-full" />
+                      <textarea value={slide.content} onChange={e => editSlide(index, 'content', e.target.value)} className="bg-transparent text-sm text-slate-300 outline-none border-b border-transparent hover:border-white/20 focus:border-accent resize-vertical w-full" rows={2} />
+                      <div className="bg-[#111114] p-2.5 rounded-lg border border-white/5">
+                        <span className="text-xs text-accent font-medium mb-1 block">Visual Prompt</span>
+                        <textarea value={slide.visualPrompt} onChange={e => editSlide(index, 'visualPrompt', e.target.value)} className="bg-transparent text-xs text-slate-400 outline-none w-full resize-vertical" rows={1} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-4">
+                  <button type="button" disabled={creating} onClick={() => setOutline(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                    Back to Config
+                  </button>
+                  <button type="button" onClick={handleCreate} disabled={creating} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
+                    {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : "Approve & Generate"}
+                  </button>
+                </div>
+              </div>
+            ) : (
             <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-5 scrollbar-hide">
               
               <div className="flex items-end gap-3 mb-1">
@@ -281,10 +363,17 @@ export default function DashboardPage() {
                 <input disabled={creating} type="text" value={form.audience} onChange={e => setForm({...form, audience: e.target.value})} placeholder="e.g. Senior Backend Engineers" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
               </label>
 
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-slate-300">Short Description (Optional)</span>
-                <textarea disabled={creating} value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} placeholder="Brief summary of the deck's purpose" className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-none" />
-              </label>
+              <div className="flex gap-4">
+                <label className="flex flex-col gap-2 flex-1">
+                  <span className="text-sm font-medium text-slate-300">Short Description (Optional)</span>
+                  <textarea disabled={creating} value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} placeholder="Brief summary of the deck's purpose" className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-none w-full" />
+                </label>
+
+                <label className="flex flex-col gap-2 w-32 shrink-0">
+                  <span className="text-sm font-medium text-slate-300">Target Slides</span>
+                  <input required disabled={creating} type="number" min={1} max={100} value={form.slideCount} onChange={e => setForm({...form, slideCount: parseInt(e.target.value) || 10})} className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white outline-none focus:border-accent w-full h-full text-center font-bold" />
+                </label>
+              </div>
 
               <label className="flex flex-col gap-2 mt-4 pt-4 border-t border-white/5">
                 <div className="flex flex-col gap-1">
@@ -329,14 +418,17 @@ export default function DashboardPage() {
               </label>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
-                <button type="button" disabled={creating} onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                <button type="button" disabled={creating || generatingOutline} onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
                   Cancel
                 </button>
-                <button type="submit" disabled={creating} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
-                  {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : "Create & Launch Editor"}
+                <button type="submit" disabled={creating || generatingOutline} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
+                  {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : 
+                   generatingOutline ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating Plan</> : 
+                   form.wallOfText ? "Generate Slide Plan" : "Create & Launch Editor"}
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}
