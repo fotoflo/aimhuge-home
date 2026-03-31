@@ -294,7 +294,7 @@ export default function AboutPage() {
               <div className="space-y-4 text-muted leading-relaxed">
                 <p>
                   I&apos;ve lived and worked across Asia for over two decades.
-                  I&apos;ve worked out of offices in New York, Beijing, Shanghai, Guangzhou, Hong Kong, San Francisco, Mountain View, Singapore, Tokyo, Osaka, Dhaka, Bali, Jakarta, Danang, Manila, Penang, KL, Bangkok and now Chiang Mai.
+                  I&apos;ve worked out of offices in New York, Austin, Beijing, Shanghai, Guangzhou, Hong Kong, San Francisco, Mountain View, Singapore, Tokyo, Osaka, Dhaka, Bali, Jakarta, Danang, Manila, Penang, KL, Bangkok and now Chiang Mai.
                 </p>
                 <p>
                   I speak fluent Mandarin, conversational Indonesian and Malay, and &quot;Singlish lah&quot;. I can also successfully order a meal in Thai, Japanese, Korean, and Bengali — and, having worked intimately with founders in every country in Asia, I intimately understand the unique dynamics of building technology businesses in the region.
