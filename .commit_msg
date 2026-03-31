@@ -1,0 +1,14 @@
+feat: implement deck copilot and progressive semantic search
+
+Session summary:
+- Duration: 1h 18m
+- User prompts: 4
+- Files modified: 2, created: 3
+- Lines: ~150 added/modified
+- Lint: fixed all new errors in session files
+- File sizes: 9 files checked, largest is SlideEditor.tsx (668 lines)
+- Tests: 105 passed, 0 failed
+- Docs: created bug-fixes/012-sidebar-dimming-ux.md for search UX edge cases
+- Areas: src/app/(decks)/clients, src/app/api/decks/agent
+
+Co-Authored-By: Antigravity <noreply@google.com>

@@ -1,0 +1,57 @@
+
+> site@0.1.0 lint /Users/fotoflo/dev/aimhuge-home
+> eslint
+
+
+/Users/fotoflo/dev/aimhuge-home/coverage/block-navigation.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported)
+
+/Users/fotoflo/dev/aimhuge-home/scripts/bulk-update-slides.ts
+    8:7   warning  'SUMMARY_API' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   18:62  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+   34:52  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+   59:47  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+   71:44  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  130:33  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  197:35  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+/Users/fotoflo/dev/aimhuge-home/scripts/generate-slide-images.ts
+   3:8   warning  'fs' is defined but never used                 @typescript-eslint/no-unused-vars
+   4:8   warning  'path' is defined but never used               @typescript-eslint/no-unused-vars
+   8:7   warning  'model' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  11:7   warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  16:7   warning  'BUCKET' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  37:16  warning  'generateAndUpload' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/fotoflo/dev/aimhuge-home/scripts/youtube-to-deck.ts
+   36:76  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+   66:43  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+   82:17  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  110:23  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  123:16  warning  'err' is defined but never used                               @typescript-eslint/no-unused-vars
+  135:16  warning  'err' is defined but never used                               @typescript-eslint/no-unused-vars
+  159:12  warning  'error' is defined but never used                             @typescript-eslint/no-unused-vars
+  199:7   error    'parts' is never reassigned. Use 'const' instead              prefer-const
+  199:14  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  208:7   error    'messages' is never reassigned. Use 'const' instead           prefer-const
+  208:17  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  210:16  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  222:23  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  262:23  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  275:24  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+  279:12  warning  'e' is defined but never used                                 @typescript-eslint/no-unused-vars
+  285:15  warning  'err' is defined but never used                               @typescript-eslint/no-unused-vars
+  295:7   error    'currentSlidesData' is never reassigned. Use 'const' instead  prefer-const
+  296:7   error    'existingSlides' is never reassigned. Use 'const' instead     prefer-const
+  297:59  error    Unexpected any. Specify a different type                      @typescript-eslint/no-explicit-any
+
+/Users/fotoflo/dev/aimhuge-home/src/app/decks/components/Icon.tsx
+  11:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/fotoflo/dev/aimhuge-home/test-api.mjs
+  1:8  warning  'fs' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 36 problems (22 errors, 14 warnings)
+  4 errors and 1 warning potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.

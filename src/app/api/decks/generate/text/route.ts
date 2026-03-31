@@ -67,8 +67,8 @@ ${context}
     }
 
     return NextResponse.json({ success: true, slides: insertedIds.length });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Generate error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
   }
 }

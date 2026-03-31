@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     if (sErr) console.warn("Could not insert initial slide:", sErr);
 
     return NextResponse.json({ success: true, deckSlug: slug });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
   }
 }

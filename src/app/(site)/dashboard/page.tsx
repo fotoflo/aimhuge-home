@@ -36,8 +36,15 @@ export default function DashboardPage() {
 
   // New Deck Modal State
   const [showModal, setShowModal] = useState(false);
+  const [slugTouched, setSlugTouched] = useState(false);
   const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "" });
   const [creating, setCreating] = useState(false);
+
+  const handleOpenModal = () => {
+    setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "" });
+    setSlugTouched(false);
+    setShowModal(true);
+  };
 
   const email = user?.email ?? "";
   const isAllowed = email === ALLOWED_EMAIL;
@@ -76,8 +83,8 @@ export default function DashboardPage() {
       }
 
       router.push(`/decks/${data.deckSlug}/edit`);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "An error occurred");
       setCreating(false);
     }
   };
@@ -107,7 +114,7 @@ export default function DashboardPage() {
             Token Terminal
           </a>
           <button 
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenModal}
             className="rounded-full bg-accent text-white px-5 py-2 text-sm font-medium hover:bg-accent-hover transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> New Deck
@@ -183,11 +190,21 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-5">
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-slate-300">Internal Slug *</span>
-                  <input required disabled={creating} type="text" value={form.slug} onChange={e => setForm({...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-')})} placeholder="e.g. pulsetech-training" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
+                  <input required disabled={creating} type="text" value={form.slug} onChange={e => {
+                    setSlugTouched(true);
+                    setForm({...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-')});
+                  }} placeholder="e.g. pulsetech-training" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
                 </label>
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-slate-300">Presentation Title *</span>
-                  <input required disabled={creating} type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Pulsetech Engineering Q3" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
+                  <input required disabled={creating} type="text" value={form.title} onChange={e => {
+                    const newTitle = e.target.value;
+                    setForm(prev => ({
+                      ...prev,
+                      title: newTitle,
+                      slug: slugTouched ? prev.slug : newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+                    }));
+                  }} placeholder="e.g. Pulsetech Engineering Q3" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
                 </label>
               </div>
 
@@ -203,7 +220,7 @@ export default function DashboardPage() {
 
               <label className="flex flex-col gap-2 mt-4 pt-4 border-t border-white/5">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-accent">Auto-Generate "Wall of Text" (Optional)</span>
+                  <span className="text-sm font-medium text-accent">Auto-Generate &quot;Wall of Text&quot; (Optional)</span>
                   <span className="text-xs text-slate-400">Paste your raw notes, blog post, or article here. Our AI will automatically extract and construct the entire slide deck for you in the background.</span>
                 </div>
                 <textarea disabled={creating} value={form.wallOfText} onChange={e => setForm({...form, wallOfText: e.target.value})} rows={6} placeholder="Paste your massive wall of unstructured text here..." className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-vertical font-mono text-sm" />

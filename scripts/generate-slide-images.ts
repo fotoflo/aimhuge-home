@@ -59,3 +59,4 @@ async function generateAndUpload() {
 }
 
 // generateAndUpload();
+export {}

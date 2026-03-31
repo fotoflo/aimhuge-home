@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, type RefObject, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, type RefObject, type MutableRefObject } from "react";
 import type { SlideRow } from "@/app/decks/lib/slides-db";
 import { parseCropFromStyle, parseWidthFromClass, findImageTagInMdx } from "@/app/decks/lib/editor-utils";
 
@@ -36,6 +36,16 @@ export function useInlineEditing({
   setSlides,
   setImageEditor,
 }: UseInlineEditingOptions) {
+  const slideRef = useRef(slide);
+  const setSlidesRef = useRef(setSlides);
+  const setImageEditorRef = useRef(setImageEditor);
+
+  useEffect(() => {
+    slideRef.current = slide;
+    setSlidesRef.current = setSlides;
+    setImageEditorRef.current = setImageEditor;
+  }, [slide, setSlides, setImageEditor]);
+
   const handleIframeLoad = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe?.contentDocument) return;
@@ -57,9 +67,10 @@ export function useInlineEditing({
 
         const crop = parseCropFromStyle(img.getAttribute("style") ?? "");
         const width = parseWidthFromClass(img.getAttribute("class") ?? img.className ?? "");
-        const originalTag = findImageTagInMdx(slide?.mdx_content ?? "", src);
+        const currentSlide = slideRef.current;
+        const originalTag = findImageTagInMdx(currentSlide?.mdx_content ?? "", src);
 
-        setImageEditor({ src, originalTag, width, ...crop });
+        setImageEditorRef.current({ src, originalTag, width, ...crop });
       });
     });
 
@@ -96,15 +107,17 @@ export function useInlineEditing({
         editingInline.current = false;
 
         const newText = target.textContent ?? "";
-        if (newText !== originalText && slide) {
-          const updatedContent = slide.mdx_content.replace(originalText, newText);
-          if (updatedContent !== slide.mdx_content) {
+        const currentSlide = slideRef.current;
+        if (newText !== originalText && currentSlide) {
+          // Fallback simple replace
+          const updatedContent = currentSlide.mdx_content.replace(originalText, newText);
+          if (updatedContent !== currentSlide.mdx_content) {
             await fetch("/api/decks/slides", {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: slide.id, mdx_content: updatedContent }),
+              body: JSON.stringify({ id: currentSlide.id, mdx_content: updatedContent }),
             });
-            setSlides((prev) => prev.map((s) => s.id === slide.id ? { ...s, mdx_content: updatedContent } : s));
+            setSlidesRef.current((prev) => prev.map((s) => s.id === currentSlide.id ? { ...s, mdx_content: updatedContent } : s));
           }
         }
       };
@@ -115,7 +128,7 @@ export function useInlineEditing({
         if (ke.key === "Escape") { target.textContent = originalText; target.blur(); }
       });
     });
-  }, [slide, iframeRef, editingInline, setSlides, setImageEditor]);
+  }, [iframeRef, editingInline]);
 
   return handleIframeLoad;
 }

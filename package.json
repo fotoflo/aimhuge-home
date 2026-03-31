@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "lsof -ti:4000 | xargs kill -9 2>/dev/null; rm -rf .next && next dev -p 4000",
+    "dev": "lsof -ti:4000 | xargs kill -9 || true; rm -rf .next; next dev -p 4000",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -20,6 +20,7 @@
     "@next/mdx": "^16.2.1",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.1",
+    "cheerio": "^1.2.0",
     "geist": "^1.7.0",
     "html-to-image": "^1.11.13",
     "ioredis": "^5.10.1",

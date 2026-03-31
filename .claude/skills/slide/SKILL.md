@@ -10,12 +10,14 @@ You manage slides in the Priyoshop exec deck via the REST API at `http://localho
 
 ## API Reference
 
-- **Summary:** `GET /api/decks/summary?deck=priyoshop-exec` — lightweight index, no content
-- **Full slide:** `GET /api/decks/slides?deck=priyoshop-exec` — all slides with MDX content
+- **Summary:** `GET /api/decks/summary?deck=priyoshop-exec` — lightweight index, no content, but includes `embedding: number[]`
+- **Full slide:** `GET /api/decks/slides?deck=priyoshop-exec` — all slides with MDX content and `embedding`
 - **Upsert:** `PUT /api/decks/slides` — create or replace a slide
 - **Patch content:** `PATCH /api/decks/slides` — update MDX content only
 - **Delete:** `DELETE /api/decks/slides` — soft-delete by `{ "id": "uuid" }`
 - **Reorder:** `POST /api/decks/slides/reorder` — update slide_order for multiple slides
+
+*(Note: The API automatically generates and updates AI Vector Embeddings (`gemini-embedding-001`, 768d) in the background during PUT and PATCH operations. You do not need to manually embed slides.)*
 
 ## Steps
 
