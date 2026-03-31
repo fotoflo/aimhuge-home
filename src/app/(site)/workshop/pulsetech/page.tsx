@@ -62,6 +62,8 @@ export default function PulseTechOnePager() {
                 width={120}
                 height={32}
                 className="h-7 w-auto opacity-80"
+                priority
+                style={{ width: "auto" }}
               />
               <span className="text-xs text-muted tracking-wider">
                 × PulseTech
@@ -431,6 +433,7 @@ export default function PulseTechOnePager() {
             width={80}
             height={22}
             className="h-5 w-auto opacity-60"
+            style={{ width: "auto" }}
           />
           <p className="text-xs text-muted">
             Confidential — Prepared for PulseTech

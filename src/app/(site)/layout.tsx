@@ -99,6 +99,7 @@ export default function RootLayout({
                   width={100}
                   height={28}
                   className="h-7 w-auto mb-3"
+                  style={{ width: "auto" }}
                 />
                 <p className="text-sm text-muted max-w-xs">
                   Startup operator, investor, and AI trainer helping teams build

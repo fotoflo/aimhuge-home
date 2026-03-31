@@ -26,6 +26,8 @@ export function NavBar() {
             width={120}
             height={32}
             className="h-8 w-auto"
+            priority
+            style={{ width: "auto" }}
           />
         </Link>
         <div className="hidden md:flex items-center gap-8">
