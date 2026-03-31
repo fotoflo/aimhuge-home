@@ -183,7 +183,7 @@ export default function AboutPage() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-4">
-            <h2 className="text-3xl font-bold">My Time at Renren.com</h2>
+            <h2 className="text-3xl font-bold">My time in China</h2>
             <div className="space-y-4 text-muted leading-relaxed">
               <p>
                 As I wandered across China for the next 11 years, I met many amazing people and got many amazing opportunities. The first key opportunity being a job at Renren.com.
