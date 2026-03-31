@@ -38,12 +38,10 @@ export default function Home() {
               <span className="text-accent">AI engineering</span> that actually
               ships.
             </h1>
-            <p className="text-lg text-muted max-w-xl">
-              I help engineering, product, and leadership teams go from curious
-              about AI to building with it — through hands-on workshops,
-              hackathons, and 1:1 executive training.
+            <p className="text-lg text-muted max-w-xl leading-relaxed">
+              With 25+ years building products across Asia—and having served as CTO, Chief Growth Officer, and Director of VC accelerators—I don't just teach theory. I help engineering, product, and leadership teams go from curious about AI to building with it through hands-on workshops, hackathons, and 1:1 executive training.
             </p>
-            <div className="flex gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <a
                 href="https://calendly.com/fotoflo/30min"
                 target="_blank"

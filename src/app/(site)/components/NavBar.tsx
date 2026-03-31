@@ -95,7 +95,7 @@ export function NavBar() {
           isOpen ? "opacity-100 scale-y-100 pointer-events-auto" : "opacity-0 scale-y-95 pointer-events-none"
         }`}
       >
-        <div className="flex flex-col px-8 py-12 gap-8 min-h-full">
+        <div className="flex flex-col px-8 py-[4vh] gap-[2.5vh] min-h-[calc(100vh-[73px])]">
           {navLinks.map((link, i) => (
             <Link
               key={link.href}
@@ -107,7 +107,7 @@ export function NavBar() {
               {link.label}
             </Link>
           ))}
-          <div className="pt-8 mt-auto border-t border-white/10 flex flex-col gap-6">
+          <div className="pt-[2vh] mt-auto border-t border-white/10 flex flex-col gap-[2vh] pb-[4vh]">
             <LoginButton />
             <a
               href="https://calendly.com/fotoflo/30min"
