@@ -294,7 +294,7 @@ export default function AboutPage() {
               <div className="space-y-4 text-muted leading-relaxed">
                 <p>
                   I&apos;ve lived and worked across Asia for over two decades.
-                  I&apos;ve worked out of offices in New York, Austin, Beijing, Shanghai, Guangzhou, Hong Kong, San Francisco, Mountain View, Singapore, Tokyo, Osaka, Dhaka, Bali, Jakarta, Danang, Manila, Penang, KL, Bangkok and now Chiang Mai.
+                  I&apos;ve worked out of offices in New York, Austin, Beijing, Shanghai, Guangzhou, Hong Kong, San Francisco, Mountain View, Singapore, Tokyo, Osaka, Kyoto, Dhaka, Bali, Jakarta, Danang, Manila, Penang, KL, Bangkok and now Chiang Mai.
                 </p>
                 <p>
                   I speak fluent Mandarin, conversational Indonesian and Malay, and &quot;Singlish lah&quot;. I can also successfully order a meal in Thai, Japanese, Korean, and Bengali — and, having worked intimately with founders in every country in Asia, I intimately understand the unique dynamics of building technology businesses in the region.
@@ -307,14 +307,17 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 relative group">
               <Image
                 src="/images/alex-kyoto.png"
-                alt="Alex in Kyoto"
+                alt="Judging a pitch event in Kyoto"
                 width={360}
                 height={540}
-                className="rounded-2xl object-cover w-72 h-auto shadow-xl"
+                className="rounded-2xl object-cover w-72 h-auto shadow-xl transition-transform group-hover:scale-[1.02]"
               />
+              <div className="absolute -bottom-3 -left-3 bg-card-bg border border-card-border px-4 py-2 rounded-xl text-xs font-mono font-medium text-muted shadow-lg z-10 pointer-events-none">
+                Judging a pitch event in Kyoto
+              </div>
             </div>
           </div>
         </div>
