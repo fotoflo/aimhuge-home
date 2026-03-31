@@ -270,7 +270,7 @@ export function ScrollSpy() {
             <button
               key={id}
               onClick={() => scrollTo(id)}
-              className="group relative flex items-center justify-end w-32 sm:w-40"
+              className="group relative flex items-center justify-end w-4 sm:w-40"
               aria-label={label}
             >
               <span
