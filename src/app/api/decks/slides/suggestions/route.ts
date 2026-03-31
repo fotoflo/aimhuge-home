@@ -6,13 +6,62 @@ import { getSimilarSlides, updateSlideTips } from "@/app/decks/lib/slides-db";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-const SYSTEM_PROMPT_PREFIX = `You are a premium, high-end presentation layout designer. Given a slide's current layout, MDX content, and narrative context, provide 3 to 5 actionable, zero-fluff suggestions to elevate the aesthetic.
-
-Focus entirely on clean, highly-polished, and structural layout refinements:
+const getSystemPrompt = (style: string = "premium") => {
+  let styleInstructions = "";
+  
+  switch (style) {
+    case "edgy":
+      styleInstructions = `Focus entirely on avant-garde, boundary-pushing layout design:
+- Suggest BOLD, radically creative ideas (e.g., editorial magazine layouts, brutalist geometry, unconventional asymmetry, dramatic overlapping elements).
+- Do not hold back: push the aesthetic to be hyper-modern and completely unexpected, while still being beautiful.`;
+      break;
+    case "minimalist":
+      styleInstructions = `Focus entirely on extreme minimalism and visual clarity:
+- Suggest layouts with massive amounts of negative space, hyper-focused single focal points, and absolute reduction of clutter.
+- Strip away all non-essential decorative elements. Think high-fashion lookbooks or Swiss design posters.`;
+      break;
+    case "analytical":
+      styleInstructions = `Focus entirely on data-heavy, analytical presentation:
+- Suggest highly structured layouts: dense but legible multi-column metric dashboards, clear infographic-style data points, and precision alignment.
+- Keep the aesthetic sharp, trustworthy, and firmly professional like an elite financial report or Bloomberg terminal.`;
+      break;
+    case "punchy":
+      styleInstructions = `Focus entirely on making the written content razor-sharp and punchy:
+- Suggest rewriting the text to be significantly shorter and more impactful, using active voice and power verbs.
+- Eliminate filler words, corporate jargon, and long paragraphs. Suggest replacing dense text with sharp, punchy statements.`;
+      break;
+    case "expand":
+      styleInstructions = `Focus entirely on elaborating and enriching the written content:
+- Suggest adding more strategic depth, specific examples, or explanatory text to flesh out the current points.
+- Identify areas where the narrative is too brief or assumes too much, and suggest specific deep-dives, data points, or analogies to add.`;
+      break;
+    case "storytelling":
+      styleInstructions = `Focus entirely on elevating the narrative and storytelling:
+- Suggest framing the slide's content around a compelling narrative arc, user journey, or emotional hook.
+- Recommend specific metaphors, anecdotes, or narrative structures to make the dry points more relatable, human, and deeply memorable.`;
+      break;
+    case "premium":
+      styleInstructions = `Focus entirely on clean, highly-polished, and structural layout refinements:
 - Suggest elegant multi-column grids, sophisticated typography hierarchies, precise card-based groupings, strategic use of whitespace, and balanced, professional composition.
-- Avoid overly radical, "edgy", or messy "avant-garde" designs (no brutalist geometry or chaotic asymmetry). Keep the aesthetic sharp, trustworthy, and firmly professional. Think Apple or Stripe design language.
+- Avoid overly radical, "edgy", or messy "avant-garde" designs. Keep the aesthetic sharp, trustworthy, and firmly professional. Think Apple or Stripe design language.`;
+      break;
+    default:
+      if (!style || style.trim() === "premium" || style.trim() === "") {
+        styleInstructions = `Focus entirely on clean, highly-polished, and structural layout refinements:
+- Suggest elegant multi-column grids, sophisticated typography hierarchies, precise card-based groupings, strategic use of whitespace, and balanced, professional composition.
+- Avoid overly radical, "edgy", or messy "avant-garde" designs. Keep the aesthetic sharp, trustworthy, and firmly professional. Think Apple or Stripe design language.`;
+      } else {
+        styleInstructions = `Focus on the following custom instruction:
+- ${style}`;
+      }
+      break;
+  }
 
-Do not suggest generic, boring corporate formatting like "add a bullet point" or "make the title larger". Ensure all suggestions maintain a premium, state-of-the-art design standard.
+  return `You are a visionary presentation expert. Given a slide's current layout, MDX content, and narrative context, provide 3 to 5 actionable, zero-fluff suggestions to elevate the slide.
+
+${styleInstructions}
+
+Do not suggest generic, boring corporate formatting like "add a bullet point" or "make the title larger". Ensure all suggestions maintain a premium standard.
 If the slide is dense or tries to cover too many points, you MUST forcefully suggest breaking it down into 2 or 3 separate, highly impactful slides.
 
 Important Capabilities & Constraints:
@@ -24,10 +73,11 @@ Important Capabilities & Constraints:
 
 Return your suggestions as a strict JSON array of strings, with NO markdown formatting or additional text. Example:
 ["Since the next slide covers the specific skills, shorten these bullet points to focus only on the organizational timeline", "Use the <Icon name='Vault' /> component instead of bullet points to emphasize security", "Add a realistic generated photo of a server room to the right column"]`;
+};
 
 export async function POST(req: NextRequest) {
   try {
-    const { deckSlug, slideId, image, currentSlide, previousSlide, nextSlide, toc } = await req.json();
+    const { deckSlug, slideId, image, currentSlide, previousSlide, nextSlide, toc, style } = await req.json();
 
     let similarSlidesContext = "";
     try {
@@ -53,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     const contextText = `
-${SYSTEM_PROMPT_PREFIX}
+${getSystemPrompt(style)}
 
 --- THE PRESENTATION NARRATIVE ---
 Table of Contents:

@@ -47,6 +47,8 @@ export function PromptSidebar({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
+  const [tipStyle, setTipStyle] = useState("premium");
+  const [customTipStyle, setCustomTipStyle] = useState("");
   const isFetchingTipsRef = useRef(false);
   const [manualHeight, setManualHeight] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -62,6 +64,17 @@ export function PromptSidebar({
   useEffect(() => {
     setMode("editor");
   }, [slideId]);
+
+  useEffect(() => {
+    const savedCustom = localStorage.getItem("customTipStyle");
+    if (savedCustom) setCustomTipStyle(savedCustom);
+  }, []);
+
+  useEffect(() => {
+    if (customTipStyle) {
+      localStorage.setItem("customTipStyle", customTipStyle);
+    }
+  }, [customTipStyle]);
 
   useEffect(() => {
     const currentSlide = slides.find(s => s.id === slideId);
@@ -116,7 +129,8 @@ export function PromptSidebar({
             currentSlide: { frontmatter: s.frontmatter, content: s.mdx_content },
             previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
             nextSlide: nextSlide ? { frontmatter: nextSlide.frontmatter, content: nextSlide.mdx_content } : null,
-            toc
+            toc,
+            style: "premium"
           };
 
           try {
@@ -173,7 +187,8 @@ export function PromptSidebar({
         currentSlide: { frontmatter: currentSlide?.frontmatter, content: currentSlide?.mdx_content },
         previousSlide: previousSlide ? { frontmatter: previousSlide.frontmatter, content: previousSlide.mdx_content } : null,
         nextSlide: nextSlide ? { frontmatter: nextSlide.frontmatter, content: nextSlide.mdx_content } : null,
-        toc
+        toc,
+        style: tipStyle === "custom" ? customTipStyle : tipStyle
       };
 
       const res = await fetch("/api/decks/slides/suggestions", {
@@ -189,7 +204,7 @@ export function PromptSidebar({
       isFetchingTipsRef.current = false;
       setLoadingSuggestions(false);
     }
-  }, [deckSlug, slideId, screenshot, slides, current, suggestions.length]);
+  }, [deckSlug, slideId, screenshot, slides, current, suggestions.length, tipStyle, customTipStyle]);
 
   useEffect(() => {
     let active = true;
@@ -350,13 +365,13 @@ export function PromptSidebar({
           {/* Subtle background glow */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#7c5cfc]/10 rounded-full blur-3xl pointer-events-none mix-blend-screen" />
           
-          <div className="flex items-center justify-between mb-6 relative z-10">
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="flex items-center gap-3">
               <div className="p-1.5 bg-[#7c5cfc]/10 rounded-md border border-[#7c5cfc]/20">
                 <Lightbulb className="w-3.5 h-3.5 text-[#7c5cfc]" />
               </div>
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300">
-                AI Layout Tips
+                AI Tips
               </span>
             </div>
             {suggestions.length > 0 && !loadingSuggestions && (
@@ -367,6 +382,39 @@ export function PromptSidebar({
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
+            )}
+          </div>
+
+          <div className="relative z-10 mb-6">
+            <select
+              value={tipStyle}
+              onChange={(e) => setTipStyle(e.target.value)}
+              className="w-full bg-[#161622] border border-[#7c5cfc]/30 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 outline-none focus:border-[#7c5cfc] appearance-none cursor-pointer transition-colors hover:border-[#7c5cfc]/60"
+              style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%237c5cfc%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right .7em top 50%", backgroundSize: "10px auto" }}
+            >
+              <optgroup label="Layout Aesthetics" className="bg-[#12121a]">
+                <option value="premium">Premium Corporate (Apple/Stripe)</option>
+                <option value="edgy">Edgy & Avant-Garde</option>
+                <option value="minimalist">Pure Minimalist</option>
+                <option value="analytical">Data-Heavy & Analytical</option>
+              </optgroup>
+              <optgroup label="Content Editing" className="bg-[#12121a]">
+                <option value="punchy">Punchy & Concise</option>
+                <option value="expand">Expand & Elaborate</option>
+                <option value="storytelling">Narrative Storytelling</option>
+              </optgroup>
+              <optgroup label="Custom" className="bg-[#12121a]">
+                <option value="custom">Other (Custom Prompt)...</option>
+              </optgroup>
+            </select>
+            {tipStyle === "custom" && (
+              <textarea
+                value={customTipStyle}
+                onChange={(e) => setCustomTipStyle(e.target.value)}
+                placeholder="Enter custom layout or content instructions..."
+                className="w-full mt-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#7c5cfc]/50 resize-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shadow-inner"
+                rows={3}
+              />
             )}
           </div>
           

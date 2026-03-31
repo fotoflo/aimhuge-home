@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NewsletterCTA } from "../components/NewsletterCTA";
 
 export const metadata: Metadata = {
   title: "Talks — AimHuge",
@@ -101,6 +102,9 @@ export default function TalksPage() {
           </a>
         </div>
       </section>
+
+      {/* Newsletter */}
+      <NewsletterCTA sourcePage="/talks" />
 
       {/* Speaking CTA */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">

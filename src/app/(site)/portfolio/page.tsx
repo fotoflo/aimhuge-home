@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NewsletterCTA } from "../components/NewsletterCTA";
 
 export const metadata: Metadata = {
   title: "Portfolio — AimHuge",
@@ -163,6 +164,9 @@ export default function PortfolioPage() {
           </p>
         </div>
       </section>
+
+      {/* Newsletter */}
+      <NewsletterCTA sourcePage="/portfolio" />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { NewsletterCTA } from "../../components/NewsletterCTA";
 
 export const metadata: Metadata = {
   title: "How to Write a /done Skill for Claude Code — AimHuge",
@@ -743,6 +744,9 @@ export default function BlogPostDoneSkill() {
           />
         </div>
       </section>
+
+      {/* Newsletter */}
+      <NewsletterCTA sourcePage="/blog/how-to-write-a-done-skill-for-claude-code" />
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revertToVersion } from "@/app/decks/lib/slides-db";
+import { revertToVersion, updateEmbeddingForSlide } from "@/app/decks/lib/slides-db";
 
 /** POST /api/decks/slides/versions/revert — revert a slide to a previous version */
 export async function POST(req: NextRequest) {
@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const slide = await revertToVersion(slideId, versionId);
+    updateEmbeddingForSlide(slideId).catch(console.error);
     return NextResponse.json({ ok: true, slide });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Revert failed";

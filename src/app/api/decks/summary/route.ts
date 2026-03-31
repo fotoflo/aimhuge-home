@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   if (id) {
     const { data, error } = await supabase
       .from("deck_slides")
-      .select("id, deck_slug, slide_order, frontmatter, updated_at")
+      .select("id, deck_slug, slide_order, frontmatter, updated_at, embedding")
       .eq("id", id)
       .is("deleted_at", null)
       .single();
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
       variant: (data.frontmatter as Record<string, unknown>)?.variant ?? null,
       sectionLabel: (data.frontmatter as Record<string, unknown>)?.sectionLabel ?? null,
       updated_at: data.updated_at,
+      embedding: data.embedding
     });
   }
 
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("deck_slides")
-    .select("id, deck_slug, slide_order, frontmatter, updated_at")
+    .select("id, deck_slug, slide_order, frontmatter, updated_at, embedding")
     .eq("deck_slug", deck)
     .is("deleted_at", null)
     .order("slide_order", { ascending: true });
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest) {
     variant: (row.frontmatter as Record<string, unknown>)?.variant ?? null,
     sectionLabel: (row.frontmatter as Record<string, unknown>)?.sectionLabel ?? null,
     updated_at: row.updated_at,
+    embedding: row.embedding
   }));
 
   return NextResponse.json({

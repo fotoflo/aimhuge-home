@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NewsletterCTA } from "../components/NewsletterCTA";
 
 export const metadata: Metadata = {
   title: "AI Engineering in Production — AimHuge",
@@ -229,6 +230,9 @@ export default function WorkshopPage() {
           ))}
         </div>
       </section>
+
+      {/* Newsletter */}
+      <NewsletterCTA sourcePage="/workshop" />
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">

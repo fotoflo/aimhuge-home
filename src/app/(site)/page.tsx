@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { NewsletterCTA } from "./components/NewsletterCTA";
 
 const testimonials = [
   {
@@ -294,6 +295,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Newsletter */}
+      <NewsletterCTA sourcePage="/" />
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">

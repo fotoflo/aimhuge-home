@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NewsletterCTA } from "../components/NewsletterCTA";
 
 export const metadata: Metadata = {
   title: "Blog — AimHuge",
@@ -63,6 +64,9 @@ export default function BlogPage() {
           ))}
         </div>
       </section>
+
+      {/* Newsletter */}
+      <NewsletterCTA sourcePage="/blog" />
     </>
   );
 }

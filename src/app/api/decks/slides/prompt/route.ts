@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { getSupabase } from "@/lib/supabase";
-import { saveVersionSnapshot } from "@/app/decks/lib/slides-db";
+import { saveVersionSnapshot, updateEmbeddingForSlide } from "@/app/decks/lib/slides-db";
 import { logAiUsage } from "@/lib/ai-telemetry";
 import { DEFAULT_MODEL, IMAGE_MODEL } from "@/lib/gemini";
 
@@ -182,6 +182,7 @@ export async function POST(req: NextRequest) {
             if (supabaseServer) {
               const mdxBlocks = [...fullText.matchAll(/```mdx\n([\s\S]*?)```/g)].map(m => m[1].trim());
               const jsonBlocks = [...fullText.matchAll(/```json\n([\s\S]*?)```/g)].map(m => m[1].trim());
+              const mutatedSlideIds: string[] = [slideId];
 
               if (mdxBlocks.length === 0) {
                  // Fallback if formatting isn't perfect
@@ -237,6 +238,7 @@ export async function POST(req: NextRequest) {
                                updated_at: new Date().toISOString(),
                                deleted_at: null
                              });
+                             mutatedSlideIds.push(newSlides[newSlides.length - 1].id);
                           }
                           
                           const combined = [...allSlides];
@@ -262,6 +264,9 @@ export async function POST(req: NextRequest) {
                     }
                  }
               }
+              
+              // Fire and forget embedding updates for all mutated slides
+              mutatedSlideIds.forEach(id => updateEmbeddingForSlide(id).catch(console.error));
             }
           }
           if (totalUsage) {
