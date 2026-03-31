@@ -269,7 +269,7 @@ export default function AboutPage() {
                   I&apos;ve reviewed about 3,000 decks, interviewed more than 500 founders, and sat in and advised IC meetings for almost 50 investments into companies from Seoul to Dhaka.
                 </p>
                 <p>
-                  As an advisor, I also worked with them on GTM, product, tech, and HR strategy. I always tell founders I only have 8 minutes, but usually, we schedule hour-long meetings every week.
+                  As an advisor, I also worked with them on GTM, product, tech, and HR strategy. I tell founders I always have 8 minutes for them if they ever need me, no matter the time of day or night—though the real heavy lifting happens in our dedicated, hour-long strategy sessions every week.
                 </p>
               </div>
             </div>
