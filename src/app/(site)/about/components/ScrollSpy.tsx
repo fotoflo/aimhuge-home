@@ -94,10 +94,10 @@ const sectionsConfig: SectionConfig[] = [
       { lat: 35.6762, lng: 139.6503, label: "Tokyo", primary: false },
       { lat: 34.6937, lng: 135.5023, label: "Osaka", primary: false },
       { lat: 35.0116, lng: 135.7681, label: "Kyoto", primary: false },
-      { lat: 39.9042, lng: 116.4074, label: "Beijing", primary: false },
+      { lat: 39.9042, lng: 116.4074, label: "Beijing", primary: true },
       { lat: 31.2304, lng: 121.4737, label: "Shanghai", primary: false },
       { lat: 23.1291, lng: 113.2644, label: "Guangzhou", primary: false },
-      { lat: 22.3193, lng: 114.1694, label: "Hong Kong", primary: true },
+      { lat: 22.3193, lng: 114.1694, label: "Hong Kong", primary: false },
       { lat: 23.8103, lng: 90.4125, label: "Dhaka", primary: false },
       { lat: 13.7563, lng: 100.5018, label: "Bangkok", primary: false },
       { lat: 18.7953, lng: 98.962, label: "Chiang Mai", primary: true },
@@ -105,9 +105,9 @@ const sectionsConfig: SectionConfig[] = [
       { lat: 16.0544, lng: 108.2022, label: "Danang", primary: false },
       { lat: 3.1390, lng: 101.6869, label: "KL", primary: false },
       { lat: 5.4141, lng: 100.3288, label: "Penang", primary: false },
-      { lat: 1.3521, lng: 103.8198, label: "Singapore", primary: false },
+      { lat: 1.3521, lng: 103.8198, label: "Singapore", primary: true },
       { lat: -6.2088, lng: 106.8456, label: "Jakarta", primary: false },
-      { lat: -8.4095, lng: 115.1889, label: "Bali", primary: false },
+      { lat: -8.4095, lng: 115.1889, label: "Bali", primary: true },
     ],
   },
   { id: "ai-advisor", label: "AI Advisor", type: "text" },
@@ -134,12 +134,12 @@ function Globe() {
       phi: 0,
       theta: 0.3,
       dark: 1,
-      diffuse: 1.2,
+      diffuse: 2,
       mapSamples: 16000,
-      mapBrightness: 6,
-      baseColor: [0.08, 0.08, 0.08], // Very dark globe body
+      mapBrightness: 8,
+      baseColor: [0.25, 0.25, 0.25], // Boosted base contrast to reveal topography
       markerColor: [0.486, 0.361, 0.988], // Accent #7c5cfc
-      glowColor: [0.1, 0.1, 0.1], // Soft dark halo
+      glowColor: [0.2, 0.15, 0.4], // Elegant subtle purple ambient glow
       markers: [],
       onRender: (state: Record<string, any>) => {
         state.phi = phi;
