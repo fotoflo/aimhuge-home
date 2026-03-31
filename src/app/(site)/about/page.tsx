@@ -86,8 +86,9 @@ export default function AboutPage() {
             <Image
               src="/images/me.jpg"
               alt="Alex Miller"
-              width={360}
-              height={480}
+              width={1328}
+              height={1662}
+              sizes="(max-width: 768px) 100vw, 360px"
               className="rounded-2xl object-cover w-72 h-96"
             />
           </div>
@@ -113,8 +114,9 @@ export default function AboutPage() {
               <Image
                 src="/images/alex-new-york.png"
                 alt="Alex in New York, 1992"
-                width={300}
-                height={400}
+                width={722}
+                height={963}
+                sizes="(max-width: 768px) 100vw, 360px"
                 className="rounded-2xl object-cover w-full h-auto shadow-xl"
               />
             </div>
@@ -143,8 +145,9 @@ export default function AboutPage() {
             <Image
               src="/images/alex-first-exit.png"
               alt="Young Alex"
-              width={360}
-              height={270}
+              width={250}
+              height={188}
+              sizes="(max-width: 768px) 100vw, 360px"
               className="rounded-2xl object-cover w-full h-auto shadow-xl border border-card-border"
             />
           </div>
@@ -170,8 +173,9 @@ export default function AboutPage() {
               <Image
                 src="/images/alex-harvard.jpg"
                 alt="Alex Harvard ID"
-                width={360}
-                height={240}
+                width={1024}
+                height={767}
+                sizes="(max-width: 768px) 100vw, 360px"
                 className="rounded-2xl object-cover w-full h-auto shadow-xl"
               />
             </div>
@@ -183,7 +187,7 @@ export default function AboutPage() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-4">
-            <h2 className="text-3xl font-bold">My time in China</h2>
+            <h2 className="text-3xl font-bold">My Time In China</h2>
             <div className="space-y-4 text-muted leading-relaxed">
               <p>
                 As I wandered across China for the next 11 years, I met many amazing people and got many amazing opportunities. The first key opportunity being a job at Renren.com.
@@ -203,8 +207,9 @@ export default function AboutPage() {
             <Image
               src="/images/alex-renren-yan.png"
               alt="Alex inside an airport with his wife Yan wearing a Renren shirt"
-              width={768}
-              height={1024}
+              width={722}
+              height={963}
+              sizes="(max-width: 768px) 100vw, 400px"
               className="rounded-2xl object-cover w-full h-auto shadow-2xl border border-card-border"
             />
           </div>
@@ -244,8 +249,9 @@ export default function AboutPage() {
                 previewSrc="/images/dave-mcclure-screenshot-v2.png"
                 fullSrc="/images/dave-mcclure-google-photos-v4.webp"
                 alt="Dave McClure presenting in Beijing, Oct 2012"
-                width={400}
-                height={225}
+                width={1024}
+                height={636}
+                sizes="(max-width: 768px) 100vw, 400px"
                 className="rounded-2xl object-cover w-full h-auto shadow-2xl border border-card-border transition-transform group-hover:scale-[1.02]"
               />
               <div className="absolute -bottom-4 -left-4 bg-card-bg border border-card-border px-4 py-2 rounded-xl text-xs font-mono font-medium text-muted shadow-lg z-10 pointer-events-none">
@@ -277,8 +283,9 @@ export default function AboutPage() {
               <Image
                 src="/images/accelerating-asia.jpg"
                 alt="Accelerating Asia zoom calls"
-                width={540}
-                height={304}
+                width={1024}
+                height={581}
+                sizes="(max-width: 768px) 100vw, 540px"
                 className="rounded-2xl object-cover w-full h-auto shadow-2xl border border-card-border"
               />
             </div>
@@ -290,7 +297,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-4">
-              <h2 className="text-3xl font-bold">25+ Years in Asia</h2>
+              <h2 className="text-3xl font-bold">25+ Years In Asia</h2>
               <div className="space-y-4 text-muted leading-relaxed">
                 <p>
                   I&apos;ve lived and worked across Asia for over two decades.
@@ -311,8 +318,9 @@ export default function AboutPage() {
               <Image
                 src="/images/alex-kyoto.png"
                 alt="Judging a pitch event in Kyoto"
-                width={360}
-                height={540}
+                width={541}
+                height={963}
+                sizes="(max-width: 768px) 100vw, 360px"
                 className="rounded-2xl object-cover w-72 h-auto shadow-xl transition-transform group-hover:scale-[1.02]"
               />
               <div className="absolute -bottom-3 -left-3 bg-card-bg border border-card-border px-4 py-2 rounded-xl text-xs font-mono font-medium text-muted shadow-lg z-10 pointer-events-none">

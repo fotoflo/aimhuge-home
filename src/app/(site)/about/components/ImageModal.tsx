@@ -9,6 +9,7 @@ export function ImageModal({
   alt,
   width,
   height,
+  sizes,
   className
 }: {
   previewSrc: string;
@@ -16,6 +17,7 @@ export function ImageModal({
   alt: string;
   width: number;
   height: number;
+  sizes?: string;
   className?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +49,7 @@ export function ImageModal({
           alt={alt}
           width={width}
           height={height}
+          sizes={sizes}
           className={className}
         />
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center pointer-events-none">
