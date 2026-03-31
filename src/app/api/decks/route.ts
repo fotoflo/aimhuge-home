@@ -10,24 +10,30 @@ export async function GET() {
   // Fetch official decks
   const { data: decksData, error: dErr } = await supabase
     .from("decks")
-    .select("deck_slug, title, description, target_audience, created_at")
+    .select("deck_slug, title, description, target_audience, created_at, archived_at")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (dErr) {
     return NextResponse.json({ error: dErr.message }, { status: 500 });
   }
 
-  // Fetch all slide rows to count them
-  const { data: slides } = await supabase
-    .from("deck_slides")
-    .select("deck_slug")
-    .is("deleted_at", null);
+  // Fetch all slide rows to count them (only for valid decks to speed up)
+  const activeDeckSlugs = (decksData || []).map(d => d.deck_slug);
+  
+  let slidesData: any[] = [];
+  if (activeDeckSlugs.length > 0) {
+    const { data: slides } = await supabase
+      .from("deck_slides")
+      .select("deck_slug")
+      .in("deck_slug", activeDeckSlugs)
+      .is("deleted_at", null);
+    if (slides) slidesData = slides;
+  }
 
   const slideCounts = new Map<string, number>();
-  if (slides) {
-    for (const row of slides) {
-      slideCounts.set(row.deck_slug, (slideCounts.get(row.deck_slug) ?? 0) + 1);
-    }
+  for (const row of slidesData) {
+    slideCounts.set(row.deck_slug, (slideCounts.get(row.deck_slug) ?? 0) + 1);
   }
 
   const decks = (decksData || []).map(deck => ({
@@ -35,6 +41,7 @@ export async function GET() {
     title: deck.title,
     description: deck.description,
     targetAudience: deck.target_audience,
+    archivedAt: deck.archived_at,
     slideCount: slideCounts.get(deck.deck_slug) || 0
   }));
 
@@ -50,6 +57,7 @@ export async function GET() {
        title: legacySlug,
        description: "Legacy unmigrated deck",
        targetAudience: null,
+       archivedAt: null,
        slideCount: slideCounts.get(legacySlug) || 0
      });
   }

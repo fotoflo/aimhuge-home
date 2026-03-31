@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2, Mic, Square } from "lucide-react";
+import { Plus, X, Loader2, Mic, Square, Trash2, Archive, ArchiveRestore } from "lucide-react";
 import BrandStudioModal from "@/app/decks/components/BrandStudioModal";
 import { useDictation } from "@/lib/hooks/useDictation";
 
@@ -28,6 +28,7 @@ interface DeckInfo {
   description: string;
   targetAudience?: string;
   slideCount: number;
+  archivedAt?: string | null;
 }
 
 export default function DashboardPage() {
@@ -77,7 +78,15 @@ export default function DashboardPage() {
     setFetching(true);
     fetch("/api/decks")
       .then((r) => r.json())
-      .then((data) => setDecks(data.decks ?? []))
+      .then((data) => {
+        const d = data.decks ?? [];
+        d.sort((a: DeckInfo, b: DeckInfo) => {
+          if (a.archivedAt && !b.archivedAt) return 1;
+          if (!a.archivedAt && b.archivedAt) return -1;
+          return 0;
+        });
+        setDecks(d);
+      })
       .finally(() => setFetching(false));
   };
 
@@ -106,6 +115,28 @@ export default function DashboardPage() {
       alert(err instanceof Error ? err.message : "An error occurred");
       setCreating(false);
     }
+  };
+
+  const handleArchive = async (slug: string, isArchived: boolean) => {
+    if (!confirm(isArchived ? "Unarchive this deck?" : "Archive this deck?")) return;
+    try {
+      const res = await fetch(`/api/decks/${slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: !isArchived })
+      });
+      if (!res.ok) throw new Error("Failed to toggle archive");
+      refreshDecks();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleDelete = async (slug: string) => {
+    if (!confirm("Are you SURE you want to delete this deck? This action will hide it from the dashboard.")) return;
+    try {
+      const res = await fetch(`/api/decks/${slug}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete deck");
+      refreshDecks();
+    } catch (e: any) { alert(e.message); }
   };
 
   if (loading) {
@@ -158,7 +189,7 @@ export default function DashboardPage() {
             return (
               <div
                 key={deck.slug}
-                className="rounded-xl border border-card-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className={`rounded-xl border ${deck.archivedAt ? 'border-white/5 bg-white/[0.02] opacity-75' : 'border-card-border'} p-6 flex flex-col md:flex-row md:items-center justify-between gap-4`}
               >
                 <div>
                   <h2 className="text-lg font-semibold text-white">
@@ -174,6 +205,20 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => handleArchive(deck.slug, !!deck.archivedAt)}
+                    className="p-2 text-slate-400 hover:text-white transition-colors"
+                    title={deck.archivedAt ? "Unarchive" : "Archive"}
+                  >
+                    {deck.archivedAt ? <ArchiveRestore className="w-5 h-5" /> : <Archive className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(deck.slug)}
+                    className="p-2 text-slate-400 hover:text-red-400 transition-colors mr-2"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                   <a
                     href={viewPath}
                     className="rounded-full border border-card-border px-4 py-2 text-sm hover:bg-white/5 transition-colors text-white"

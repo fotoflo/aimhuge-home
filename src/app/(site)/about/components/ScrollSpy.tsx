@@ -19,7 +19,7 @@ const sectionsConfig: SectionConfig[] = [
     id: "new-york",
     label: "New York Roots",
     type: "map",
-    zoom: 14,
+    zoom: 12.5,
     center: [40.7285, -73.9950], // W 4th & Mercer
     pins: [{ lat: 40.7285, lng: -73.9950, label: "Manhattan", primary: true }],
   },
@@ -27,7 +27,7 @@ const sectionsConfig: SectionConfig[] = [
     id: "first-exit",
     label: "First Exit",
     type: "map",
-    zoom: 10,
+    zoom: 8,
     center: [41.2939, -82.2174], // Oberlin
     pins: [{ lat: 41.2939, lng: -82.2174, label: "Oberlin", primary: true }],
   },
@@ -35,7 +35,7 @@ const sectionsConfig: SectionConfig[] = [
     id: "harvard",
     label: "Harvard Summer",
     type: "map",
-    zoom: 13,
+    zoom: 11.5,
     center: [42.377, -71.1167], // Harvard
     pins: [{ lat: 42.377, lng: -71.1167, label: "Harvard", primary: true }],
   },
@@ -43,7 +43,7 @@ const sectionsConfig: SectionConfig[] = [
     id: "china",
     label: "My Time In China",
     type: "map",
-    zoom: 3.5,
+    zoom: 3.2,
     center: [35.8617, 108.1954], // China center shifted slightly for balance
     pins: [
       { lat: 39.9042, lng: 116.4074, label: "Beijing", primary: true },
@@ -64,7 +64,7 @@ const sectionsConfig: SectionConfig[] = [
     id: "500-startups",
     label: "500 Startups",
     type: "map",
-    zoom: 8,
+    zoom: 7.5,
     center: [37.58, -122.25], // Bay Area
     pins: [
       { lat: 37.3861, lng: -122.0839, label: "Mountain View", primary: true },
@@ -75,7 +75,7 @@ const sectionsConfig: SectionConfig[] = [
     id: "accelerating-asia",
     label: "Accelerating Asia",
     type: "map",
-    zoom: 4,
+    zoom: 3.8,
     center: [5, 105], // SE Asia Center
     pins: [
       { lat: 1.3521, lng: 103.8198, label: "Singapore", primary: true },
@@ -88,9 +88,27 @@ const sectionsConfig: SectionConfig[] = [
     id: "asia",
     label: "25+ Years In Asia",
     type: "map",
-    zoom: 2,
-    center: [25, 110], // Broad Asia
-    pins: [],
+    zoom: 2.5,
+    center: [20, 110], // Broad Asia
+    pins: [
+      { lat: 35.6762, lng: 139.6503, label: "Tokyo", primary: false },
+      { lat: 34.6937, lng: 135.5023, label: "Osaka", primary: false },
+      { lat: 35.0116, lng: 135.7681, label: "Kyoto", primary: false },
+      { lat: 39.9042, lng: 116.4074, label: "Beijing", primary: false },
+      { lat: 31.2304, lng: 121.4737, label: "Shanghai", primary: false },
+      { lat: 23.1291, lng: 113.2644, label: "Guangzhou", primary: false },
+      { lat: 22.3193, lng: 114.1694, label: "Hong Kong", primary: true },
+      { lat: 23.8103, lng: 90.4125, label: "Dhaka", primary: false },
+      { lat: 13.7563, lng: 100.5018, label: "Bangkok", primary: false },
+      { lat: 18.7953, lng: 98.962, label: "Chiang Mai", primary: true },
+      { lat: 14.5995, lng: 120.9842, label: "Manila", primary: false },
+      { lat: 16.0544, lng: 108.2022, label: "Danang", primary: false },
+      { lat: 3.1390, lng: 101.6869, label: "KL", primary: false },
+      { lat: 5.4141, lng: 100.3288, label: "Penang", primary: false },
+      { lat: 1.3521, lng: 103.8198, label: "Singapore", primary: false },
+      { lat: -6.2088, lng: 106.8456, label: "Jakarta", primary: false },
+      { lat: -8.4095, lng: 115.1889, label: "Bali", primary: false },
+    ],
   },
   { id: "ai-advisor", label: "AI Advisor", type: "text" },
   { id: "beyond-work", label: "Beyond Work", type: "text" },
@@ -196,41 +214,45 @@ export function ScrollSpy() {
       >
         {activeConfig.type === "globe" && <Globe />}
         
-        {/* Render Dynamic Fly Map */}
+        {/* Render Dynamic Fly Map using an absolute inset to crop out the attribution */}
         {(activeConfig.type === "map" || activeConfig.type === "user") && (
-          <Map
-            provider={darkMatterProvider}
-            center={activeConfig.type === "user" ? (userLocation ? [userLocation.lat, userLocation.lng] : [0,0]) : activeConfig.center}
-            zoom={activeConfig.type === "user" ? (userLocation ? 10 : 2) : activeConfig.zoom}
-            animate={true}
-            animateMaxScreens={8}
-            mouseEvents={false}
-            touchEvents={false}
-          >
-            {activeConfig.type === "map" && activeConfig.pins?.map((pin, i) => (
-              <Overlay key={i} anchor={[pin.lat, pin.lng]} offset={[12, 12]}>
-                <div className="flex items-center gap-2 -translate-y-1/2 -translate-x-1/2 group-pin">
-                  <div className={`rounded-full shadow-[0_0_12px_rgba(124,92,252,0.8)] transition-transform duration-500 ease-out scale-in ${pin.primary ? "w-3 h-3 bg-accent animate-pulse" : "w-1.5 h-1.5 bg-accent/70"}`} style={{ animation: `fill-in 0.5s ease-out ${i * 0.05}s both`}} />
-                  {pin.primary && (
-                    <span className="text-white text-[10px] font-bold tracking-[0.1em] uppercase bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-md border border-white/10 whitespace-nowrap opacity-90 transition-opacity">
-                      {pin.label}
-                    </span>
-                  )}
-                </div>
-              </Overlay>
-            ))}
+          <div className="absolute -inset-8 z-0">
+            <Map
+              provider={darkMatterProvider}
+              center={activeConfig.type === "user" ? (userLocation ? [userLocation.lat, userLocation.lng] : [0,0]) : activeConfig.center}
+              zoom={activeConfig.type === "user" ? (userLocation ? 10 : 2) : activeConfig.zoom}
+              animate={true}
+              animateMaxScreens={8}
+              mouseEvents={false}
+              touchEvents={false}
+              attribution={false} // attempt to disable by default
+              attributionPrefix={false}
+            >
+              {activeConfig.type === "map" && activeConfig.pins?.map((pin, i) => (
+                <Overlay key={i} anchor={[pin.lat, pin.lng]} offset={[12, 12]}>
+                  <div className="flex items-center gap-2 -translate-y-1/2 -translate-x-1/2 group-pin">
+                    <div className={`rounded-full shadow-[0_0_12px_rgba(124,92,252,0.8)] transition-transform duration-500 ease-out scale-in ${pin.primary ? "w-3 h-3 bg-accent animate-pulse" : "w-1.5 h-1.5 bg-accent/70"}`} style={{ animation: `fill-in 0.5s ease-out ${i * 0.05}s both`}} />
+                    {pin.primary && (
+                      <span className="text-white text-[9px] font-bold tracking-[0.1em] uppercase bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-md border border-white/10 whitespace-nowrap opacity-90 transition-opacity">
+                        {pin.label}
+                      </span>
+                    )}
+                  </div>
+                </Overlay>
+              ))}
 
-            {activeConfig.type === "user" && userLocation && (
-              <Overlay anchor={[userLocation.lat, userLocation.lng]} offset={[12, 12]}>
-                <div className="flex flex-col items-center gap-1.5 -translate-y-full -translate-x-1/2 -mt-2">
-                  <span className="text-white text-[10px] font-bold tracking-[0.1em] uppercase bg-accent px-2 py-1 rounded shadow-[0_0_20px_var(--accent)] border border-white/20 whitespace-nowrap animate-fade-up">
-                    {userLocation.city}
-                  </span>
-                  <div className="w-3.5 h-3.5 bg-accent rounded-full border border-white/50 shadow-[0_0_15px_var(--accent)] animate-pulse" />
-                </div>
-              </Overlay>
-            )}
-          </Map>
+              {activeConfig.type === "user" && userLocation && (
+                <Overlay anchor={[userLocation.lat, userLocation.lng]} offset={[12, 12]}>
+                  <div className="flex flex-col items-center gap-1.5 -translate-y-full -translate-x-1/2 -mt-2">
+                    <span className="text-white text-[10px] font-bold tracking-[0.1em] uppercase bg-accent px-2 py-1 rounded shadow-[0_0_20px_var(--accent)] border border-white/20 whitespace-nowrap animate-fade-up">
+                      {userLocation.city}
+                    </span>
+                    <div className="w-3.5 h-3.5 bg-accent rounded-full border border-white/50 shadow-[0_0_15px_var(--accent)] animate-pulse" />
+                  </div>
+                </Overlay>
+              )}
+            </Map>
+          </div>
         )}
 
         {/* Glare and Ambient Borders */}
