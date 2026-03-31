@@ -58,12 +58,12 @@ export function NavBar() {
             style={{ width: "auto" }}
           />
         </Link>
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-4 lg:gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-muted hover:text-foreground transition-colors"
+              className="text-sm text-muted hover:text-foreground transition-colors whitespace-nowrap"
             >
               {link.label}
             </Link>
@@ -73,7 +73,7 @@ export function NavBar() {
             href="https://calendly.com/fotoflo/30min"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
+            className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors whitespace-nowrap"
           >
             Book a Call
           </a>
