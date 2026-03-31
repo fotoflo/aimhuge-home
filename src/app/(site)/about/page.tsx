@@ -292,9 +292,9 @@ export default function AboutPage() {
                 <p>
                   I&apos;ve lived and worked across Asia for over two decades.
                   I&apos;ve worked out of offices in New York, Beijing, Shanghai, Guangzhou, Hong Kong, San Francisco, Mountain View, Singapore, Tokyo, Osaka, Dhaka, Bali, Jakarta, Danang, Manila, Penang, KL, Bangkok and now Chiang Mai.
-                  I speak Mandarin, Indonesian, and Singlish — and I understand
-                  the unique dynamics of building technology businesses in the
-                  region.
+                </p>
+                <p>
+                  I speak fluent Mandarin, conversational Indonesian and Malay, and &quot;Singlish lah&quot;. I can also successfully order a meal in Thai, Japanese, Korean, and Bengali — and, having worked intimately with founders in every country in Asia, I intimately understand the unique dynamics of building technology businesses in the region.
                 </p>
                 <p>
                   This experience gives me a perspective that most Western
@@ -383,7 +383,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-8">Languages: &quot;I Speak Computer&quot;</h2>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              {["English (Native)", "Mandarin (Fluent)", "Indonesian", "Singlish", "Computer"].map(
+              {["English (Native)", "Mandarin (Fluent)", "Indonesian & Malay (Conversational)", '"Singlish lah"', "Computer"].map(
                 (lang) => (
                   <span
                     key={lang}
