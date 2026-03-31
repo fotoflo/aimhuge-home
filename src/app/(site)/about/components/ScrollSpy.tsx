@@ -110,14 +110,14 @@ const sectionsConfig: SectionConfig[] = [
       { lat: -8.4095, lng: 115.1889, label: "Bali", primary: true },
     ],
   },
-  { id: "ai-advisor", label: "AI Advisor", type: "text" },
+  { id: "ai-advisor", label: "AI Advisor", type: "user" },
   { id: "beyond-work", label: "Beyond Work", type: "text" },
-  { id: "languages", label: "Languages", type: "globe" },
+  { id: "languages", label: "Languages", type: "user" },
   { id: "newsletter", label: "Stay In The Loop", type: "user" },
 ];
 
-function darkMatterProvider(x: number, y: number, z: number, dpr?: number) {
-  return `https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/${z}/${x}/${y}${dpr && dpr >= 2 ? "@2x" : ""}.png`;
+function positronProvider(x: number, y: number, z: number, dpr?: number) {
+  return `https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/${z}/${x}/${y}${dpr && dpr >= 2 ? "@2x" : ""}.png`;
 }
 
 // Minimalistic rotating globe for the "I Speak Computer" feature
@@ -141,10 +141,12 @@ function Globe() {
       markerColor: [0.486, 0.361, 0.988], // Accent #7c5cfc
       glowColor: [0.2, 0.15, 0.4], // Elegant subtle purple ambient glow
       markers: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onRender: (state: Record<string, any>) => {
         state.phi = phi;
         phi += 0.005;
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     return () => globe.destroy();
@@ -204,21 +206,21 @@ export function ScrollSpy() {
   };
 
   return (
-    <div className="hidden xl:flex fixed bottom-8 right-8 flex-row items-end gap-6 z-40 pointer-events-none">
+    <div className="hidden md:flex fixed bottom-6 right-6 lg:bottom-8 lg:right-8 flex-row items-end gap-4 lg:gap-6 z-40 pointer-events-none">
       
       {/* The Dynamic Context / Telemetry Card */}
       <div 
-        className={`relative w-[240px] h-[240px] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-auto border border-white/10 bg-[#0d0d0d] backdrop-blur-3xl transform origin-bottom-right ${
+        className={`relative w-[160px] h-[160px] lg:w-[240px] lg:h-[240px] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-auto border border-white/10 bg-[#0d0d0d] backdrop-blur-3xl transform origin-bottom-right ${
           activeConfig.type === "text" ? "opacity-0 scale-90 translate-y-12" : "opacity-100 scale-100 translate-y-0"
         }`}
       >
         {activeConfig.type === "globe" && <Globe />}
         
-        {/* Render Dynamic Fly Map using an absolute inset to crop out the attribution */}
+        {/* Render Dynamic Fly Map using inverted Light Positron tiles for high-contrast dark mode */}
         {(activeConfig.type === "map" || activeConfig.type === "user") && (
-          <div className="absolute -inset-8 z-0">
+          <div className="absolute -inset-8 z-0 filter invert-[.95] hue-rotate-[180deg] saturate-150 brightness-[1.05] contrast-[1.1] opacity-90">
             <Map
-              provider={darkMatterProvider}
+              provider={positronProvider}
               center={activeConfig.type === "user" ? (userLocation ? [userLocation.lat, userLocation.lng] : [0,0]) : activeConfig.center}
               zoom={activeConfig.type === "user" ? (userLocation ? 10 : 2) : activeConfig.zoom}
               animate={true}
@@ -272,7 +274,7 @@ export function ScrollSpy() {
               aria-label={label}
             >
               <span
-                className={`absolute right-5 text-[11px] font-medium tracking-wide transition-all duration-300 pointer-events-none text-right whitespace-nowrap ${
+                className={`absolute right-4 lg:right-5 text-[10px] lg:text-[11px] font-medium tracking-wide transition-all duration-300 pointer-events-none text-right whitespace-nowrap ${
                   isActive
                     ? "opacity-100 translate-x-0 text-white"
                     : "opacity-0 translate-x-1 text-muted group-hover:opacity-100 group-hover:translate-x-0"
