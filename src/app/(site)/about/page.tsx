@@ -266,6 +266,9 @@ export default function AboutPage() {
                   In my time at Accelerating Asia, I trained entrepreneurs from over 60 startups, teaching them the fundamentals of company building, fundraising, management, dealing with stress and mental strain.
                 </p>
                 <p>
+                  I&apos;ve reviewed about 3,000 decks, interviewed more than 500 founders, and sat in and advised IC meetings for almost 50 investments into companies from Seoul to Dhaka.
+                </p>
+                <p>
                   As an advisor, I also worked with them on GTM, product, tech, and HR strategy. I always tell founders I only have 8 minutes, but usually, we schedule hour-long meetings every week.
                 </p>
               </div>
