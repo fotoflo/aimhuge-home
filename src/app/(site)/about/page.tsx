@@ -3,6 +3,7 @@ import Image from "next/image";
 import { NewsletterCTA } from "../components/NewsletterCTA";
 import { CopyCurlButton } from "./components/CopyCurlButton";
 import { ImageModal } from "./components/ImageModal";
+import { ScrollSpy } from "./components/ScrollSpy";
 
 export const metadata: Metadata = {
   title: "About Alex Miller — AimHuge",
@@ -26,8 +27,9 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
+      <ScrollSpy />
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-24 pb-16">
+      <section id="hero" className="mx-auto max-w-6xl px-6 pt-24 pb-16">
         <div className="flex flex-col md:flex-row items-start gap-12">
           <div className="flex-1 space-y-6">
             <p className="text-sm font-medium text-accent uppercase tracking-wider">
@@ -96,7 +98,7 @@ export default function AboutPage() {
       </section>
 
       {/* New York */}
-      <section className="bg-card-bg border-y border-card-border">
+      <section id="new-york" className="bg-card-bg border-y border-card-border">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-4">
@@ -125,7 +127,7 @@ export default function AboutPage() {
       </section>
 
       {/* First Exit */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section id="first-exit" className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-4">
             <h2 className="text-3xl font-bold">My First Exit</h2>
@@ -155,7 +157,7 @@ export default function AboutPage() {
       </section>
 
       {/* Harvard Summer */}
-      <section className="bg-card-bg border-y border-card-border">
+      <section id="harvard" className="bg-card-bg border-y border-card-border">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="flex flex-col md:flex-row-reverse items-center gap-12">
             <div className="flex-1 space-y-4">
@@ -184,7 +186,7 @@ export default function AboutPage() {
       </section>
 
       {/* Renren */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section id="china" className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-4">
             <h2 className="text-3xl font-bold">My Time In China</h2>
@@ -217,7 +219,7 @@ export default function AboutPage() {
       </section>
 
       {/* 500 Startups */}
-      <section className="bg-card-bg border-y border-card-border">
+      <section id="500-startups" className="bg-card-bg border-y border-card-border">
         <div className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-start gap-12">
           <div className="flex-1 space-y-4">
@@ -263,7 +265,7 @@ export default function AboutPage() {
         </div>
       </section>
       {/* Accelerating Asia */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section id="accelerating-asia" className="mx-auto max-w-6xl px-6 py-20">
           <div className="flex flex-col md:flex-row-reverse items-center gap-12">
             <div className="flex-1 space-y-4">
               <h2 className="text-3xl font-bold">Accelerating Asia</h2>
@@ -293,7 +295,7 @@ export default function AboutPage() {
       </section>
 
       {/* Asia */}
-      <section className="bg-card-bg border-y border-card-border">
+      <section id="asia" className="bg-card-bg border-y border-card-border">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-4">
@@ -332,7 +334,7 @@ export default function AboutPage() {
       </section>
 
       {/* AI Advisor */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section id="ai-advisor" className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-4">
             <h2 className="text-3xl font-bold">AI Advisor</h2>
@@ -361,7 +363,7 @@ export default function AboutPage() {
       </section>
 
       {/* Personal */}
-      <section className="bg-card-bg border-y border-card-border">
+      <section id="beyond-work" className="bg-card-bg border-y border-card-border">
         <div className="mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-shrink-0">
@@ -393,7 +395,7 @@ export default function AboutPage() {
       </section>
 
       {/* Languages */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
+      <section id="languages" className="mx-auto max-w-6xl px-6 py-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-8">Languages: &quot;I Speak Computer&quot;</h2>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
