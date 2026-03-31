@@ -222,7 +222,7 @@ export function ScrollSpy() {
             <Map
               provider={positronProvider}
               center={activeConfig.type === "user" ? (userLocation ? [userLocation.lat, userLocation.lng] : [0,0]) : activeConfig.center}
-              zoom={activeConfig.type === "user" ? (userLocation ? 10 : 2) : activeConfig.zoom}
+              zoom={activeConfig.type === "user" ? (userLocation ? 9 : 2) : activeConfig.zoom}
               animate={true}
               animateMaxScreens={8}
               mouseEvents={false}
