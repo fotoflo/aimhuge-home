@@ -171,7 +171,16 @@ export function ScrollSpy() {
   useEffect(() => {
     fetch("/api/geo")
       .then(res => res.json())
-      .then(data => setUserLocation(data))
+      .then(data => {
+        let finalCity = data.city;
+        if (finalCity === "Here") {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          if (tz && tz.includes('/')) {
+            finalCity = tz.split('/').pop()?.replace('_', ' ');
+          }
+        }
+        setUserLocation({ ...data, city: finalCity });
+      })
       .catch(() => {});
   }, []);
 
