@@ -64,8 +64,9 @@ export default function Home() {
             <Image
               src="/images/alex-headshot.jpg"
               alt="Alex Miller"
-              width={360}
-              height={360}
+              width={804}
+              height={1071}
+              sizes="(max-width: 768px) 100vw, 320px"
               className="rounded-2xl object-cover w-72 h-72 md:w-80 md:h-80"
               priority
             />
@@ -210,6 +211,7 @@ export default function Home() {
                     alt="Fawad Akram"
                     width={200}
                     height={200}
+                    sizes="(max-width: 768px) 100vw, 240px"
                     className="w-52 h-52 md:w-60 md:h-60 object-cover rounded-sm grayscale hover:grayscale-0 transition-all duration-500"
                   />
                 </a>

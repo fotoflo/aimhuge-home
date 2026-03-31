@@ -166,8 +166,9 @@ export default function BlogPostDoneSkill() {
         <Image
           src="/images/blog/done-skill-cover.png"
           alt="Terminal showing /done skill summary output with phase timing"
-          width={1200}
-          height={630}
+          width={1024}
+          height={1024}
+          sizes="(max-width: 768px) 100vw, 800px"
           className="rounded-xl border border-card-border w-full max-w-3xl"
           priority
         />
@@ -220,8 +221,9 @@ export default function BlogPostDoneSkill() {
           <Image
             src="/images/blog/done-skill-before-after.png"
             alt="Before and after comparison: messy git status vs clean /done output"
-            width={1200}
-            height={630}
+            width={1024}
+            height={1024}
+            sizes="(max-width: 768px) 100vw, 800px"
             className="rounded-xl border border-card-border w-full mt-8 mb-4"
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
@@ -290,8 +292,9 @@ export default function BlogPostDoneSkill() {
             <Image
               src="/images/blog/done-skill-pipeline.png"
               alt="Six-phase pipeline: Docs, Lint, File Sizes, Tests, Commit, Report"
-              width={1200}
-              height={630}
+              width={1024}
+              height={1024}
+              sizes="(max-width: 768px) 100vw, 800px"
               className="rounded-xl border border-card-border w-full mt-8 mb-4"
             />
 
@@ -385,8 +388,9 @@ export default function BlogPostDoneSkill() {
               <Image
                 src="/images/blog/done-summary-output.png"
                 alt="Claude Code /done skill output showing phase timing table and session productivity report"
-                width={800}
-                height={400}
+                width={1670}
+                height={798}
+                sizes="(max-width: 768px) 100vw, 800px"
                 className="rounded-xl border border-card-border w-full"
               />
             </div>
@@ -398,8 +402,9 @@ export default function BlogPostDoneSkill() {
               <Image
                 src="/images/blog/done-ascii-art.png"
                 alt="Claude Code /done skill output showing ASCII art of the blog page and a goodbye message"
-                width={800}
-                height={600}
+                width={1842}
+                height={1562}
+                sizes="(max-width: 768px) 100vw, 800px"
                 className="rounded-xl border border-card-border w-full"
               />
             </div>
@@ -441,8 +446,9 @@ export default function BlogPostDoneSkill() {
               <Image
                 src="/images/blog/done-parallel-agents.png"
                 alt="Claude Code running 4 parallel subagents: Explore for architecture docs, Agent for lint check, Agent for tests, and Agent for file size distribution"
-                width={800}
-                height={300}
+                width={714}
+                height={266}
+                sizes="(max-width: 768px) 100vw, 800px"
                 className="rounded-xl border border-card-border w-full"
               />
             </div>
@@ -738,8 +744,9 @@ export default function BlogPostDoneSkill() {
           <Image
             src="/images/blog/done-skill-wireframe.png"
             alt="Visual overview of the /done skill workflow showing summary table, before/after comparison, and 6-phase pipeline"
-            width={1200}
-            height={1800}
+            width={832}
+            height={1248}
+            sizes="(max-width: 768px) 100vw, 600px"
             className="rounded-xl border border-card-border w-full max-w-lg mx-auto"
           />
         </div>

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2, Mic, Square } from "lucide-react";
+import BrandStudioModal from "@/app/decks/components/BrandStudioModal";
+import { useDictation } from "@/lib/hooks/useDictation";
 
 const ALLOWED_EMAIL = "fotoflo@gmail.com";
 
@@ -36,14 +38,31 @@ export default function DashboardPage() {
 
   // New Deck Modal State
   const [showModal, setShowModal] = useState(false);
+  const [showBrandModal, setShowBrandModal] = useState(false);
+  const [brands, setBrands] = useState<{ slug: string; name: string }[]>([]);
   const [slugTouched, setSlugTouched] = useState(false);
-  const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "" });
+  const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "" });
   const [creating, setCreating] = useState(false);
 
+  const { isRecording, toggleRecording, volume, interimTranscript } = useDictation({
+    onResult: (text) => setForm(prev => ({ ...prev, wallOfText: prev.wallOfText + (prev.wallOfText ? " " : "") + text })),
+    enableShortcut: showModal && !showBrandModal // only enable when main modal is active
+  });
+
+  // Load brands
+  const fetchBrands = async () => {
+    try {
+      const res = await fetch("/api/brands");
+      const data = await res.json();
+      if (data.brands) setBrands(data.brands);
+    } catch {}
+  };
+
   const handleOpenModal = () => {
-    setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "" });
+    setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "" });
     setSlugTouched(false);
     setShowModal(true);
+    fetchBrands();
   };
 
   const email = user?.email ?? "";
@@ -185,9 +204,24 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-auto p-6 gap-5">
+            <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-5 scrollbar-hide">
               
-              <label className="flex flex-col gap-2">
+              <div className="flex items-end gap-3 mb-1">
+                <label className="flex flex-col gap-2 flex-1">
+                  <span className="text-sm font-medium text-slate-300">Client Brand *</span>
+                  <select required disabled={creating} value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} className="bg-[#161622] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-accent border-r-8 border-transparent cursor-pointer">
+                     <option value="" disabled>Select a required Brand...</option>
+                     {brands.map(b => (
+                       <option key={b.slug} value={b.slug}>{b.name}</option>
+                     ))}
+                  </select>
+                </label>
+                <button type="button" onClick={() => setShowBrandModal(true)} className="px-5 py-2.5 whitespace-nowrap bg-accent/10 text-accent border border-accent/20 rounded-lg text-sm font-medium hover:bg-accent/20 transition-colors shrink-0 flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Add Brand
+                </button>
+              </div>
+
+              <label className="flex flex-col gap-2 mt-2">
                 <span className="text-sm font-medium text-slate-300">Presentation Title *</span>
                 <input required disabled={creating} type="text" value={form.title} onChange={e => {
                   const newTitle = e.target.value;
@@ -212,9 +246,43 @@ export default function DashboardPage() {
               <label className="flex flex-col gap-2 mt-4 pt-4 border-t border-white/5">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-medium text-accent">Auto-Generate &quot;Wall of Text&quot; (Optional)</span>
-                  <span className="text-xs text-slate-400">Paste your raw notes, blog post, or article here. Our AI will automatically extract and construct the entire slide deck for you in the background.</span>
+                  <span className="text-xs text-slate-400">Paste your raw notes, blog post, or article here. Or <span className="text-slate-200 font-bold border border-white/10 px-1 py-0.5 rounded bg-white/5">double-tap Ctrl</span> to dictate.</span>
                 </div>
-                <textarea disabled={creating} value={form.wallOfText} onChange={e => setForm({...form, wallOfText: e.target.value})} rows={6} placeholder="Paste your massive wall of unstructured text here..." className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-vertical font-mono text-sm" />
+                <div className="relative flex flex-col group">
+                  <textarea disabled={creating} value={form.wallOfText} onChange={e => setForm({...form, wallOfText: e.target.value})} rows={6} placeholder="Paste your massive wall of unstructured text here..." className={`bg-white/5 border border-white/10 rounded-lg px-4 py-3 pb-12 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-vertical font-mono text-sm transition-all ${isRecording ? 'border-[#7c5cfc] ring-1 ring-[#7c5cfc]' : ''}`} />
+                  
+                  {isRecording && (
+                    <div className="absolute inset-x-4 bottom-12 top-4 pointer-events-none overflow-hidden flex flex-col justify-end">
+                      {interimTranscript && (
+                        <div className="text-[#7c5cfc] font-medium text-sm mb-2 opacity-80 animate-in fade-in slide-in-from-bottom-2 drop-shadow-md">
+                          {interimTranscript}
+                        </div>
+                      )}
+                      <div className="flex items-end gap-[3px] h-8 opacity-40">
+                        {Array.from({ length: 40 }).map((_, i) => (
+                           <div key={i} className="w-[3px] bg-[#7c5cfc] rounded-t-sm transition-all duration-75" style={{ height: `${Math.max(10, volume * 100 * (0.3 + Math.random() * 0.7))}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-2 right-2 flex items-center">
+                    {isRecording && (
+                      <div className="flex items-center gap-1.5 text-[#7c5cfc] mr-3 shadow-sm bg-[#0f0f13] px-2 py-1 rounded">
+                        <span className="text-xs font-medium animate-pulse">Listening...</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#7c5cfc] animate-ping" />
+                      </div>
+                    )}
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.preventDefault(); toggleRecording(); }}
+                      className={`p-1.5 rounded-md transition-all flex items-center justify-center ${isRecording ? 'bg-[#7c5cfc] text-white shadow-[0_0_15px_rgba(124,92,252,0.5)]' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5'}`}
+                      title="Double-tap Ctrl to dictate"
+                    >
+                      {isRecording ? <Square className="w-3.5 h-3.5 fill-current" /> : <Mic className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
               </label>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
@@ -229,6 +297,17 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Brand Studio Over-Modal */}
+      <BrandStudioModal 
+        isOpen={showBrandModal} 
+        onClose={() => setShowBrandModal(false)}
+        initialSlug=""
+        onSaved={async (slug) => {
+          await fetchBrands();
+          setForm(prev => ({ ...prev, brand: slug }));
+        }} 
+      />
     </div>
   );
 }

@@ -91,8 +91,9 @@ export default function AdvisoryPage() {
             <Image
               src="/images/alex-full.jpg"
               alt="Alex Miller"
-              width={300}
-              height={400}
+              width={804}
+              height={1071}
+              sizes="(max-width: 768px) 100vw, 300px"
               className="rounded-2xl object-cover w-64 h-80"
             />
           </div>

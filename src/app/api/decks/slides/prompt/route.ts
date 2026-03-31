@@ -75,7 +75,28 @@ export async function POST(req: NextRequest) {
 
   if (!prompt) return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
 
-  const parts: Array<{ text?: string; inlineData?: { data: string; mimeType: string } }> = [{ text: `${SYSTEM_PROMPT}\n\nCurrent frontmatter:\n${JSON.stringify(currentFrontmatter, null, 2)}\n\nCurrent slide content:\n${currentContent}\n\nUser request: ${prompt}` }];
+  // Connect to Brands Table
+  const supabase = getSupabase();
+  let brandContext = "";
+  if (supabase && deckSlug) {
+    const { data: deck } = await supabase.from("decks").select("brand_slug").eq("deck_slug", deckSlug).single();
+    if (deck?.brand_slug) {
+      const { data: brand } = await supabase.from("brands").select("*").eq("slug", deck.brand_slug).single();
+      if (brand) {
+         brandContext = `
+--- GLOBAL BRAND DESIGN SYSTEM ---
+Client/Brand: ${brand.name}
+Approved Color Palette: ${JSON.stringify(brand.colors)}
+Company Narrative / Tone (Scraped): ${brand.scraped_context}
+Mandatory Slide Formatting Guidelines: ${brand.guidelines}
+Approved Image Assets (Gallery): ${JSON.stringify(brand.images || [])}
+----------------------------------
+`;
+      }
+    }
+  }
+
+  const parts: Array<{ text?: string; inlineData?: { data: string; mimeType: string } }> = [{ text: `${SYSTEM_PROMPT}\n${brandContext}\n\nCurrent frontmatter:\n${JSON.stringify(currentFrontmatter, null, 2)}\n\nCurrent slide content:\n${currentContent}\n\nUser request: ${prompt}` }];
 
   if (image) {
     try {

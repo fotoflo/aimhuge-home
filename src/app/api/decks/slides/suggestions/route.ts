@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { DEFAULT_MODEL, generateSlideEmbedding } from "@/lib/gemini";
 import { logAiUsage } from "@/lib/ai-telemetry";
 import { getSimilarSlides, updateSlideTips } from "@/app/decks/lib/slides-db";
+import { getSupabase } from "@/lib/supabase";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -68,7 +69,7 @@ Important Capabilities & Constraints:
 - The slide canvas is fixed at 1920x1080.
 - Leverage the narrative context (TOC, Before/After slides) AND the Semantically Related Slides (if provided) to ensure this slide doesn't repeat points made earlier. If this slide is highly similar to a related slide, suggest maintaining visual consistency with its layout or strongly differentiating the narrative focus.
 - Suggest high-end architectural treatments using components like <Card>, <Stat>, <Tag>, and <Icon name="IconName" /> (\`lucide-react\`).
-- Explicitly suggest using the \`generate_image\` AI tool for specific, atmospheric, or photorealistic background imagery or side-column accents (e.g. "Generate a moody, neon-lit server room for the left column...").
+- Explicitly suggest using the \`generate_image\` AI tool for specific background imagery OR, if actual 'Approved Image Assets (Gallery)' URLs are provided in the brand context below, explicitly prefer suggesting those URLs (e.g. "Use the real brand photo https://... for the hero section") over generating fake AI images or keeping placeholders.
 - The editor features a built-in AI image generator. You can suggest adding realistic, generated photos to illustrate points.
 
 Return your suggestions as a strict JSON array of strings, with NO markdown formatting or additional text. Example:
@@ -102,9 +103,30 @@ export async function POST(req: NextRequest) {
       console.error("Failed to fetch similar slides for suggestions context", e);
     }
 
+    // Connect to Brands Table
+    const supabase = getSupabase();
+    let brandContext = "";
+    if (supabase && deckSlug) {
+      const { data: deck } = await supabase.from("decks").select("brand_slug").eq("deck_slug", deckSlug).single();
+      if (deck?.brand_slug) {
+        const { data: brand } = await supabase.from("brands").select("*").eq("slug", deck.brand_slug).single();
+        if (brand) {
+           brandContext = `
+--- GLOBAL BRAND DESIGN SYSTEM ---
+Client/Brand: ${brand.name}
+Approved Color Palette: ${JSON.stringify(brand.colors)}
+Company Narrative / Tone (Scraped): ${brand.scraped_context}
+Mandatory Slide Formatting Guidelines: ${brand.guidelines}
+Approved Image Assets (Gallery): ${JSON.stringify(brand.images || [])}
+----------------------------------
+`;
+        }
+      }
+    }
+
     const contextText = `
 ${getSystemPrompt(style)}
-
+${brandContext}
 --- THE PRESENTATION NARRATIVE ---
 Table of Contents:
 ${JSON.stringify(toc, null, 2)}

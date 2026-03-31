@@ -23,8 +23,9 @@ export function NavBar() {
           <Image
             src="/images/logo-white.png"
             alt="AimHuge"
-            width={120}
-            height={32}
+            width={256}
+            height={98}
+            sizes="120px"
             className="h-8 w-auto"
             priority
             style={{ width: "auto" }}
