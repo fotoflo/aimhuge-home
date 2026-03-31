@@ -48,7 +48,7 @@ export function NewsletterCTA({ sourcePage = "unknown" }: { sourcePage?: string 
   };
 
   return (
-    <div className="relative isolate w-full max-w-2xl mx-auto py-16 px-6 sm:py-24 sm:px-12 rounded-3xl overflow-hidden mt-12 mb-20 group">
+    <div id="newsletter" className="relative isolate w-full max-w-2xl mx-auto py-16 px-6 sm:py-24 sm:px-12 rounded-3xl overflow-hidden mt-12 mb-20 group">
       {/* Background layers */}
       <div className="absolute inset-0 bg-card-bg/50 backdrop-blur-md border border-card-border rounded-3xl -z-10 transition-colors duration-500 group-hover:bg-card-bg/80" />
       <div className="absolute inset-0 grain opacity-20 -z-10 mix-blend-overlay rounded-3xl" />
