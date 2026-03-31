@@ -95,19 +95,21 @@ export function NavBar() {
           isOpen ? "opacity-100 scale-y-100 pointer-events-auto" : "opacity-0 scale-y-95 pointer-events-none"
         }`}
       >
-        <div className="flex flex-col px-8 py-[4vh] gap-[2.5vh] min-h-[calc(100vh-[73px])]">
-          {navLinks.map((link, i) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-              className="text-3xl font-bold tracking-tight text-white/70 hover:text-white transition-all transform hover:translate-x-2"
-              style={{ transitionDelay: `${i * 30}ms` }}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="pt-[2vh] mt-auto border-t border-white/10 flex flex-col gap-[2vh] pb-[4vh]">
+        <div className="flex flex-col px-8 pt-[2vh] h-[calc(100vh-73px)] justify-between">
+          <div className="flex flex-col flex-1 justify-evenly py-4">
+            {navLinks.map((link, i) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="text-3xl font-bold tracking-tight text-white/70 hover:text-white transition-all transform hover:translate-x-2 py-1"
+                style={{ transitionDelay: `${i * 30}ms` }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          <div className="pt-[2.5vh] mt-auto border-t border-white/10 flex flex-col gap-[2.5vh] pb-[6vh] flex-shrink-0">
             <LoginButton />
             <a
               href="https://calendly.com/fotoflo/30min"
