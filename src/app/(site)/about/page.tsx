@@ -12,14 +12,14 @@ export const metadata: Metadata = {
     title: "About Alex Miller — AimHuge",
     description:
       "25+ years building software products in Asia. Startup operator, investor, triathlete, and AI trainer.",
-    images: [{ url: "/images/alex-headshot.jpg" }],
+    images: [{ url: "/images/about-og.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "About Alex Miller — AimHuge",
     description:
       "25+ years building software products in Asia. Startup operator, investor, triathlete, and AI trainer.",
-    images: ["/images/alex-headshot.jpg"],
+    images: ["/images/about-og.png"],
   },
 };
 
@@ -291,6 +291,7 @@ export default function AboutPage() {
               <div className="space-y-4 text-muted leading-relaxed">
                 <p>
                   I&apos;ve lived and worked across Asia for over two decades.
+                  I&apos;ve worked out of offices in New York, Beijing, Shanghai, Guangzhou, Hong Kong, San Francisco, Mountain View, Singapore, Tokyo, Osaka, Dhaka, Bali, Jakarta, Danang, Manila, Penang, KL, Bangkok and now Chiang Mai.
                   I speak Mandarin, Indonesian, and Singlish — and I understand
                   the unique dynamics of building technology businesses in the
                   region.
@@ -351,7 +352,7 @@ export default function AboutPage() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-shrink-0">
             <video
-              src="/images/alex-yoga.mp4"
+              src="https://cnnttsihfbyxhzlmzdtv.supabase.co/storage/v1/object/public/deck-assets/alex-yoga-small.mp4"
               autoPlay
               muted
               loop
