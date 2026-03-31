@@ -41,7 +41,6 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [brands, setBrands] = useState<{ slug: string; name: string }[]>([]);
-  const [slugTouched, setSlugTouched] = useState(false);
   const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "" });
   const [creating, setCreating] = useState(false);
 
@@ -61,7 +60,6 @@ export default function DashboardPage() {
 
   const handleOpenModal = () => {
     setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "" });
-    setSlugTouched(false);
     setShowModal(true);
     fetchBrands();
   };
@@ -127,7 +125,7 @@ export default function DashboardPage() {
       });
       if (!res.ok) throw new Error("Failed to toggle archive");
       refreshDecks();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : String(e)); }
   };
 
   const handleDelete = async (slug: string) => {
@@ -136,7 +134,7 @@ export default function DashboardPage() {
       const res = await fetch(`/api/decks/${slug}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete deck");
       refreshDecks();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : String(e)); }
   };
 
   if (loading) {
