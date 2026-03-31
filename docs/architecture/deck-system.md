@@ -82,11 +82,11 @@ src/app/
 | `GET /api/brands/scrape` | Uses Cheerio to crawl top-level nav pages of a URL, extracts hex colors and images, and feeds to Gemini 3.0 Flash to rapidly build a structured JSON brand identity. |
 | `GET /api/brands` | Fetch saved client brand guidelines and design systems |
 
-### Deck Listing (`src/app/(site)/decks/`)
+### Dashboard (`src/app/(site)/dashboard/`)
 
 | File | Purpose |
 |------|---------|
-| `page.tsx` | Client page listing all deck slugs from Supabase — gated to `fotoflo@gmail.com`, uses `<a>` tags (not `<Link>`) for cross-route-group navigation to `(decks)` |
+| `page.tsx` | Client dashboard for creating, listing, archiving, and deleting decks. Gated to `fotoflo@gmail.com`. Features a sophisticated AI deck generation wizard with an animated provisioning progress overlay, and uses custom React dialogs (`dialogState`) to avoid native browser alerts/confirms. |
 
 ### Auth & Infrastructure
 

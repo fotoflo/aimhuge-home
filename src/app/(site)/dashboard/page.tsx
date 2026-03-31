@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2, Mic, Square, Trash2, Archive, ArchiveRestore, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, X, Loader2, Mic, Square, Trash2, Archive, ArchiveRestore, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import BrandStudioModal from "@/app/decks/components/BrandStudioModal";
 import { useDictation } from "@/lib/hooks/useDictation";
 
@@ -31,6 +31,53 @@ interface DeckInfo {
   archivedAt?: string | null;
 }
 
+// Helper component for Provisioning animated progress
+const ProvisioningStatusTexts = () => {
+  const [progress, setProgress] = useState(0);
+  const [textIndex, setTextIndex] = useState(0);
+  const texts = [
+    "Initializing AI workspace...",
+    "Configuring brand tokens...",
+    "Analyzing your outline...",
+    "Drafting slides via Gemini...",
+    "Applying aesthetics & polish...",
+    "Finalizing presentation..."
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress(v => {
+        const target = 95;
+        return v + (target - v) * 0.08;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const textInt = setInterval(() => {
+      setTextIndex(i => Math.min(i + 1, texts.length - 1));
+    }, 3000);
+    return () => clearInterval(textInt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="w-full flex flex-col gap-4 animate-in slide-in-from-bottom-4 duration-500">
+      <p className="text-slate-400 font-medium h-6 text-lg">{texts[textIndex]}</p>
+      <div className="w-full h-3 bg-white/5 border border-white/10 rounded-full overflow-hidden p-0.5">
+          <div 
+              className="h-full bg-accent rounded-full transition-all duration-500 ease-out relative overflow-hidden"
+              style={{ width: `${progress}%` }}
+          >
+            <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]" style={{ transform: 'skewX(-20deg)' }} />
+          </div>
+      </div>
+      <p className="text-xs text-accent/70 font-mono tracking-wider">{Math.round(progress)}% COMPLETE · PLEASE WAIT</p>
+    </div>
+  );
+};
+
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -43,11 +90,89 @@ export default function DashboardPage() {
   const [brands, setBrands] = useState<{ slug: string; name: string }[]>([]);
   const [form, setForm] = useState({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "", slideCount: 10 });
   const [creating, setCreating] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [outline, setOutline] = useState<any[] | null>(null);
   const [generatingOutline, setGeneratingOutline] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, index: number } | null>(null);
+
+  // Generic Dialog State
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    type: "alert" | "confirm";
+    onConfirm?: () => void;
+  }>({ isOpen: false, title: "", description: "", type: "alert" });
+
+  const showAlert = (title: string, description: string) => {
+    setDialogState({ isOpen: true, title, description, type: "alert" });
+  };
+
+  const showConfirm = (title: string, description: string, onConfirm: () => void) => {
+    setDialogState({ isOpen: true, title, description, type: "confirm", onConfirm });
+  };
+
+  const closeDialog = () => setDialogState(prev => ({ ...prev, isOpen: false }));
+
+  const STORAGE_KEY = "aimhuge_new_deck_draft";
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.form) setForm(parsed.form);
+        if (parsed.outline) setOutline(parsed.outline);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (form.title || form.wallOfText || form.brand || outline) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ form, outline }));
+      }
+    } catch {}
+  }, [form, outline]);
+
+  const handleClearDraft = () => {
+    showConfirm("Clear Draft", "Are you sure you want to completely clear your drafted deck progress?", () => {
+      setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "", slideCount: 10 });
+      setOutline(null);
+      localStorage.removeItem(STORAGE_KEY);
+    });
+  };
 
   const { isRecording, toggleRecording, volume, interimTranscript } = useDictation({
-    onResult: (text) => setForm(prev => ({ ...prev, wallOfText: prev.wallOfText + (prev.wallOfText ? " " : "") + text })),
+    onResult: (text) => {
+      if (!text) return;
+      const activeEl = document.activeElement as HTMLElement;
+      const slideIndex = activeEl?.getAttribute('data-slide-index');
+      const slideField = activeEl?.getAttribute('data-slide-field');
+      const formField = activeEl?.getAttribute('data-form-field');
+
+      if (slideIndex && slideField && outline) {
+        const idx = parseInt(slideIndex);
+        const newOutline = [...outline];
+        const currentVal = newOutline[idx][slideField] || "";
+        newOutline[idx][slideField] = currentVal + (currentVal ? " " : "") + text;
+        setOutline(newOutline);
+      } else if (formField) {
+        setForm(prev => {
+          const key = formField as keyof typeof prev;
+          const currentVal = prev[key] || "";
+          const newVal = currentVal + (currentVal ? " " : "") + text;
+          
+          if (key === 'title') {
+             return { ...prev, title: newVal as string, slug: (newVal as string).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') };
+          }
+          return { ...prev, [key]: newVal };
+        });
+      } else if (!outline) {
+        setForm(prev => ({ ...prev, wallOfText: prev.wallOfText + (prev.wallOfText ? " " : "") + text }));
+      }
+    },
     enableShortcut: showModal && !showBrandModal // only enable when main modal is active
   });
 
@@ -61,8 +186,6 @@ export default function DashboardPage() {
   };
 
   const handleOpenModal = () => {
-    setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "", slideCount: 10 });
-    setOutline(null);
     setShowModal(true);
     fetchBrands();
   };
@@ -106,8 +229,8 @@ export default function DashboardPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setOutline(data.outline);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      showAlert("Error", err instanceof Error ? err.message : String(err));
     } finally {
       setGeneratingOutline(false);
     }
@@ -128,6 +251,36 @@ export default function DashboardPage() {
     const newOutline = [...outline];
     newOutline[index] = { ...newOutline[index], [field]: value };
     setOutline(newOutline);
+  };
+
+  const addSlide = (index: number, position: 'before' | 'after' = 'after') => {
+    if (!outline) return;
+    const newSlide = { id: crypto.randomUUID(), title: "", content: "", visualPrompt: "", order: 0 };
+    const newOutline = [...outline];
+    const insertIdx = position === 'before' ? index : index + 1;
+    newOutline.splice(insertIdx, 0, newSlide);
+    setOutline(newOutline);
+    setContextMenu(null);
+  };
+
+  const deleteSlide = (index: number) => {
+    if (!outline) return;
+    if (outline.length <= 1) return showAlert("Cannot delete", "Must have at least one slide.");
+    const newOutline = [...outline];
+    newOutline.splice(index, 1);
+    setOutline(newOutline);
+    setContextMenu(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === index) return;
+    const newOutline = [...(outline || [])];
+    const [moved] = newOutline.splice(draggedIdx, 1);
+    newOutline.splice(index, 0, moved);
+    setOutline(newOutline);
+    setDraggedIdx(null);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -155,33 +308,52 @@ export default function DashboardPage() {
         });
       }
 
+      localStorage.removeItem("aimhuge_new_deck_draft");
+      setForm({ slug: "", title: "", description: "", audience: "", wallOfText: "", brand: "", slideCount: 10 });
+      setOutline(null);
+
       router.push(`/decks/${data.deckSlug}/edit`);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "An error occurred");
+      showAlert("Error", err instanceof Error ? err.message : "An error occurred");
       setCreating(false);
     }
   };
 
   const handleArchive = async (slug: string, isArchived: boolean) => {
-    if (!confirm(isArchived ? "Unarchive this deck?" : "Archive this deck?")) return;
-    try {
-      const res = await fetch(`/api/decks/${slug}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: !isArchived })
-      });
-      if (!res.ok) throw new Error("Failed to toggle archive");
-      refreshDecks();
-    } catch (e: unknown) { alert(e instanceof Error ? e.message : String(e)); }
+    showConfirm(
+      isArchived ? "Unarchive Deck" : "Archive Deck",
+      isArchived ? "Unarchive this deck?" : "Archive this deck?",
+      async () => {
+        try {
+          const res = await fetch(`/api/decks/${slug}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ archived: !isArchived })
+          });
+          if (!res.ok) throw new Error("Failed to toggle archive");
+          refreshDecks();
+        } catch (e: unknown) { showAlert("Error", e instanceof Error ? e.message : String(e)); }
+      }
+    );
   };
 
   const handleDelete = async (slug: string) => {
-    if (!confirm("Are you SURE you want to delete this deck? This action will hide it from the dashboard.")) return;
-    try {
-      const res = await fetch(`/api/decks/${slug}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete deck");
-      refreshDecks();
-    } catch (e: unknown) { alert(e instanceof Error ? e.message : String(e)); }
+    showConfirm(
+      "Delete Deck",
+      "Are you SURE you want to delete this deck? This action will hide it from the dashboard.",
+      async () => {
+        const previousDecks = [...decks];
+        setDecks(decks.filter(d => d.slug !== slug)); // Optimistic UI update
+        try {
+          const res = await fetch(`/api/decks/${slug}`, { method: "DELETE" });
+          if (!res.ok) throw new Error("Failed to delete deck");
+          refreshDecks();
+        } catch (e: unknown) { 
+          setDecks(previousDecks); // Revert optimistic update
+          showAlert("Error", e instanceof Error ? e.message : String(e)); 
+        }
+      }
+    );
   };
 
   if (loading) {
@@ -286,7 +458,24 @@ export default function DashboardPage() {
       {/* New Deck Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#0f0f13] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+          <div className="bg-[#0f0f13] border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh] relative">
+            
+            {/* INJECT PROVISIONING OVERLAY HERE */}
+            {creating && (
+              <div className="absolute inset-0 z-[100] bg-[#0f0f13]/90 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-300">
+                <div className="w-full max-w-md flex flex-col items-center gap-6 text-center">
+                    <div className="relative flex items-center justify-center mb-4">
+                      <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full scale-150" />
+                      <Loader2 className="w-16 h-16 text-accent animate-spin relative z-10" />
+                    </div>
+                    <h3 className="text-3xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        Provisioning Deck
+                    </h3>
+                    <ProvisioningStatusTexts />
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between p-6 border-b border-white/5">
               <h2 className="text-xl font-bold">Create New Deck</h2>
               <button disabled={creating} onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white transition-colors">
@@ -295,41 +484,120 @@ export default function DashboardPage() {
             </div>
             
             {outline ? (
-              <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-4 scrollbar-hide">
+              <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-4 custom-scrollbar">
                 <div className="flex flex-col gap-1 mb-2">
                   <h3 className="text-lg font-bold text-white">Review Slide Plan</h3>
                   <p className="text-sm text-slate-400">Edit content or reorder. When ready, approve to generate MDX.</p>
                 </div>
                 
-                {outline.map((slide, index) => (
-                  <div key={slide.id} className="flex gap-4 p-4 border border-white/10 rounded-xl bg-white/5 relative group">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <button type="button" onClick={() => moveSlide(index, -1)} disabled={index === 0} className="p-1 text-slate-500 hover:text-white disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
-                      <span className="text-xs font-bold text-slate-500 w-6 text-center">{index + 1}</span>
-                      <button type="button" onClick={() => moveSlide(index, 1)} disabled={index === outline.length - 1} className="p-1 text-slate-500 hover:text-white disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
-                    </div>
-                    <div className="flex-1 flex flex-col gap-3 min-w-0">
-                      <input type="text" value={slide.title} onChange={e => editSlide(index, 'title', e.target.value)} className="bg-transparent text-white font-bold text-lg outline-none border-b border-transparent hover:border-white/20 focus:border-accent w-full" />
-                      <textarea value={slide.content} onChange={e => editSlide(index, 'content', e.target.value)} className="bg-transparent text-sm text-slate-300 outline-none border-b border-transparent hover:border-white/20 focus:border-accent resize-vertical w-full" rows={2} />
-                      <div className="bg-[#111114] p-2.5 rounded-lg border border-white/5">
-                        <span className="text-xs text-accent font-medium mb-1 block">Visual Prompt</span>
-                        <textarea value={slide.visualPrompt} onChange={e => editSlide(index, 'visualPrompt', e.target.value)} className="bg-transparent text-xs text-slate-400 outline-none w-full resize-vertical" rows={1} />
-                      </div>
-                    </div>
+                <div className="border border-white/10 rounded-xl overflow-y-auto bg-white/5 custom-scrollbar flex-1">
+                  <table className="w-full text-left text-sm text-slate-300">
+                    <thead className="bg-[#111114] border-b border-white/10 text-xs text-slate-400 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 font-medium w-12 text-center border-r border-white/5">#</th>
+                        <th className="px-5 py-3 font-medium min-w-[250px] border-r border-white/5">Title & Content</th>
+                        <th className="px-5 py-3 font-medium w-[220px]">Visual Prompt</th>
+                        <th className="w-12"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {outline.map((slide, index) => (
+                        <tr 
+                          key={slide.id} 
+                          className={`group hover:bg-white/[0.02] transition-colors relative ${draggedIdx === index ? "opacity-30" : ""}`}
+                          draggable
+                          onDragStart={(e) => { setDraggedIdx(index); e.dataTransfer.effectAllowed = 'move'; }}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          onDragEnd={() => setDraggedIdx(null)}
+                          onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, index }); }}
+                        >
+                          <td className="px-2 py-4 align-top text-center w-12 border-r border-white/5 cursor-grab active:cursor-grabbing">
+                            <div className="flex flex-col items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
+                              <GripVertical className="w-4 h-4 text-slate-500 mb-1" />
+                              <span className="text-xs font-bold text-slate-500 block">{index + 1}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 align-top border-r border-white/5">
+                            <input 
+                              type="text" 
+                              data-slide-index={index}
+                              data-slide-field="title"
+                              value={slide.title} 
+                              onChange={e => editSlide(index, 'title', e.target.value)} 
+                              className="bg-transparent text-white font-semibold outline-none border-b border-transparent hover:border-white/20 focus:border-accent w-full mb-2 pb-1" 
+                              placeholder="Slide Title"
+                            />
+                            <textarea 
+                              data-slide-index={index}
+                              data-slide-field="content"
+                              value={slide.content} 
+                              onChange={e => editSlide(index, 'content', e.target.value)} 
+                              className="bg-transparent text-xs text-slate-300 outline-none border-b border-transparent hover:border-white/20 focus:border-accent resize-y w-full leading-relaxed block custom-scrollbar" 
+                              rows={3} 
+                              placeholder="Slide bullet points..."
+                            />
+                          </td>
+                          <td className="px-4 py-3 align-top">
+                            <textarea 
+                              data-slide-index={index}
+                              data-slide-field="visualPrompt"
+                              value={slide.visualPrompt} 
+                              onChange={e => editSlide(index, 'visualPrompt', e.target.value)} 
+                              className="bg-transparent text-xs text-accent/80 outline-none border-b border-transparent hover:border-accent/40 focus:border-accent resize-y w-full leading-relaxed mt-1 custom-scrollbar" 
+                              rows={4} 
+                              placeholder="Visual layout instructions..."
+                            />
+                          </td>
+                          <td className="px-2 py-2 align-middle text-center">
+                            <div className="flex flex-col items-center gap-2 opacity-10 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button type="button" onClick={() => moveSlide(index, -1)} disabled={index === 0} className="p-1 text-slate-500 hover:text-white hover:bg-white/5 rounded disabled:opacity-30"><ArrowUp className="w-3.5 h-3.5" /></button>
+                              <button type="button" onClick={() => moveSlide(index, 1)} disabled={index === outline.length - 1} className="p-1 text-slate-500 hover:text-white hover:bg-white/5 rounded disabled:opacity-30"><ArrowDown className="w-3.5 h-3.5" /></button>
+                              <button type="button" onClick={() => deleteSlide(index)} className="p-1 mt-1 text-slate-600 hover:text-red-400 hover:bg-red-400/10 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  
+                  <div className="p-4 flex justify-center border-t border-white/5">
+                     <button type="button" onClick={() => addSlide(outline.length - 1, 'after')} className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+                        <Plus className="w-3.5 h-3.5" /> Add Slide
+                     </button>
                   </div>
-                ))}
+                </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-4">
-                  <button type="button" disabled={creating} onClick={() => setOutline(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
-                    Back to Config
+                {contextMenu && (
+                  <>
+                     <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
+                     <div className="fixed z-[60] bg-[#161622] border border-white/10 rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] py-1.5 w-48 text-sm text-slate-300" style={{ top: Math.min(contextMenu.y, window.innerHeight - 150), left: Math.min(contextMenu.x, window.innerWidth - 200) }}>
+                        <button type="button" onClick={() => addSlide(contextMenu.index, 'before')} className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors">Add slide before</button>
+                        <button type="button" onClick={() => addSlide(contextMenu.index, 'after')} className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors">Add slide after</button>
+                        <div className="h-px bg-white/10 my-1"></div>
+                        <button type="button" onClick={() => deleteSlide(contextMenu.index)} className="w-full text-left px-4 py-2 hover:bg-red-500/20 text-red-400 transition-colors flex items-center gap-2">
+                           <Trash2 className="w-3.5 h-3.5" /> Delete slide
+                        </button>
+                     </div>
+                  </>
+                )}
+
+                <div className="flex justify-between gap-3 pt-4 border-t border-white/5 mt-4">
+                  <button type="button" onClick={handleClearDraft} disabled={creating} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-red-400 transition-colors">
+                    Clear Draft
                   </button>
-                  <button type="button" onClick={handleCreate} disabled={creating} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
-                    {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : "Approve & Generate"}
-                  </button>
+                  <div className="flex gap-3">
+                    <button type="button" disabled={creating} onClick={() => setOutline(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                      Back to Config
+                    </button>
+                    <button type="button" onClick={handleCreate} disabled={creating} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
+                      {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : "Approve & Generate"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
-            <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-5 scrollbar-hide">
+            <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden p-6 gap-5 custom-scrollbar">
               
               <div className="flex items-end gap-3 mb-1">
                 <label className="flex flex-col gap-2 flex-1">
@@ -348,25 +616,34 @@ export default function DashboardPage() {
 
               <label className="flex flex-col gap-2 mt-2">
                 <span className="text-sm font-medium text-slate-300">Presentation Title *</span>
-                <input required disabled={creating} type="text" value={form.title} onChange={e => {
-                  const newTitle = e.target.value;
-                  setForm(prev => ({
-                    ...prev,
-                    title: newTitle,
-                    slug: newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-                  }));
-                }} placeholder="e.g. Pulsetech Engineering Q3" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
+                <div className="relative group/input">
+                  <input required disabled={creating} type="text" data-form-field="title" value={form.title} onChange={e => {
+                    const newTitle = e.target.value;
+                    setForm(prev => ({
+                      ...prev,
+                      title: newTitle,
+                      slug: newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+                    }));
+                  }} placeholder="e.g. Pulsetech Engineering Q3" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 pr-10 text-white placeholder-slate-500 focus:outline-none focus:border-accent w-full" />
+                  <Mic className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 opacity-30 group-focus-within/input:text-accent group-focus-within/input:opacity-100 transition-colors pointer-events-none" />
+                </div>
               </label>
 
               <label className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-slate-300">Aimed Audience (Optional)</span>
-                <input disabled={creating} type="text" value={form.audience} onChange={e => setForm({...form, audience: e.target.value})} placeholder="e.g. Senior Backend Engineers" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent" />
+                <div className="relative group/input">
+                  <input disabled={creating} type="text" data-form-field="audience" value={form.audience} onChange={e => setForm({...form, audience: e.target.value})} placeholder="e.g. Senior Backend Engineers" className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 pr-10 text-white placeholder-slate-500 focus:outline-none focus:border-accent w-full" />
+                  <Mic className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 opacity-30 group-focus-within/input:text-accent group-focus-within/input:opacity-100 transition-colors pointer-events-none" />
+                </div>
               </label>
 
               <div className="flex gap-4">
                 <label className="flex flex-col gap-2 flex-1">
                   <span className="text-sm font-medium text-slate-300">Short Description (Optional)</span>
-                  <textarea disabled={creating} value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} placeholder="Brief summary of the deck's purpose" className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-none w-full" />
+                  <div className="relative group/input h-full">
+                    <textarea disabled={creating} data-form-field="description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} placeholder="Brief summary of the deck's purpose" className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 pr-10 text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-none w-full h-full custom-scrollbar" />
+                    <Mic className="absolute right-3 bottom-3 w-4 h-4 text-slate-500 opacity-30 group-focus-within/input:text-accent group-focus-within/input:opacity-100 transition-colors pointer-events-none" />
+                  </div>
                 </label>
 
                 <label className="flex flex-col gap-2 w-32 shrink-0">
@@ -417,18 +694,51 @@ export default function DashboardPage() {
                 </div>
               </label>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-white/5 mt-auto">
-                <button type="button" disabled={creating || generatingOutline} onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
-                  Cancel
+              <div className="flex justify-between gap-3 pt-4 border-t border-white/5 mt-auto">
+                <button type="button" onClick={handleClearDraft} disabled={creating || generatingOutline} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-red-400 transition-colors">
+                  Clear Draft
                 </button>
-                <button type="submit" disabled={creating || generatingOutline} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
-                  {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : 
-                   generatingOutline ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating Plan</> : 
-                   form.wallOfText ? "Generate Slide Plan" : "Create & Launch Editor"}
-                </button>
+                <div className="flex gap-3">
+                  <button type="button" disabled={creating || generatingOutline} onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={creating || generatingOutline} className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors flex items-center gap-2">
+                    {creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Provisioning</> : 
+                     generatingOutline ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating Plan</> : 
+                     form.wallOfText ? "Generate Slide Plan" : "Create & Launch Editor"}
+                  </button>
+                </div>
               </div>
             </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Global Alert / Confirm Dialog */}
+      {dialogState.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#0f0f13] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl p-6 relative">
+            <h2 className="text-xl font-bold mb-2 text-white">{dialogState.title}</h2>
+            <p className="text-sm text-slate-300 mb-6">{dialogState.description}</p>
+            <div className="flex justify-end gap-3">
+              {dialogState.type === "confirm" && (
+                <button onClick={closeDialog} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+              )}
+              <button 
+                onClick={() => {
+                  if (dialogState.type === "confirm" && dialogState.onConfirm) {
+                    dialogState.onConfirm();
+                  }
+                  closeDialog();
+                }} 
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${dialogState.type === "confirm" ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-accent text-white hover:bg-accent-hover'}`}
+              >
+                {dialogState.type === "confirm" ? (dialogState.title.includes("Archive") || dialogState.title.includes("Clear") ? "Confirm" : "Delete") : "OK"}
+              </button>
+            </div>
           </div>
         </div>
       )}
