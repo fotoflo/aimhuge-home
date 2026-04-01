@@ -256,6 +256,34 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Short About Section */}
+      <section className="mx-auto max-w-6xl px-6 py-24 border-t border-card-border">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h2 className="text-3xl font-bold">An Unconventional Journey</h2>
+            <div className="space-y-4 text-muted leading-relaxed">
+              <p>
+                My story in tech started early. I sold my entire stock portfolio (a single $800 Apple holding) as a teenager to fund a train trip across China. That trip launched my career in Asia and led me to my wife. That Apple stock would be worth over $10 million today — but the life it bought was worth more.
+              </p>
+              <p>
+                Over the next 25 years, I was part of the $743M NYSE IPO at Oak Pacific Interactive (Renren.com), learned growth directly from Dave McClure at 500 Startups, and trained over 60 founders at Accelerating Asia. 
+              </p>
+              <p>
+                Now, sitting at the intersection of technology, venture capital, and leadership, my mission is to give you and your team the superpowers of AI.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link href="/about" className="text-accent font-medium hover:text-accent-hover transition-colors inline-flex items-center gap-1">
+                Read the full story <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
+          </div>
+          <div className="group relative">
+             <Image src="/images/alex-renren-yan.png" alt="Alex and Yan" width={600} height={600} className="w-full h-auto rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all duration-700 shadow-xl border border-card-border" />
+          </div>
+        </div>
+      </section>
+
       {/* Services overview */}
       <section className="bg-card-bg border-y border-card-border">
         <div className="mx-auto max-w-6xl px-6 py-20">

@@ -133,13 +133,13 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold">My First Exit</h2>
             <div className="space-y-4 text-muted leading-relaxed">
               <p>
-                When I was 13, I came into a little money from my family and I invested it all. A whole $800 in Apple stock. A few years later, when I was 19, I got my first exit.
+                When I was 13, I came into a little money from my family and I invested it all. A whole $800 in Apple stock.
               </p>
               <p>
-                I sold the stock for $2,100 and used it to travel around China by train. I&apos;ve been traveling, meeting people, and enjoying life ever since.
+                A few years later, I got my first exit. I sold that stock to fund a train trip across China. That&apos;s where I met my wife and built my career, so you could say it was a good investment.
               </p>
               <p>
-                That first exit... well, an $800 investment returning $2,100 over 6 years is an IRR of about 17.5%. 17.5% isn&apos;t the 30% that VCs look for, but it gave me a taste of letting money work for me.
+                However, that stock would be worth over $10 million today.
               </p>
             </div>
           </div>
@@ -192,10 +192,10 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold">My Time In China</h2>
             <div className="space-y-4 text-muted leading-relaxed">
               <p>
-                As I wandered across China for the next 11 years, I met many amazing people and got many amazing opportunities. The first key opportunity being a job at Renren.com.
+                As I wandered across China for the next 11 years, I met many amazing people and got many amazing opportunities. My first key opportunity was joining Oak Pacific Interactive, the company behind <a href="https://techcrunch.com/2011/05/03/renren-prices-its-ipo-at-14-per-share-to-raise-743m/" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Renren.com</a>.
               </p>
               <p>
-                Luckily, I had chosen to take a lower salary and more stock with that job, and I made my second exit. It wasn&apos;t a massive one because I was employee number 800, but I learned to lead teams and build technology at scale.
+                Luckily, I had chosen to take a lower salary and more stock with that job, and I made my second exit when they raised $743 million in their NYSE IPO. It wasn&apos;t a massive one because I was employee number 800, but I learned to lead teams and build technology at scale.
               </p>
               <p>
                 I also learned what it means to have a great mentor. My boss <a href="https://www.linkedin.com/in/lidonna/" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Donna (离普庆)</a> embedded me in our media planning team, brainstorming ad campaigns for international brands like Nike and Estée Lauder, and local ones like Haier and Nongfu Spring all day. She made me write sales decks for our 70-person sales team before ever letting me build a single product. That foundation paid off: the team I led ended up building an ad engine that served billions of daily impressions and helped drive our growth from $5M to $50M ARR in 3 years.
@@ -226,7 +226,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold">500 Startups</h2>
             <div className="space-y-4 text-muted leading-relaxed mb-6">
               <p>
-                At 500, I had the privilege to learn directly from Dave McClure, the founder. AARRR is Dave&apos;s framework for growth.
+                At 500 Startups, I had the privilege to learn directly from <a href="https://www.linkedin.com/in/davemcclure/" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Dave McClure</a>, the founder (now running <a href="https://practicalvc.com/" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Practical Venture Capital</a>). AARRR is his famous framework for growth.
               </p>
               <p>
                 The fundamentals of this framework are really just about building a better product, going to market better, tracking users better, monetizing them better, and retaining them better. You haven&apos;t seen it? You gotta watch this video.
@@ -271,7 +271,7 @@ export default function AboutPage() {
               <h2 className="text-3xl font-bold">Accelerating Asia</h2>
               <div className="space-y-4 text-muted leading-relaxed">
                 <p>
-                  In my time at Accelerating Asia, I trained entrepreneurs from over 60 startups, teaching them the fundamentals of company building, fundraising, management, dealing with stress and mental strain.
+                  In my time at <a href="https://acceleratingasia.com" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Accelerating Asia</a>, I trained entrepreneurs from over 60 startups, teaching them the fundamentals of company building, fundraising, management, dealing with stress and mental strain.
                 </p>
                 <p>
                   I&apos;ve reviewed about 3,000 decks, interviewed more than 500 founders, and sat in and advised IC meetings for almost 50 investments into companies from Seoul to Dhaka.
@@ -346,7 +346,9 @@ export default function AboutPage() {
                 <blockquote className="italic text-foreground">
                   &quot;You didn&apos;t just talk about AI, you showed how leaders can actually use it to think faster, decide better, and execute with clarity. That shift from information to real capability is what matters. This wasn&apos;t training for the sake of learning. This was capability building for scale.&quot;
                 </blockquote>
-                <div className="mt-3 font-semibold text-sm">— Asikul Alam Khan, Founder of Priyoshop</div>
+                <div className="mt-3 font-semibold text-sm">
+                  — <a href="https://www.linkedin.com/in/asikulalamkhan/" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Asikul Alam Khan</a>, Founder of <a href="https://priyoshop.com" target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:text-accent-hover">Priyoshop</a>
+                </div>
               </div>
             </div>
           </div>
