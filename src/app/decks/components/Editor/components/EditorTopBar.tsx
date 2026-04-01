@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Image as ImageIcon, PanelLeftOpen, PanelRightOpen, Maximize, Minimize, LayoutGrid, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon, PanelLeftOpen, PanelRightOpen, Maximize, Minimize, LayoutGrid, RefreshCw, Plus } from "lucide-react";
 
 const ZOOM_OPTIONS: { label: string; value: number | "fit" }[] = [
   { label: "25%", value: 25 },
@@ -34,13 +34,14 @@ interface EditorTopBarProps {
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onSignOut: () => void;
+  onAddSlide?: () => void;
 }
 
 export function EditorTopBar({
   viewerPath,
   deckSlug, current, total, showLeftPanel, showRightPanel, showAssets,
   zoom, onZoomChange, onPrev, onNext, onToggleAssets, onShowLeftPanel, onShowRightPanel,
-  lightTable, onToggleLightTable, isFullscreen, onToggleFullscreen, onSignOut,
+  lightTable, onToggleLightTable, isFullscreen, onToggleFullscreen, onSignOut, onAddSlide,
 }: EditorTopBarProps) {
   const [showZoomMenu, setShowZoomMenu] = useState(false);
 
@@ -112,6 +113,15 @@ export function EditorTopBar({
         >
           <LayoutGrid className="w-4 h-4" />
         </button>
+        {onAddSlide && (
+          <button
+            onClick={onAddSlide}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Slide
+          </button>
+        )}
         <button
           onClick={onToggleAssets}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${showAssets ? "border-[#7c5cfc] text-[#9b82fd] bg-[#7c5cfc]/10" : "border-white/10 text-slate-300 hover:bg-white/5"}`}

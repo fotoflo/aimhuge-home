@@ -7,6 +7,11 @@ import { getSlides } from "@/app/decks/lib/slides-db";
 
 const BUCKET = "deck-assets";
 
+const DECK_ROUTES: Record<string, string> = {
+  "priyoshop-exec": "/clients/priyoshop/exec-deck",
+  "wegro-board": "/clients/wegro/board-deck",
+};
+
 /**
  * POST /api/decks/thumbnails?deck=priyoshop-exec
  *
@@ -53,9 +58,11 @@ export async function POST(req: NextRequest) {
       "x-puppeteer-auth": process.env.SUPABASE_SERVICE_ROLE_KEY || "local-dev-secret",
     });
 
+    const viewPath = DECK_ROUTES[deck] || `/decks/${deck}`;
+
     for (const slide of slides) {
       const slideIndex = allSlides.findIndex((s) => s.id === slide.id) + 1;
-      const url = `${baseUrl}/clients/priyoshop/exec-deck?edit=true#slide-${slideIndex}`;
+      const url = `${baseUrl}${viewPath}?edit=true#slide-${slideIndex}`;
 
       await page.goto(url, { waitUntil: "networkidle0", timeout: 15_000 });
       await page.waitForSelector(".slide", { timeout: 10_000 });

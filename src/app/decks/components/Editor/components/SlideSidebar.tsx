@@ -453,39 +453,34 @@ export function SlideSidebar({
         
         {/* Aesthetic Search & Top Bar */}
         <div className="flex flex-col gap-2 p-3 border-b border-white/5 shrink-0 relative bg-[#0a0a0e] z-20">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-mono tracking-widest text-[#7c5cfc] uppercase font-bold flex items-center gap-1.5 opacity-80">
-              <Sparkles className="w-3 h-3" />
-              Intelligence
-            </h3>
+          <div className="flex items-center gap-2">
+            <div className="relative group flex-1">
+              <div className={`absolute inset-0 bg-[#7c5cfc]/20 blur-md rounded-full transition-opacity duration-500 ${searchQuery ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`} />
+              <div className="relative flex items-center bg-[#15151a] border border-white/10 focus-within:border-[#7c5cfc]/50 rounded text-xs overflow-hidden transition-colors">
+                <Search className={`w-3.5 h-3.5 ml-2 mr-1 transition-colors ${searchQuery ? "text-[#7c5cfc]" : "text-slate-500"}`} />
+                <input 
+                  type="text" 
+                  placeholder="Semantic search..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent px-1 py-1.5 outline-none text-slate-200 placeholder:text-slate-600 font-medium"
+                />
+                {isSearching ? (
+                  <div className="pr-2 pl-1"><RefreshCw className="w-3 h-3 text-[#7c5cfc] animate-spin" /></div>
+                ) : searchQuery ? (
+                  <button onClick={() => setSearchQuery("")} className="pr-2 pl-1 hover:text-white text-slate-400">
+                    <X className="w-3 h-3" />
+                  </button>
+                ) : null}
+              </div>
+            </div>
             <button
               onClick={onClose}
-              className="p-1 rounded hover:bg-white/10 text-slate-500 hover:text-slate-200 transition-colors"
+              className="p-1 shrink-0 rounded hover:bg-white/10 text-slate-500 hover:text-slate-200 transition-colors"
               title="Hide slides"
             >
-              <PanelLeftClose className="w-3.5 h-3.5" />
+              <PanelLeftClose className="w-4 h-4" />
             </button>
-          </div>
-          
-          <div className="relative group">
-            <div className={`absolute inset-0 bg-[#7c5cfc]/20 blur-md rounded-full transition-opacity duration-500 ${searchQuery ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`} />
-            <div className="relative flex items-center bg-[#15151a] border border-white/10 focus-within:border-[#7c5cfc]/50 rounded text-xs overflow-hidden transition-colors">
-              <Search className={`w-3.5 h-3.5 ml-2 mr-1 transition-colors ${searchQuery ? "text-[#7c5cfc]" : "text-slate-500"}`} />
-              <input 
-                type="text" 
-                placeholder="Semantic search..." 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent px-1 py-1.5 outline-none text-slate-200 placeholder:text-slate-600 font-medium"
-              />
-              {isSearching ? (
-                <div className="pr-2 pl-1"><RefreshCw className="w-3 h-3 text-[#7c5cfc] animate-spin" /></div>
-              ) : searchQuery ? (
-                <button onClick={() => setSearchQuery("")} className="pr-2 pl-1 hover:text-white text-slate-400">
-                  <X className="w-3 h-3" />
-                </button>
-              ) : null}
-            </div>
           </div>
         </div>
 

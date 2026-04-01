@@ -27,6 +27,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ s
   const { slug } = await params;
   
   try {
+    // Also delete the slides so they don't show up as legacy decks
+    const { error: slideError } = await supabase
+      .from("deck_slides")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("deck_slug", slug);
+      
+    if (slideError) throw slideError;
+
     const { error } = await supabase
       .from("decks")
       .update({ deleted_at: new Date().toISOString() })

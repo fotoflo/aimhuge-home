@@ -546,6 +546,7 @@ export function SlideEditor({ initialSlides, deckSlug, viewerPath }: SlideEditor
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         onSignOut={signOut}
+        onAddSlide={() => handleAddSlide(current, "after")}
       />
 
       <div className="flex flex-1 overflow-hidden">

@@ -38,6 +38,7 @@ AimHuge is Alex Miller's professional website for AI advisory, workshops, and en
 - **Frontend Design:** ALWAYS use the `/frontend-design` workflow (`.agents/workflows/frontend-design.md`) when building web components, pages, or writing HTML/CSS to ensure high-quality, distinctive, and non-generic aesthetics.
 - **SEO:** Every page must export a `metadata` object with proper title, description, and OG images.
 - **Performance:** Use Next.js `<Image>` component for all images. Configure remote patterns in `next.config.ts` if needed.
+- **Alerts/Modals:** NEVER use browser `window.alert` or `window.confirm`. Always build and use custom React modal components for a cohesive UI.
 
 ## Important Patterns
 - **CTA:** Most call-to-actions point to `https://calendly.com/fotoflo/30min`.
