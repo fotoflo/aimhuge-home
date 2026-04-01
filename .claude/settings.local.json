@@ -2,6 +2,12 @@
   "permissions": {
     "allow": [
       "Bash",
+      "Bash(.claude/skills/done/gather-context.sh*)",
+      "Bash(.claude/skills/done/lint.sh*)",
+      "Bash(.claude/skills/done/file-sizes.sh*)",
+      "Bash(.claude/skills/done/tests.sh*)",
+      "Bash(.claude/skills/done/session-stats.sh*)",
+      "Bash(.claude/skills/done/commit.sh*)",
       "Read",
       "Write",
       "Edit",

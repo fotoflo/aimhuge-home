@@ -39,7 +39,7 @@ Multiple Claude Code sessions may run concurrently on the same branch, so git hi
 To get the list:
 1. Review the conversation history for all `Read`, `Edit`, `Write`, `Bash` tool calls that modified files
 2. Compile the deduplicated list of file paths — these are your "session files"
-3. For line counts, run `git diff --stat` on only uncommitted files, plus check any commits YOU made this session
+3. For line counts, use `.claude/skills/done/session-stats.sh` on your session files, plus check any commits YOU made this session
 
 Do NOT use `HEAD~N` or broad `git diff` ranges — other sessions may have committed in between.
 
@@ -47,10 +47,7 @@ Do NOT use `HEAD~N` or broad `git diff` ranges — other sessions may have commi
 
 After the phase summary, generate a session productivity report.
 
-Use your session file list to get modification timestamps:
-```
-stat -f "%m %N" <file1> <file2> ... 2>/dev/null | sort -n
-```
+Run `.claude/skills/done/session-stats.sh <file1> <file2> ...` with your session files to get modification timestamps and line change stats.
 
 Output:
 
@@ -66,7 +63,7 @@ Areas touched:        src/app/workshop, src/app/page.tsx
 -----------------------------------------------
 ```
 
-For line counts, run `wc -l` on diffs of only your session files. For session duration, use the earliest and latest modification timestamps from your session files.
+The `session-stats.sh` script handles line counts and session duration from modification timestamps.
 
 To count user prompts: count the number of distinct user messages in the current conversation (excluding system messages and tool results).
 
@@ -77,7 +74,7 @@ To count user prompts: count the number of distinct user messages in the current
 Before launching parallel agents, prepare the context they'll need:
 
 1. **Compile session files** — review the conversation history for all files YOU touched (see "Determining Session Files" above).
-2. Run `git diff --stat` and `ls docs/architecture/ docs/bug-fixes/` to see current state.
+2. Run `.claude/skills/done/gather-context.sh` to see current state (git diff stats, existing docs, uncommitted files).
 3. Determine: was a bug fixed this session? (needed to decide if bug-fix doc agent should run)
 4. Determine: were 3+ files modified? (needed to decide if file-sizes agent should run)
 
@@ -138,9 +135,9 @@ Tell the agent to report back the filename it created.
 
 Prompt the agent with the session file list and these instructions:
 
-1. Run `pnpm lint` to find ESLint violations.
+1. Run `.claude/skills/done/lint.sh` to find ESLint violations.
 2. Fix lint errors **only in the session files** listed.
-3. Re-run `pnpm lint` to confirm fixes.
+3. Re-run `.claude/skills/done/lint.sh` to confirm fixes.
 4. Do NOT fix pre-existing errors in untouched files.
 
 Tell the agent to report back how many errors were found and fixed.
@@ -151,16 +148,13 @@ Tell the agent to report back how many errors were found and fixed.
 
 Prompt the agent with these instructions:
 
-1. Scan all source files (excluding `node_modules`, `.next`, `obsidian`, `blog/`):
-   ```
-   find src public docs .claude -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.md' -o -name '*.json' \) | grep -v node_modules | grep -v .next | grep -v '/blog/'
-   ```
+1. Run `.claude/skills/done/file-sizes.sh` to scan all source files and build the size distribution.
 
-2. Build a file size distribution table (buckets: <=50, 51-150, 151-300, 301-500, 501-1000, 1001-2000, 2000+) with columns per file type. List the largest file.
+2. The script outputs a distribution table (buckets: <=50, 51-150, 151-300, 301-500, 501-1000, 1001-2000, 2000+) with the largest file.
 
-3. Read `~/.claude/projects/-Users-fotoflo-dev-aimhuge-home/memory/file-sizes.md` for the previous snapshot. Show a delta comparison (only rows that changed).
+3. Read `.claude/data/file-sizes.md` for the previous snapshot. Show a delta comparison (only rows that changed).
 
-4. Save the new snapshot to `~/.claude/projects/-Users-fotoflo-dev-aimhuge-home/memory/file-sizes.md` with today's date.
+4. Save the new snapshot to `.claude/data/file-sizes.md` with today's date.
 
 Tell the agent to report back the tables and any notable changes.
 
@@ -168,7 +162,7 @@ Tell the agent to report back the tables and any notable changes.
 
 Prompt the agent with these instructions:
 
-1. Run `pnpm test` to ensure all tests pass.
+1. Run `.claude/skills/done/tests.sh` to ensure all tests pass.
 2. If tests fail, investigate and fix before reporting.
 3. Report back: number of test files, tests passed, tests failed, and duration.
 
@@ -179,12 +173,10 @@ Prompt the agent with these instructions:
 Wait for all parallel agents to complete, then:
 
 1. Collect results from all agents.
-2. Stage all relevant changed files (including docs, lint fixes, and any test fixes from agents).
-3. Commit using conventional commits:
-   - If $ARGUMENTS is provided, use it as the first line of the commit message
+2. Build the commit message using conventional commits:
+   - If $ARGUMENTS is provided, use it as the first line
    - Otherwise, draft a summary of the session's changes as the first line
-   - Append the session productivity summary to the commit body
-   - Use a HEREDOC for the commit message, formatted like:
+   - Append the session productivity summary to the commit body, formatted like:
      ```
      feat: summary of changes
 
@@ -202,8 +194,8 @@ Wait for all parallel agents to complete, then:
 
      Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
      ```
-
-4. Run `git status` to confirm everything is clean.
+3. Run `.claude/skills/done/commit.sh "commit message" file1 file2 ...` with all relevant changed files (including docs, lint fixes, and any test fixes from agents).
+4. The script stages, commits, and runs `git status` to confirm everything is clean.
 
 ### Phase 6: Report (sequential)
 
