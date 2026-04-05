@@ -54,5 +54,4 @@ AimHuge — Alex Miller's personal/business website for AI workshops and advisor
 ## Important Notes
 
 - Package manager is **pnpm** (not npm/yarn)
-- No API routes, no database, no env vars needed
 - Client-specific workshop pages live under `/workshop/{client}/{track}`

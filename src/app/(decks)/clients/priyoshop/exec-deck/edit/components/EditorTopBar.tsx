@@ -22,6 +22,7 @@ interface EditorTopBarProps {
   showRightPanel: boolean;
   showAssets: boolean;
   zoom: number | "fit";
+  fitPercent: number | null;
   onZoomChange: (zoom: number | "fit") => void;
   onPrev: () => void;
   onNext: () => void;
@@ -38,12 +39,12 @@ interface EditorTopBarProps {
 
 export function EditorTopBar({
   deckSlug, current, total, showLeftPanel, showRightPanel, showAssets,
-  zoom, onZoomChange, onPrev, onNext, onToggleAssets, onShowLeftPanel, onShowRightPanel,
+  zoom, fitPercent, onZoomChange, onPrev, onNext, onToggleAssets, onShowLeftPanel, onShowRightPanel,
   lightTable, onToggleLightTable, isFullscreen, onToggleFullscreen, onSignOut, onAddSlide,
 }: EditorTopBarProps) {
   const [showZoomMenu, setShowZoomMenu] = useState(false);
 
-  const zoomLabel = zoom === "fit" ? "Fit" : `${zoom}%`;
+  const zoomLabel = zoom === "fit" ? `Fit${fitPercent ? ` ${fitPercent}%` : ""}` : `${zoom}%`;
 
   return (
     <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-[#0e0e12] shrink-0">

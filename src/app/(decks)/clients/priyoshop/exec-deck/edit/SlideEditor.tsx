@@ -37,6 +37,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   const [showRightPanel, setShowRightPanel] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState<number | "fit">("fit");
+  const [fitPercent, setFitPercent] = useState<number | null>(null);
   const [lightTable, setLightTable] = useState(false);
   const [copilotTexts, setCopilotTexts] = useState<Record<string, string>>({});
   const [userPrompts, setUserPrompts] = useState<Record<string, string>>({});
@@ -82,6 +83,25 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
   }, [current]);
 
   const { thumbnails, generatingThumbs, regenerateThumbnails } = useThumbnails(deckSlug);
+
+  // Compute effective fit percentage from container size
+  useEffect(() => {
+    if (zoom !== "fit" || lightTable || showCode) { setFitPercent(null); return; }
+    const container = previewContainerRef.current;
+    if (!container) return;
+    const update = () => {
+      const { clientWidth, clientHeight } = container;
+      // Account for p-4 padding (16px each side)
+      const w = clientWidth - 32;
+      const h = clientHeight - 32;
+      const pct = Math.round(Math.min(w / 1920, h / 1080) * 100);
+      setFitPercent(pct);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [zoom, lightTable, showCode, showLeftPanel, showRightPanel]);
 
   useEditorKeyboard({
     slides, current, total, iframeRef,
@@ -538,6 +558,7 @@ export function SlideEditor({ initialSlides, deckSlug }: SlideEditorProps) {
         onShowLeftPanel={() => setShowLeftPanel(true)}
         onShowRightPanel={() => setShowRightPanel(true)}
         zoom={zoom}
+        fitPercent={fitPercent}
         onZoomChange={setZoom}
         lightTable={lightTable}
         onToggleLightTable={() => setLightTable(!lightTable)}
